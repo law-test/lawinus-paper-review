@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {footnoteTargets,targetAt,normalizedPoint,pageLayout,pageIndexAt,visiblePageRange,reflowScrollPosition,pendingPdfReflow,movedPointer,watchDocumentInterruption,measurableViewport} from '../src/pdf-viewer-model.ts';
+import {footnoteTargets,targetAt,normalizedPoint,pageLayout,pageIndexAt,visiblePageRange,reflowScrollPosition,pendingPdfReflow,movedPointer,watchDocumentInterruption,measurableViewport,pdfCanvasSize,pdfLoadError} from '../src/pdf-viewer-model.ts';
 
 // Actual fn-001 coordinates from the unchanged human-1021-1559 manifest.
 const first={id:'fn-001',number:1,clickTargets:[{page:20,rect:[117.16,390.416,124.53,398.69],kind:'body-marker'},{page:20,rect:[56.543,546.952,62.47,553.667],kind:'footnote-marker'}],noteHighlights:[{page:20,rect:[62.533,547.048,464.014,556.041],kind:'footnote-text'},{page:20,rect:[69.601,563.716,170.157,572.709],kind:'footnote-text'}]};
@@ -94,4 +94,26 @@ test('a hidden mobile pane cannot replace its last readable dimensions with zero
   assert.equal(retained,before,'hidden tab must retain its layout rather than shrink every page');
   const reopened=measurableViewport(844,390,24),after=pageLayout(279,reopened.width,1,{}),restored=reflowScrollPosition(retained,after,top);
   assert.equal(pageIndexAt(after.offsets,restored),119);assert.ok(Math.abs((restored-after.offsets[119])/after.heights[119]-.65)<1e-9);
+});
+
+test('mobile landscape zoom caps raster memory without changing document coordinates',()=>{
+  for(const [width,height,dpr] of [[366,518,3],[1640,2320,3],[3000,10000,2]]){
+    const raster=pdfCanvasSize(width,height,dpr,true);
+    assert.ok(raster.width*raster.height<=2_000_000);
+    assert.ok(raster.width<=4096&&raster.height<=4096);
+    assert.ok(raster.scale<=2&&raster.scale>0);
+    assert.ok(Math.abs(raster.width-width*raster.scale)<1);
+    assert.ok(Math.abs(raster.height-height*raster.scale)<1);
+  }
+  assert.deepEqual(pdfCanvasSize(366,518,2,true),{width:732,height:1036,scale:2},'normal phone fit remains sharp');
+  assert.ok(pdfCanvasSize(1640,2320,2,false).width*pdfCanvasSize(1640,2320,2,false).height<=4_000_000);
+  assert.deepEqual(pdfCanvasSize(NaN,0,Infinity),{width:1,height:1,scale:1});
+});
+
+test('PDF load failures offer a useful retry or native-view path without raw error contents',()=>{
+  assert.match(pdfLoadError({name:'PasswordException'}),/암호/);
+  assert.match(pdfLoadError({name:'MissingPDFException'}),/연결.*다시/);
+  assert.match(pdfLoadError({message:'Promise.withResolvers is not a function'}),/브라우저.*원문/);
+  assert.match(pdfLoadError(new Error('failed fetching confidential/path')),/다시 불러/);
+  assert.ok(!pdfLoadError(new Error('failed fetching confidential/path')).includes('confidential'));
 });

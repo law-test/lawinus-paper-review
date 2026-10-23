@@ -53,6 +53,24 @@ export function measurableViewport(width:number,height:number,paddingX=0):{width
   return {width:Math.max(160,width-(Number.isFinite(paddingX)?paddingX:0)),height};
 }
 
+// Limit raster allocation only. CSS size, PDF coordinates, and zoom stay intact.
+export function pdfCanvasSize(width:number,height:number,deviceRatio:number,compact=false){
+  const w=Math.max(1,Number.isFinite(width)?width:1),h=Math.max(1,Number.isFinite(height)?height:1);
+  const ratio=Number.isFinite(deviceRatio)&&deviceRatio>0?Math.min(deviceRatio,2):1;
+  const maxPixels=compact?2_000_000:4_000_000,maxDimension=4096;
+  const scale=Math.min(ratio,Math.sqrt(maxPixels/(w*h)),maxDimension/w,maxDimension/h);
+  return {width:Math.max(1,Math.floor(w*scale)),height:Math.max(1,Math.floor(h*scale)),scale};
+}
+
+export function pdfLoadError(error:unknown){
+  const item=error as {name?:string;message?:string};
+  if(item?.name==='PasswordException')return '암호가 필요한 PDF입니다. 원문을 새 창에서 열어 주세요.';
+  if(item?.name==='InvalidPDFException')return 'PDF 내용을 읽지 못했습니다. 다시 불러오거나 원문을 새 창에서 열어 주세요.';
+  if(item?.name==='MissingPDFException'||item?.name==='UnexpectedResponseException')return 'PDF 파일을 가져오지 못했습니다. 연결을 확인한 뒤 다시 불러와 주세요.';
+  if(/withResolvers|Promise\.try|not a function|Unexpected token|unsupported/i.test(item?.message||''))return '이 브라우저에서 PDF를 표시하지 못했습니다. 원문을 새 창에서 열거나 브라우저를 업데이트해 주세요.';
+  return 'PDF를 불러오지 못했습니다. 다시 불러오거나 원문을 새 창에서 열어 주세요.';
+}
+
 // Pointer-up is not guaranteed when the browser loses focus or leaves the page.
 // Keep a hand drag from resuming unexpectedly when the reader returns.
 export function watchDocumentInterruption(cancel:()=>void,win:EventTarget,doc:EventTarget&{hidden:boolean}){

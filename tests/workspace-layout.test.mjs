@@ -8,17 +8,19 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import * as paneLayout from '../src/four-pane-size.ts';
 import * as readingView from '../src/reading-view.ts';
+import * as mobileMenu from '../src/mobile-menu-swipe.ts';
 const require=createRequire(import.meta.url);
 const fixture={meta:{pageCount:279},pages:[],sources:[],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[],clickTargets:[],noteHighlights:[]}]};
 const emptyComponent={__esModule:true,default:()=>null};
 const source=readFileSync(new URL('../src/review-workspace.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
-function renderWorkspace(focus=false,mode='pdf'){
+function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
  let nullState=0;
  const module={exports:{}};
  const dependencies={
   './four-pane-size':paneLayout,
   './reading-view':readingView,
+  './mobile-menu-swipe':mobileMenu,
   './paragraph-catalog.json':{default:{paragraphs:[]}},
   './revision-proposals.json':{default:{items:[]}},
   './proposal-indicators':{buildProposalIndicators:()=>({})},
@@ -30,7 +32,7 @@ function renderWorkspace(focus=false,mode='pdf'){
   './text-size-control':{TextSizeControl:()=>null},
   './document-alignment':{useDocumentAlignment:()=>{}},
  };
- vm.runInNewContext(compiled,{module,exports:module.exports,window:{innerWidth:1701,localStorage:{getItem:()=>null}},require:id=>{
+ vm.runInNewContext(compiled,{module,exports:module.exports,window:{innerWidth:width,innerHeight:height,localStorage:{getItem:()=>null}},require:id=>{
   if(id==='react')return {...React,useState:initial=>React.useState(initial==='pdf'?mode:initial===readingView.DEFAULT_READING_VIEW?{...initial,focus}:initial===null&&++nullState===1?fixture:initial)};
   if(id in dependencies)return dependencies[id];
   if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:emptyComponent;
@@ -65,5 +67,14 @@ test('focus changes only the surrounding interface and preserves the chosen curr
   const pdf=renderWorkspace(focus,'pdf');
   assert.ok(pdf.includes('data-testid="original-pdf"'));
   assert.ok(!pdf.includes('data-testid="current-web-body"'));
+ }
+});
+test('short mobile layout removes surrounding chrome without selecting another manuscript or hiding navigation',()=>{
+ for(const mode of ['body','pdf']){
+  const html=renderWorkspace(false,mode,768,320);
+  assert.match(html,/metadata-open view-hide-header view-hide-tools view-hide-footnotes/);
+  assert.ok(!html.includes('metadata-open reading-focus'));
+  assert.ok(html.includes('class="mobile-navigation"'));
+  assert.ok(html.includes(mode==='body'?'data-testid="current-web-body"':'data-testid="original-pdf"'));
  }
 });

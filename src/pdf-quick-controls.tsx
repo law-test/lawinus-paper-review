@@ -28,7 +28,7 @@ export default function PdfQuickControls({id,label,page,total,zoom,hand,onPageCh
     setDraft(String(next));editing.current=false;onPageChange(next);
   }
   return <div className="pdf-quick-controls" ref={host} onKeyDown={event=>{if(open&&event.key==='Escape'){event.preventDefault();event.stopPropagation();close();}}}>
-    <button ref={trigger} className="pdf-quick-trigger" aria-expanded={open} aria-controls={panelId} aria-label={label+' 쪽 이동과 확대 도구'} onClick={()=>{if(open)close();else{setDraft(String(page));setOpen(true);}}}>{label} 도구 <span aria-hidden="true">{open?'⌄':'⌃'}</span></button>
+    <button ref={trigger} className="pdf-quick-trigger" aria-expanded={open} aria-controls={panelId} aria-label={label+' 쪽 이동과 확대 도구'} onClick={()=>{if(open)close();else{setDraft(String(page));setOpen(true);}}}><span className="pdf-quick-label-full">{label} 도구</span><span className="pdf-quick-label-short" aria-hidden="true">도구</span><span aria-hidden="true">{open?'⌄':'⌃'}</span></button>
     {open&&<div className="pdf-quick-panel" id={panelId} role="dialog" aria-label={label+' 보기 도구'}>
       <div className="pdf-quick-heading"><b>{label} 보기</b><button aria-label={label+' 도구 접기'} onClick={close}>접기</button></div>
       <form className="pdf-quick-page" onSubmit={navigate}>

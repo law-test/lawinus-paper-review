@@ -7,14 +7,15 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import * as readingView from '../src/reading-view.ts';
+import * as menuSwipe from '../src/mobile-menu-swipe.ts';
 const require=createRequire(import.meta.url);
 const source=readFileSync(new URL('../src/reading-controls.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
-function renderControl(view,menuOpen=false){
+function renderControl(view,menuOpen=false,mobile=false){
  const changed=[],panelChanges=[],widthChanges=[];
  const module={exports:{}};
- vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:initial=>[menuOpen||initial,()=>{}],useEffect:()=>{},useRef:()=>({current:null})}:id==='./reading-view'?readingView:require(id)});
- const tree=module.exports.default({view,onChange:v=>changed.push(v),sidebar:true,metadata:true,onSidebar:v=>panelChanges.push(v),onMetadata:v=>panelChanges.push(v),document:'source',onEqualWidth:()=>widthChanges.push('equal'),onDocument:()=>{throw Error('Reading view must not switch documents');}});
+ vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:initial=>[menuOpen||initial,()=>{}],useEffect:()=>{},useRef:initial=>({current:initial})}:id==='./reading-view'?readingView:id==='./mobile-menu-swipe'?menuSwipe:require(id)});
+ const tree=module.exports.default({view,onChange:v=>changed.push(v),sidebar:true,metadata:true,mobile,onSidebar:v=>panelChanges.push(v),onMetadata:v=>panelChanges.push(v),document:'source',onEqualWidth:()=>widthChanges.push('equal'),onDocument:()=>{throw Error('Reading view must not switch documents');}});
  const all=[];function walk(node){if(!node||typeof node!=='object')return;if(node.type==='button')all.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
  return {html:renderToStaticMarkup(tree),buttons:all,changed,panelChanges,widthChanges};
 }
@@ -57,4 +58,32 @@ test('equal width is an explicit menu action available with the other tools hidd
  assert.deepEqual(result.widthChanges,['equal']);
  assert.deepEqual(result.changed,[]);
  assert.deepEqual(result.panelChanges,[]);
+});
+
+function pointer(overrides={}){return {pointerId:1,isPrimary:true,pointerType:'touch',clientX:20,clientY:80,timeStamp:0,currentTarget:{setPointerCapture(){},hasPointerCapture(){return true;},releasePointerCapture(){}},...overrides};}
+test('mobile menu swipe collapses once and suppresses its synthetic click',()=>{
+ const view={...readingView.DEFAULT_READING_VIEW,tools:false};const result=renderControl(view,false,true),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
+ button.props.onPointerDown(pointer());button.props.onPointerMove(pointer({clientY:30,timeStamp:100}));button.props.onPointerUp(pointer({clientY:20,timeStamp:160}));
+ let prevented=false;button.props.onClick({detail:1,preventDefault(){prevented=true;}});
+ assert.equal(prevented,true);assert.deepEqual(result.changed,[{...view,focus:true}]);assert.deepEqual(result.panelChanges,[]);
+ assert.ok(result.html.includes('data-mobile-swipe="true"'));assert.ok(result.html.includes('mobile-swipe-hint'));
+});
+test('downward swipe restores the original preferences and does not switch document',()=>{
+ const normal={...readingView.DEFAULT_READING_VIEW,header:false,footnotes:false};const result=renderControl(readingView.withReadingFocus(normal,true),false,true),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
+ button.props.onPointerDown(pointer({clientY:20}));button.props.onPointerMove(pointer({clientY:65,timeStamp:80}));button.props.onPointerUp(pointer({clientY:65,timeStamp:130}));assert.deepEqual(result.changed,[normal]);
+});
+test('desktop mouse dragging, cancelled touch, and a second touch do not change menus',()=>{
+ for(const scenario of ['mouse','cancel','secondary']){
+  const result=renderControl(readingView.DEFAULT_READING_VIEW,false,scenario!=='mouse'),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
+  button.props.onPointerDown(pointer({pointerType:scenario==='mouse'?'mouse':'touch'}));
+  if(scenario==='cancel')button.props.onPointerCancel();
+  if(scenario==='secondary')button.props.onPointerDown(pointer({isPrimary:false,pointerId:2}));
+  button.props.onPointerUp(pointer({clientY:10,timeStamp:100}));assert.deepEqual(result.changed,[]);
+  if(scenario!=='mouse'){button.props.onClick({detail:1,preventDefault(){}});assert.deepEqual(result.changed,[]);}
+ }
+});
+test('a mouse on a narrow screen can use the dedicated menu gesture without changing documents',()=>{
+ const view={...readingView.DEFAULT_READING_VIEW};const result=renderControl(view,false,true),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
+ button.props.onPointerDown(pointer({pointerType:'mouse'}));button.props.onPointerMove(pointer({pointerType:'mouse',clientY:14,timeStamp:9000}));button.props.onPointerUp(pointer({pointerType:'mouse',clientY:14,timeStamp:9100}));
+ assert.deepEqual(result.changed,[{...view,focus:true}]);assert.deepEqual(result.panelChanges,[]);
 });

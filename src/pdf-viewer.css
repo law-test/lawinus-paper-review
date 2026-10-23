@@ -7,6 +7,7 @@
 .pdf-continuous-pages{position:relative;margin:0 auto;isolation:isolate;flex-shrink:0}.pdf-page-slot{position:absolute;left:0}.continuous-pdf-page{margin:0!important}
 .pdf-page-placeholder{height:100%;background:white;display:grid;place-items:center;color:#b8aca4;font-size:calc(12px * var(--review-font-scale,1.5))}.pdf-page-number{position:absolute;left:0;right:0;bottom:-21px;text-align:center;font-size:calc(9px * var(--review-font-scale,1.5));line-height:18px;color:#8e8379;pointer-events:none}
 .pdf-page-state{position:absolute;top:10px;left:12px;z-index:8;padding:4px 8px;background:#fffaf0dd;border:1px solid #ece4d5;color:#82766b;font-size:calc(10px * var(--review-font-scale,1.5));pointer-events:none}
+.pdf-page-state button{pointer-events:auto;margin-left:6px;min-height:36px;font:inherit}.pdf-error{position:sticky;top:0;z-index:10;background:#fffaf0;padding:12px;overflow-wrap:anywhere}.pdf-error button,.pdf-error a{display:inline-flex;align-items:center;min-height:44px;margin:4px 6px 0 0}
 .continuous-pdf.hand-mode,.continuous-pdf.hand-mode .textLayer :is(span,br){cursor:grab}.continuous-pdf.hand-mode.is-dragging,.continuous-pdf.hand-mode.is-dragging .textLayer :is(span,br){cursor:grabbing}
 .continuous-pdf.selection-mode .textLayer :is(span,br){cursor:text}.continuous-pdf-page.has-citation-hover,.continuous-pdf-page.has-citation-hover .textLayer :is(span,br){cursor:pointer}
 .continuous-pdf.placing .continuous-pdf-page,.continuous-pdf.placing .textLayer :is(span,br){cursor:crosshair}.continuous-pdf.placing .textLayer{pointer-events:none}

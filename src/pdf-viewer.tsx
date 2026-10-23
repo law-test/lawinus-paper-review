@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {assetUrl} from './review-api';
-import {measurableViewport,movedPointer,normalizedPoint,pendingPdfReflow,pageIndexAt,pageLayout,reflowScrollPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
+import {measurableViewport,movedPointer,normalizedPoint,pendingPdfReflow,pageIndexAt,pageLayout,pdfCanvasSize,pdfLoadError,reflowScrollPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
 import './pdf-viewer.css';
 import PdfQuickControls from './pdf-quick-controls';
 import {pageProposalMarkers,placeProposalMarkers,proposalLabel,type ProposalIndicator} from './proposal-indicators';
@@ -9,22 +9,52 @@ type Obj=Record<string,any>;
 type Pin={id:string;page:number|null;x:number|null;y:number|null;text:string;status:string;[key:string]:any};
 const NO_PAGE_SIZES:{page:number;width:number;height:number}[]=[];
 let pdfLibrary:Promise<any>|undefined;
+let pdfModuleAttempt=0;
 const localAsset=(path:string)=>new URL(path,document.baseURI).href;
-function pdfModule(){return pdfLibrary??=import(/* @vite-ignore */ localAsset('./vendor/pdfjs/pdf.mjs')).then(m=>{m.GlobalWorkerOptions.workerSrc=localAsset('./vendor/pdfjs/pdf.worker.mjs');return m;});}
+const PDF_RUNTIME='./vendor/pdfjs/legacy-6.4.299/';
+function pdfModule(){return pdfLibrary??=(async()=>{
+  const retry=pdfModuleAttempt?'?retry='+pdfModuleAttempt:'';
+  await import(/* @vite-ignore */ localAsset(PDF_RUNTIME+'pdf.compat.mjs'+retry));
+  const m=await import(/* @vite-ignore */ localAsset(PDF_RUNTIME+'pdf.mjs'+retry));
+  m.GlobalWorkerOptions.workerSrc=localAsset(PDF_RUNTIME+'pdf.worker.bootstrap.mjs');return m;
+})().catch(error=>{pdfLibrary=undefined;pdfModuleAttempt++;throw error;});}
 type Props={id:string;page:number;total:number;zoom?:number;onZoomChange?:(zoom:number)=>void;quickTools?:boolean;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void};
 
 function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,onPlace,placing,onSize,proposalIndicators,onProposal}:{doc:any;page:number;width:number;height:number;highlights:Obj[];targets:PdfTarget[];pins:Pin[];onTarget?:Props['onTarget'];onPin?:Props['onPin'];onPlace?:Props['onPlace'];placing:boolean;onSize:(page:number,size:PageSize)=>void;proposalIndicators:Record<string,ProposalIndicator>;onProposal?:Props['onProposal']}){
   const sheet=useRef<HTMLDivElement>(null),canvas=useRef<HTMLCanvasElement>(null),textLayer=useRef<HTMLDivElement>(null);
+  const canvasJob=useRef(0),renderSettled=useRef<Promise<unknown>>(Promise.resolve());
   const gesture=useRef<{x:number;y:number}|null>(null);
   const [dims,setDims]=useState<PageSize>({width:515,height:728}),[loading,setLoading]=useState(true),[error,setError]=useState('');
   const [hover,setHover]=useState<PdfTarget|null>(null),[focused,setFocused]=useState<string|null>(null);
   const [proposalHover,setProposalHover]=useState<string|null>(null);
+  const [retry,setRetry]=useState(0);
   const [labelScale,setLabelScale]=useState(1.5);
   useEffect(()=>{const read=()=>setLabelScale(Math.max(1,Math.min(2,Number(document.documentElement.dataset.textSize||150)/100)));read();const observer=new MutationObserver(read);observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-text-size']});return()=>observer.disconnect();},[]);
-  useEffect(()=>{let stopped=false,render:any,layer:any;setLoading(true);setError('');
-    (async()=>{try{const pg=await doc.getPage(page);if(stopped)return;const base=pg.getViewport({scale:1});const size={width:base.width,height:base.height};setDims(size);onSize(page,size);const scale=width/base.width,vp=pg.getViewport({scale}),dpr=Math.min(window.devicePixelRatio||1,2);const cv=canvas.current!,tl=textLayer.current!;cv.width=Math.round(vp.width*dpr);cv.height=Math.round(vp.height*dpr);cv.style.width=vp.width+'px';cv.style.height=vp.height+'px';tl.replaceChildren();tl.style.setProperty('--scale-factor',String(scale));tl.style.setProperty('--total-scale-factor',String(scale));tl.style.width=vp.width+'px';tl.style.height=vp.height+'px';render=pg.render({canvas:cv,canvasContext:cv.getContext('2d'),viewport:vp,transform:dpr!==1?[dpr,0,0,dpr,0,0]:undefined});await render.promise;if(stopped)return;const m=await pdfModule();layer=new m.TextLayer({textContentSource:await pg.getTextContent(),container:tl,viewport:vp});await layer.render();if(!stopped)setLoading(false);}catch(e:any){if(!stopped&&e?.name!=='RenderingCancelledException')setError('이 쪽을 불러오지 못했습니다.');}})();
-    return()=>{stopped=true;render?.cancel();layer?.cancel();};
-  },[doc,page,width,onSize]);
+  useEffect(()=>{
+    let stopped=false,render:any,layer:any,pageProxy:any;
+    const job=++canvasJob.current,cv=canvas.current!,tl=textLayer.current!;
+    setLoading(true);setError('');
+    (async()=>{try{
+      // A cancelled render must release this canvas before a resize reuses it.
+      await renderSettled.current.catch(()=>{});if(stopped)return;
+      const pg=pageProxy=await doc.getPage(page);if(stopped)return;
+      const base=pg.getViewport({scale:1}),size={width:base.width,height:base.height};setDims(size);onSize(page,size);
+      const scale=width/base.width,vp=pg.getViewport({scale});
+      const raster=pdfCanvasSize(vp.width,vp.height,window.devicePixelRatio||1,window.innerWidth<900||window.matchMedia('(pointer: coarse)').matches);
+      cv.width=raster.width;cv.height=raster.height;cv.style.width=vp.width+'px';cv.style.height=vp.height+'px';
+      const context=cv.getContext('2d');if(!context)throw new Error('Canvas allocation failed');
+      tl.replaceChildren();tl.style.setProperty('--scale-factor',String(scale));tl.style.setProperty('--total-scale-factor',String(scale));tl.style.width=vp.width+'px';tl.style.height=vp.height+'px';
+      render=pg.render({canvas:cv,canvasContext:context,viewport:vp,transform:raster.scale!==1?[raster.scale,0,0,raster.scale,0,0]:undefined});
+      renderSettled.current=render.promise;await render.promise;if(stopped)return;
+      setLoading(false);
+      try{const m=await pdfModule(),content=await pg.getTextContent();if(stopped)return;layer=new m.TextLayer({textContentSource:content,container:tl,viewport:vp});await layer.render();}
+      catch{if(!stopped)setError('문서는 표시되지만 글자 선택을 준비하지 못했습니다.');}
+    }catch(e:any){if(!stopped&&e?.name!=='RenderingCancelledException'){setLoading(false);setError('이 쪽을 불러오지 못했습니다.');}}})();
+    return()=>{
+      stopped=true;render?.cancel();layer?.cancel();
+      void renderSettled.current.catch(()=>{}).then(()=>{if(canvasJob.current===job){cv.width=0;cv.height=0;tl.replaceChildren();pageProxy?.cleanup();}});
+    };
+  },[doc,page,width,onSize,retry]);
   const rectStyle=(r:number[])=>({left:r[0]/dims.width*100+'%',top:r[1]/dims.height*100+'%',width:(r[2]-r[0])/dims.width*100+'%',height:(r[3]-r[1])/dims.height*100+'%'});
   function targetFromEvent(e:React.PointerEvent|React.MouseEvent){const box=sheet.current!.getBoundingClientRect(),p=normalizedPoint(e.clientX,e.clientY,box);return targetAt(targets,p.x*dims.width,p.y*dims.height);}
   const selectedNote=focused||hover?.noteId;
@@ -45,7 +75,7 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
       const target=targetFromEvent(e);if(target)openTarget(target);
     }}>
     <canvas ref={canvas}/><div className="textLayer" ref={textLayer}/>
-    {(loading||error)&&<div className="pdf-page-state" role="status">{error||`PDF ${page}쪽 불러오는 중…`}</div>}
+    {(loading||error)&&<div className="pdf-page-state" role="status">{error||`PDF ${page}쪽 불러오는 중…`}{error&&<button onClick={()=>setRetry(value=>value+1)}>다시 불러오기</button>}</div>}
     <div className="pdf-overlays">{highlights.map((h,i)=>h.kind==='cited-page'?<span key={i} className="pdf-cited-page" aria-label={`인용면 ${h.printed||page}`}/>:<span key={i} className="pdf-highlight" style={rectStyle(h.rect)}/>)}
       {!placing&&targets.filter(t=>t.noteId===selectedNote).map((t,i)=><span key={'link'+i} className="citation-hover-region" style={rectStyle(t.rect)}/>)}
       {targets.filter(t=>t.kind==='paragraph'&&proposalIndicators[t.noteId]).map((t,i)=><span key={'proposal'+i} className={'pdf-proposal-region proposal-'+proposalIndicators[t.noteId].tone} style={rectStyle(t.rect)}/>)}
@@ -61,7 +91,7 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
 export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=false,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',proposalIndicators={},onProposal}:Props){
   const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange);
   onPageRef.current=onPageChange;
-  const [loaded,setLoaded]=useState<{id:string;doc:any}|null>(null),[error,setError]=useState('');
+  const [loaded,setLoaded]=useState<{id:string;doc:any}|null>(null),[error,setError]=useState(''),[loadAttempt,setLoadAttempt]=useState(0),[renderable,setRenderable]=useState(false);
   const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(true),[dragging,setDragging]=useState(false),[showHighlights,setShowHighlights]=useState(true);
   const hidden=useRef(false),resumeScroll=useRef(false),savedScroll=useRef({top:0,left:0});
   const [appearance,setAppearance]=useState(0);
@@ -70,9 +100,9 @@ export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=fa
   useEffect(()=>watchDocumentInterruption(cancelDrag,window,document),[cancelDrag]);
   const doc=loaded?.id===id?loaded.doc:null;
   useEffect(()=>{let stopped=false,task:any;setError('');setLoaded(null);setMeasured({id,values:{}});
-    (async()=>{try{const m=await pdfModule();if(stopped)return;task=m.getDocument({url:assetUrl(id),cMapUrl:localAsset('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:localAsset('./vendor/pdfjs/standard_fonts/'),wasmUrl:localAsset('./vendor/pdfjs/wasm/')});const document=await task.promise;if(!stopped)setLoaded({id,doc:document});}catch{if(!stopped)setError('PDF를 불러오지 못했습니다. 원문을 새 창에서 열어 주세요.');}})();
+    (async()=>{try{const m=await pdfModule();if(stopped)return;task=m.getDocument({url:assetUrl(id),cMapUrl:localAsset('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:localAsset('./vendor/pdfjs/standard_fonts/'),wasmUrl:localAsset('./vendor/pdfjs/wasm/')});const document=await task.promise;if(!stopped)setLoaded({id,doc:document});}catch(e){if(!stopped)setError(pdfLoadError(e));}})();
     return()=>{stopped=true;void task?.destroy();};
-  },[id]);
+  },[id,loadAttempt]);
   const sizes=useMemo(()=>({...Object.fromEntries(pageSizes.map(s=>[s.page,{width:s.width,height:s.height}])),...(measured.id===id?measured.values:{})}),[pageSizes,measured,id]);
   const layout=useMemo(()=>pageLayout(doc?.numPages||total,viewport.width,zoom,sizes),[doc,total,viewport.width,zoom,sizes]);
   const previousLayout=useRef<{id:string;layout:typeof layout}|null>(null);
@@ -83,7 +113,7 @@ export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=fa
     const index=pageIndexAt(layoutRef.current.offsets,Math.max(0,el.scrollTop-18)+Math.min(el.clientHeight*.2,150));const current=index+1;
     if(current!==reported.current){reported.current=current;onPageRef.current(current);}
   },[]);
-  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{const size=viewportSize(el);if(!size){hidden.current=true;cancelDrag();cancelAnimationFrame(frame.current);return;}if(hidden.current){hidden.current=false;resumeScroll.current=true;setAppearance(value=>value+1);}if(Math.abs(size.width-renderedWidth.current)>.5)cancelAnimationFrame(frame.current);setViewport(v=>v.width===size.width&&v.height===size.height?v:{...v,...size});});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[cancelDrag]);
+  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{const size=viewportSize(el);if(!size){hidden.current=true;setRenderable(false);cancelDrag();cancelAnimationFrame(frame.current);return;}setRenderable(true);if(hidden.current){hidden.current=false;resumeScroll.current=true;setAppearance(value=>value+1);}if(Math.abs(size.width-renderedWidth.current)>.5)cancelAnimationFrame(frame.current);setViewport(v=>v.width===size.width&&v.height===size.height?v:{...v,...size});});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[cancelDrag]);
   useLayoutEffect(()=>{const el=host.current;if(!el)return;if(!viewportSize(el)){hidden.current=true;return;}if(hidden.current){hidden.current=false;resumeScroll.current=true;}const previous=previousLayout.current,returning=resumeScroll.current,reflowing=previous?.id===id&&previous.layout!==layout,readingTop=returning||reflowing?savedScroll.current.top:el.scrollTop;let top:number|undefined;
     if(!previous||previous.id!==id||page!==reported.current){const index=Math.min(layout.heights.length-1,Math.max(0,page-1));top=layout.offsets[index];reported.current=index+1;}
     else if(previous.layout!==layout){top=reflowScrollPosition(previous.layout,layout,readingTop-18);}
@@ -91,7 +121,7 @@ export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=fa
     previousLayout.current={id,layout};resumeScroll.current=false;if(top!==undefined){el.scrollTop=top+18;if(returning)el.scrollLeft=savedScroll.current.left;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>({...v,top:el.scrollTop}));cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}
   },[page,id,layout,appearance,updateViewport]);
   const onSize=useCallback((p:number,size:PageSize)=>setMeasured(previous=>{const values=previous.id===id?previous.values:{};const old=values[p];return old&&Math.abs(old.width-size.width)<.01&&Math.abs(old.height-size.height)<.01?previous:{id,values:{...values,[p]:size}};}),[id]);
-  const visible=visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1);
+  const visible=renderable?visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1):[];
   const currentProposals=pageProposalMarkers(targets.filter(t=>t.page===page),proposalIndicators);
   function finishDrag(e:React.PointerEvent){if(drag.current?.pointerId===e.pointerId)cancelDrag();}
   return <div className="pdf-reader" aria-label={label}>
@@ -104,7 +134,7 @@ export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=fa
       onPointerMove={e=>{const d=drag.current;if(!d||d.pointerId!==e.pointerId)return;if(!d.moved&&movedPointer(d,e.clientX,e.clientY)){d.moved=true;e.currentTarget.setPointerCapture(e.pointerId);setDragging(true);}if(d.moved){e.currentTarget.scrollTop=d.top-(e.clientY-d.y);e.currentTarget.scrollLeft=d.left-(e.clientX-d.x);}}}
       onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}
       onClickCapture={e=>{if(e.detail>0&&performance.now()<suppressClickUntil.current){e.preventDefault();e.stopPropagation();}}}>
-      {error&&<div className="pdf-error" role="alert">{error} <a href={assetUrl(id)} target="_blank" rel="noreferrer">원문 열기 ↗</a></div>}
+      {error&&<div className="pdf-error" role="alert">{error} <button onClick={()=>setLoadAttempt(value=>value+1)}>다시 불러오기</button> <a href={assetUrl(id)} target="_blank" rel="noreferrer">원문 열기 ↗</a></div>}
       {!doc&&!error&&<div className="pdf-status" role="status">문서를 불러오는 중…</div>}
       <div className="pdf-continuous-pages" style={{width:layout.width,height:layout.totalHeight}}>
         {visible.map(p=><div key={id+'-'+p} className="pdf-page-slot" style={{top:layout.offsets[p-1],width:layout.width,height:layout.heights[p-1]}} data-slot-page={p}>

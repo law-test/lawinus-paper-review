@@ -30,6 +30,20 @@ test('quick controls stay closed and do not use document height until requested'
  assert.deepEqual(h.pageCalls,[]);assert.deepEqual(h.zoomCalls,[]);
 });
 
+test('small-screen visible label is short while its accessible document name stays specific',()=>{
+ const h=harness();
+ for(const label of ['박사논문','참고문헌']){
+  const current=h.render({label}),button=current.all.find(n=>n.props?.className==='pdf-quick-trigger');
+  assert.equal(button.props['aria-label'],label+' 쪽 이동과 확대 도구');
+  assert.equal(current.all.find(n=>n.props?.className==='pdf-quick-label-short').props.children,'도구');
+  assert.equal(current.all.find(n=>n.props?.className==='pdf-quick-label-short').props['aria-hidden'],'true');
+ }
+ const css=readFileSync(new URL('../src/pdf-quick-controls.css',import.meta.url),'utf8');
+ assert.ok(css.includes('.pdf-quick-label-short{display:none}'));
+ assert.ok(css.includes('@media(max-width:480px){.pdf-quick-label-full{display:none}.pdf-quick-label-short{display:inline}}'));
+ assert.deepEqual(h.pageCalls,[]);assert.deepEqual(h.zoomCalls,[]);
+});
+
 test('page entry survives a continuous-scroll page update and submits only explicitly',()=>{
  const h=harness();h.render().all.find(n=>n.props?.className==='pdf-quick-trigger').props.onClick();
  let current=h.render(),input=current.all.find(n=>n.type==='input');input.props.onFocus();input.props.onChange({target:{value:'123'}});
@@ -62,6 +76,6 @@ test('compact controls preserve font scaling, touch targets, and overlay-only la
  assert.ok(css.includes('var(--review-font-scale,1.5)'));assert.ok(css.includes('min-height:44px'));
  assert.ok(css.includes('position:absolute;inset:0'));assert.ok(css.includes('max-width:calc(100% - 16px)'));
  const workspace=readFileSync(new URL('../src/review-workspace.tsx',import.meta.url),'utf8');
- assert.equal((workspace.match(/quickTools=\{!visibleSurfaces.tools\}/g)||[]).length,2);
+ assert.equal((workspace.match(/quickTools=\{compact\|\|!visibleSurfaces.tools\}/g)||[]).length,2);
  assert.ok(!workspace.includes('readingSplit'));assert.ok(!workspace.includes('readingFocus='));
 });
