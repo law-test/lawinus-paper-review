@@ -56,7 +56,7 @@ test('deleted passages and footnotes disappear without inserting deletion instru
 });
 test('web manuscript keeps its zoom factor at both desktop and mobile text sizes',()=>{
  const css=readFileSync(new URL('../src/web-manuscript.css',import.meta.url),'utf8');
- assert.match(css,/font-size:calc\(var\(--manuscript-base-size,18px\) \* var\(--manuscript-zoom,1\)\)/);
+ assert.match(css,/font-size:calc\(var\(--manuscript-base-size,18px\) \* var\(--manuscript-zoom,1\) \* var\(--review-font-scale,1.5\)\)/);
  assert.match(css,/@media\(max-width:700px\).*--manuscript-base-size:16px/);
  assert.doesNotMatch(css,/font-size:[^;}]*!important/);
  for(const zoom of [.7,1,1.6,2]){

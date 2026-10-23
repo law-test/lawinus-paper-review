@@ -8,15 +8,24 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 
 const require=createRequire(import.meta.url);
+const copySource=readFileSync(new URL('../src/revision-copy.tsx',import.meta.url),'utf8');
+const copyModule={exports:{}};
+vm.runInNewContext(ts.transpileModule(copySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,{module:copyModule,exports:copyModule.exports,require:id=>id.endsWith('.css')?{}:require(id)});
+const compositeModule={exports:{}};
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../src/revision-composite.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:compositeModule,exports:compositeModule.exports});
+const {formatRevisionComparison:formatComparison,parseRevisionComparison:parseComparison}=compositeModule.exports;
 const source=readFileSync(new URL('../src/shared-edit-editor.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 const module={exports:{}};
 vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>{
  if(id.endsWith('.css'))return {};
  if(id==='./shared-edits')return {};
+ if(id==='./revision-copy')return copyModule.exports;
+ if(id==='./revision-composite')return compositeModule.exports;
  return require(id);
 }});
 const {initialSharedEditorState:init,sharedEditorReducer:reduce,readSharedEditorDraft:readDraft,writeSharedEditorDraft:writeDraft,sharedDraftKey,SharedEditEditor}=module.exports;
+function boxParts(html){const match=html.match(/<textarea[^>]+class="shared-edit-body shared-edit-comparison"[^>]*>([\s\S]*?)<\/textarea>/);assert.ok(match);const result=parseComparison(match[1]);assert.equal(result.ok,true);return result.parts;}
 const edit=(revision,text)=>({id:String(revision),kind:'paragraph',targetId:'P0001',revision,text});
 function memoryStorage(){const values=new Map();return {getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};}
 
@@ -66,8 +75,8 @@ test('the initial accessible editor preserves deleted text and offers an empty s
  }));
  assert.match(html,/수정할 문안/);assert.match(html,/Before 넣기/);assert.match(html,/삭제안 넣기/);
  assert.match(html,/본문 수정하기/);assert.match(html,/변경 이력 보기/);
- assert.doesNotMatch(html,/되살아나면 안 되는 원문/);
- assert.match(html,/<textarea[^>]+class="shared-edit-body"[^>]*><\/textarea>/);
+ assert.match(html,/되살아나면 안 되는 원문/);
+ assert.equal(boxParts(html).after,'');
 });
 
 test('unsupported layout or compound changes cannot inject displayed After instructions',()=>{
@@ -76,12 +85,12 @@ test('unsupported layout or compound changes cannot inject displayed After instr
  }));
  assert.match(html,/여러 문단과 각주를 함께 편집해야 합니다/);
  assert.doesNotMatch(html,/After 넣기|삭제안 넣기/);
- assert.match(html,/>원래 본문<\/textarea>/);
+ assert.equal(boxParts(html).after,'원래 본문');
  const safe=renderToStaticMarkup(React.createElement(SharedEditEditor,{
   kind:'footnote',targetId:'fn-001',originalText:'원래 각주',proposalApplyText:'수정된 각주',current:undefined,onSaved:()=>{},
  }));
  assert.match(safe,/After 넣기/);
- assert.match(safe,/>원래 각주<\/textarea>/);
+ assert.equal(boxParts(safe).after,'수정된 각주');
 });
 
 test('switching paragraphs and footnotes preserves separate drafts and their conflict baselines',()=>{
@@ -112,4 +121,81 @@ test('storage failures and malformed drafts leave the authoritative initial text
  assert.equal(readDraft(bad,'paragraph','P0001','원문').failed,true);
  const store=memoryStorage();store.setItem(sharedDraftKey('paragraph','P0001'),'{bad json');
  const result=readDraft(store,'paragraph','P0001','원문');assert.equal(result.state.draft,'원문');assert.equal(result.recovered,false);
+});
+
+test('After copy preserves display instructions while unsupported proposals remain non-applicable',()=>{
+ const html=renderToStaticMarkup(React.createElement(SharedEditEditor,{
+  kind:'footnote',targetId:'fn-001',originalText:'원래 각주',proposalDisplayText:'새 각주를 추가하고 본문을 함께 고친다.',proposalReason:'새 각주가 필요하다.',proposalUnsupportedReason:'본문과 새 각주를 함께 편집해야 합니다.',current:undefined,onSaved:()=>{},
+ }));
+ assert.match(html,/Before 복사/);assert.match(html,/After 복사/);
+ assert.match(html,/새 각주를 추가하고 본문을 함께 고친다/);assert.match(html,/새 각주가 필요하다/);
+ assert.doesNotMatch(html,/After 넣기|삭제안 넣기/);
+ assert.equal(boxParts(html).after,'새 각주를 추가하고 본문을 함께 고친다.');
+ assert.match(html,/원문으로 직접 편집 시작/);
+});
+
+test('a safe After offers copy and load without replacing an existing saved edit on opening',()=>{
+ const html=renderToStaticMarkup(React.createElement(SharedEditEditor,{
+  kind:'paragraph',targetId:'P0001',originalText:'원문',proposalDisplayText:'최신 수정제안 〔각주 9〕',proposalApplyText:'최신 수정제안 [^7]',current:edit(4,'방문자가 저장한 문안'),onSaved:()=>{},
+ }));
+ assert.match(html,/After 복사/);assert.match(html,/After 넣기/);
+ assert.equal(boxParts(html).after,'방문자가 저장한 문안');
+ assert.doesNotMatch(html,/>최신 수정제안 \[\^7\]<\/textarea>/);
+});
+
+test('copying uses the exact requested display text and propagates failure instead of reporting success',async()=>{
+ const writes=[];const clipboard={writeText:async text=>{writes.push(text);}};
+ const after='(삭제)\n〔각주 9〕';
+ await copyModule.exports.copyRevisionText(after,clipboard);
+ assert.deepEqual(writes,[after]);
+ await assert.rejects(copyModule.exports.copyRevisionText(after,undefined));
+ await assert.rejects(copyModule.exports.copyRevisionText(after,{writeText:async()=>{throw new Error('blocked');}}));
+ assert.deepEqual(writes,[after]);
+});
+
+
+test('one editable textarea contains Before After and reason while manual instructions remain locked',()=>{
+ const html=renderToStaticMarkup(React.createElement(SharedEditEditor,{
+  kind:'paragraph',targetId:'P0001',originalText:'저장 대상 원문 행',proposalBeforeText:'표 전체 원문\n저장 대상 원문 행',proposalDisplayText:'표를 부록으로 이동한다.',proposalReason:'본문의 논증과 조문안을 구별한다.',proposalUnsupportedReason:'조판 위치를 수동으로 옮깁니다.',current:undefined,onSaved:()=>{},
+ }));
+ const parts=boxParts(html);
+ assert.equal(parts.before,'표 전체 원문\n저장 대상 원문 행');assert.equal(parts.after,'표를 부록으로 이동한다.');assert.equal(parts.reason,'본문의 논증과 조문안을 구별한다.');
+ assert.equal((html.match(/class="shared-edit-body shared-edit-comparison"/g)||[]).length,1);
+ assert.doesNotMatch(html,/After 넣기|삭제안 넣기/);
+ assert.match(html,/<button[^>]*disabled=""[^>]*>본문 수정하기<\/button>/);
+});
+
+test('strict comparison parsing preserves multiline After and rejects missing duplicated or reordered headers',()=>{
+ const parts={before:'원문 Before\n---\n다음 행',after:'수정안\n\n[^7]',reason:'근거를 보완한다.'};
+ const text=formatComparison(parts);const parsed=parseComparison(text);assert.equal(parsed.ok,true);assert.equal(JSON.stringify(parsed.parts),JSON.stringify(parts));
+ for(const bad of [text.replace('【After】','After'),text+'\n【After】\n추가',text.replace('---\n【After】','【After】'),text.replace('【Before】','【상세이유】'),text.replace('【After】','【상세이유】')])assert.equal(parseComparison(bad).ok,false);
+ assert.equal(parseComparison(formatComparison({...parts,after:''})).parts.after,'');
+ assert.equal(parseComparison(text.replaceAll('\n','\r\n')).parts.after,parts.after);
+});
+
+test('comparison editing updates only parsed After while invalid envelopes preserve draft and block their parse',()=>{
+ let state={...init('원문'),comparison:formatComparison({before:'원문',after:'원문',reason:'이유'})};
+ state=reduce(state,{type:'comparison',value:formatComparison({before:'Before를 고침',after:'원문',reason:'이유를 고침'})});
+ assert.equal(state.draft,state.baseText);
+ state=reduce(state,{type:'comparison',value:formatComparison({before:'Before를 고침',after:'새 문안',reason:'이유를 고침'})});
+ assert.equal(state.draft,'새 문안');
+ const broken=state.comparison.replace('【After】','깨진 표지');state=reduce(state,{type:'comparison',value:broken});
+ assert.equal(state.draft,'새 문안');assert.equal(parseComparison(state.comparison).ok,false);
+ const store=memoryStorage();writeDraft(store,'paragraph','P0001','원문',state);assert.equal(readDraft(store,'paragraph','P0001','원문').state.comparison,broken);
+ state=reduce(state,{type:'incoming',revision:1,text:'다른 사람 문안'});assert.equal(state.comparison,broken);assert.equal(state.conflict,true);
+});
+
+test('saved and restored raw server text replace only After and keep comparison headings out of the payload',()=>{
+ let state={...init('원문'),comparison:formatComparison({before:'원문',after:'초안',reason:'상세이유'}),draft:'초안',comparisonEdited:true};
+ state=reduce(state,{type:'saved',edit:edit(2,'저장된 문안')});assert.equal(state.draft,'저장된 문안');assert.equal(parseComparison(state.comparison).parts.after,'저장된 문안');assert.equal(state.comparisonEdited,false);
+ state=reduce(state,{type:'incoming',revision:3,text:'외부 수정'});assert.equal(parseComparison(state.comparison).parts.after,'외부 수정');
+ assert.match(source,/text:parsedComparison\.parts\.after,expectedRevision/);assert.match(source,/\|\|saveBlocked\|\|!parsedComparison\.ok/);
+});
+
+
+test('explicit restoration repairs a malformed comparison around the returned server text',()=>{
+ const broken={...init('원문'),comparison:'깨진 표지와 이전 초안',draft:'이전 초안',comparisonEdited:true};
+ const repaired=formatComparison({before:'원문',after:'복원된 서버 문안',reason:'지시서 이유'});
+ const state=reduce(broken,{type:'saved',edit:edit(3,'복원된 서버 문안'),comparison:repaired});
+ assert.equal(parseComparison(state.comparison).parts.after,state.draft);assert.equal(state.draft,'복원된 서버 문안');assert.equal(state.comparisonEdited,false);
 });

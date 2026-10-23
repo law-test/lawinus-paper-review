@@ -2,7 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import ReviewWorkspace from './review-workspace';
 import {loadReviewConfig} from './review-api';
+import {applyTextSize, readTextSize} from './text-size';
 import './globals.css';
+import './text-size-control.css';
 
 function App() {
   const [state, setState] = useState<'loading'|'ready'|'setup'>('loading');
@@ -27,4 +29,5 @@ function App() {
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('화면을 표시할 영역이 없습니다.');
+applyTextSize(readTextSize(), false);
 createRoot(rootElement).render(<App/>);

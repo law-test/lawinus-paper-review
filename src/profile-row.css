@@ -5,4 +5,4 @@
 .profile-row .profile-project-link b{color:#8b0029;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 .profile-row .profile-project-link:hover{background:#f9f1f3;border-color:#b88998}
 .profile-row .profile-project-link:focus-visible{outline:2px solid #8b0029;outline-offset:3px}
-.profile-row .project-link-arrow{flex:0 0 auto;color:#8b0029;font-size:18px}
+.profile-row .project-link-arrow{flex:0 0 auto;color:#8b0029;font-size:calc(18px * var(--review-font-scale,1.5))}
