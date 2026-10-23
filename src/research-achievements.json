@@ -1,0 +1,118 @@
+[
+  {
+    "title": "학술논문",
+    "items": [
+      {
+        "title": "채권추심인의 권한과 법률효과의 귀속",
+        "publication": "고려법학",
+        "authors": "박상영·김민규",
+        "url": "./research/paper-859678c30e8d.pdf"
+      },
+      {
+        "title": "개인파산에서 파산선고 후 성립한 납부지연가산세의 절차상 지위와 면책",
+        "publication": "법학논총(숭실대학교)",
+        "authors": "김민규·박병재",
+        "url": "./research/paper-c94c51923460.pdf"
+      },
+      {
+        "title": "개정 상법 제382조의3의 공평대우의무의 해석론",
+        "publication": "기업법연구",
+        "authors": "김민규·전우정",
+        "url": "./research/paper-c449ee43e181.pdf"
+      },
+      {
+        "title": "대규모유통업법 제11조의 판매촉진비용 규정에 관한 해석과 개정안",
+        "publication": "일감법학",
+        "authors": "이승관·김민규",
+        "url": "./research/paper-b66a83c78703.pdf"
+      },
+      {
+        "title": "민간 AI ‘헌법’의 행동 구현에 대한 공법적 통제",
+        "publication": "중앙법학",
+        "authors": "김민규·박상영·남한결",
+        "url": "./research/paper-6fee25517f9a.pdf"
+      },
+      {
+        "title": "비법인사단의 법인전환과 취득세 과세요건",
+        "publication": "법제연구",
+        "authors": "박상영·김민규",
+        "url": "./research/paper-0fc720d432a5.pdf"
+      },
+      {
+        "title": "성폭력처벌법 제13조의 ‘그 밖의 통신매체’ 해석과 가벌성 확장",
+        "publication": "법학논고",
+        "authors": "박상영·김민규",
+        "url": "./research/paper-8a92a6b10c01.pdf"
+      },
+      {
+        "title": "재량적 과징금 산정지원의 자동화와 행정법적 통제",
+        "publication": "법제",
+        "authors": "김민규·박상영",
+        "url": "./research/paper-c2474fe37678.pdf"
+      },
+      {
+        "title": "재판소원이 제기된 확정판결의 효력에 관한 시론",
+        "publication": "법학연구(연세대학교)",
+        "authors": "김민규·박상영",
+        "url": "./research/paper-77c4e792cb90.pdf"
+      },
+      {
+        "title": "직업규제 영역의 인공지능 기능대체와 고위험성 판단기준",
+        "publication": "법조",
+        "authors": "김민규",
+        "url": "./research/paper-7f37cc885e23.pdf"
+      },
+      {
+        "title": "특수법인 설립등기의 이원적 효력과 등기청구권",
+        "publication": "일감부동산법학",
+        "authors": "김민규",
+        "url": "./research/paper-ea5c8240dcc4.pdf"
+      },
+      {
+        "title": "AI는 왜 믿음을 얻는가",
+        "publication": "동아법학",
+        "authors": "김민규",
+        "url": "./research/paper-f4a1876095f4.pdf"
+      }
+    ]
+  },
+  {
+    "title": "저서",
+    "items": [
+      {
+        "title": "회생위원이 감수한 알기 쉬운 개인회생·파산",
+        "publication": "비피기술거래",
+        "authors": "김민규·김미현",
+        "role": "공저",
+        "url": "https://www.yes24.com/product/goods/91326670"
+      }
+    ]
+  },
+  {
+    "title": "매뉴얼",
+    "items": [
+      {
+        "title": "전세피해 법률지원 매뉴얼 — 주요 질의·답변 사례",
+        "publication": "대한변호사협회",
+        "role": "공동집필",
+        "url": "https://www.koreanbar.or.kr/pages/common/fileDown.asp?types=1&seq=12944"
+      }
+    ]
+  },
+  {
+    "title": "연구용역",
+    "items": [
+      {
+        "title": "효율적이고 충실한 국선변호를 위한 국선변호인 보수 지급체계 개선방안",
+        "publication": "법원행정처",
+        "role": "공동연구자",
+        "url": "https://www.scourt.go.kr/portal/policy_service/manage/ManageViewAction.work?gubun=1&pageIndex=1&searchOption=&searchWord=&seqnum=331"
+      },
+      {
+        "title": "공정한 수임 질서 확립과 적정 보수 산정을 위한 사례 조사에 관한 연구",
+        "publication": "서울지방변호사회",
+        "role": "공동연구"
+      }
+    ]
+  }
+]

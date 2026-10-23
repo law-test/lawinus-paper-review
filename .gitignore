@@ -12,3 +12,17 @@ public/config.json
 *.hwp
 *.hwpx
 
+
+!public/books/korea-standard-cases-grade5-v033.pdf
+!public/research/paper-859678c30e8d.pdf
+!public/research/paper-c94c51923460.pdf
+!public/research/paper-c449ee43e181.pdf
+!public/research/paper-b66a83c78703.pdf
+!public/research/paper-6fee25517f9a.pdf
+!public/research/paper-0fc720d432a5.pdf
+!public/research/paper-8a92a6b10c01.pdf
+!public/research/paper-c2474fe37678.pdf
+!public/research/paper-77c4e792cb90.pdf
+!public/research/paper-7f37cc885e23.pdf
+!public/research/paper-ea5c8240dcc4.pdf
+!public/research/paper-f4a1876095f4.pdf
