@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {assetUrl} from './review-api';
-import {measurableViewport,movedPointer,normalizedPoint,pendingPdfReflow,pageIndexAt,pageLayout,pdfCanvasSize,pdfLoadError,reflowScrollPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
+import {createPdfRuntimeCache,measurableViewport,movedPointer,normalizedPoint,pendingPdfReflow,pageIndexAt,pageLayout,pdfCanvasSize,pdfLoadError,reflowScrollPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
 import './pdf-viewer.css';
 import PdfQuickControls from './pdf-quick-controls';
 import {pageProposalMarkers,placeProposalMarkers,proposalLabel,type ProposalIndicator} from './proposal-indicators';
@@ -8,19 +8,18 @@ import './proposal-indicators.css';
 type Obj=Record<string,any>;
 type Pin={id:string;page:number|null;x:number|null;y:number|null;text:string;status:string;[key:string]:any};
 const NO_PAGE_SIZES:{page:number;width:number;height:number}[]=[];
-let pdfLibrary:Promise<any>|undefined;
-let pdfModuleAttempt=0;
 const localAsset=(path:string)=>new URL(path,document.baseURI).href;
 const PDF_RUNTIME='./vendor/pdfjs/legacy-6.4.299/';
-function pdfModule(){return pdfLibrary??=(async()=>{
-  const retry=pdfModuleAttempt?'?retry='+pdfModuleAttempt:'';
+const pdfRuntime=createPdfRuntimeCache(async attempt=>{
+  const retry=attempt?'?retry='+attempt:'';
   await import(/* @vite-ignore */ localAsset(PDF_RUNTIME+'pdf.compat.mjs'+retry));
   const m=await import(/* @vite-ignore */ localAsset(PDF_RUNTIME+'pdf.mjs'+retry));
-  m.GlobalWorkerOptions.workerSrc=localAsset(PDF_RUNTIME+'pdf.worker.bootstrap.mjs');return m;
-})().catch(error=>{pdfLibrary=undefined;pdfModuleAttempt++;throw error;});}
+  m.GlobalWorkerOptions.workerSrc=localAsset(PDF_RUNTIME+'pdf.worker.bootstrap.mjs'+retry);return m;
+});
+const pdfModule=()=>pdfRuntime.get();
 type Props={id:string;page:number;total:number;zoom?:number;onZoomChange?:(zoom:number)=>void;quickTools?:boolean;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void};
 
-function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,onPlace,placing,onSize,proposalIndicators,onProposal}:{doc:any;page:number;width:number;height:number;highlights:Obj[];targets:PdfTarget[];pins:Pin[];onTarget?:Props['onTarget'];onPin?:Props['onPin'];onPlace?:Props['onPlace'];placing:boolean;onSize:(page:number,size:PageSize)=>void;proposalIndicators:Record<string,ProposalIndicator>;onProposal?:Props['onProposal']}){
+function PdfPage({doc,runtime,page,width,height,highlights,targets,pins,onTarget,onPin,onPlace,placing,onSize,proposalIndicators,onProposal}:{doc:any;runtime:any;page:number;width:number;height:number;highlights:Obj[];targets:PdfTarget[];pins:Pin[];onTarget?:Props['onTarget'];onPin?:Props['onPin'];onPlace?:Props['onPlace'];placing:boolean;onSize:(page:number,size:PageSize)=>void;proposalIndicators:Record<string,ProposalIndicator>;onProposal?:Props['onProposal']}){
   const sheet=useRef<HTMLDivElement>(null),canvas=useRef<HTMLCanvasElement>(null),textLayer=useRef<HTMLDivElement>(null);
   const canvasJob=useRef(0),renderSettled=useRef<Promise<unknown>>(Promise.resolve());
   const gesture=useRef<{x:number;y:number}|null>(null);
@@ -47,14 +46,14 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
       render=pg.render({canvas:cv,canvasContext:context,viewport:vp,transform:raster.scale!==1?[raster.scale,0,0,raster.scale,0,0]:undefined});
       renderSettled.current=render.promise;await render.promise;if(stopped)return;
       setLoading(false);
-      try{const m=await pdfModule(),content=await pg.getTextContent();if(stopped)return;layer=new m.TextLayer({textContentSource:content,container:tl,viewport:vp});await layer.render();}
+      try{const content=await pg.getTextContent();if(stopped)return;layer=new runtime.TextLayer({textContentSource:content,container:tl,viewport:vp});await layer.render();}
       catch{if(!stopped)setError('문서는 표시되지만 글자 선택을 준비하지 못했습니다.');}
     }catch(e:any){if(!stopped&&e?.name!=='RenderingCancelledException'){setLoading(false);setError('이 쪽을 불러오지 못했습니다.');}}})();
     return()=>{
       stopped=true;render?.cancel();layer?.cancel();
       void renderSettled.current.catch(()=>{}).then(()=>{if(canvasJob.current===job){cv.width=0;cv.height=0;tl.replaceChildren();pageProxy?.cleanup();}});
     };
-  },[doc,page,width,onSize,retry]);
+  },[doc,runtime,page,width,onSize,retry]);
   const rectStyle=(r:number[])=>({left:r[0]/dims.width*100+'%',top:r[1]/dims.height*100+'%',width:(r[2]-r[0])/dims.width*100+'%',height:(r[3]-r[1])/dims.height*100+'%'});
   function targetFromEvent(e:React.PointerEvent|React.MouseEvent){const box=sheet.current!.getBoundingClientRect(),p=normalizedPoint(e.clientX,e.clientY,box);return targetAt(targets,p.x*dims.width,p.y*dims.height);}
   const selectedNote=focused||hover?.noteId;
@@ -91,7 +90,7 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
 export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=false,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',proposalIndicators={},onProposal}:Props){
   const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange);
   onPageRef.current=onPageChange;
-  const [loaded,setLoaded]=useState<{id:string;doc:any}|null>(null),[error,setError]=useState(''),[loadAttempt,setLoadAttempt]=useState(0),[renderable,setRenderable]=useState(false);
+  const [loaded,setLoaded]=useState<{id:string;doc:any;runtime:any}|null>(null),[error,setError]=useState(''),[loadAttempt,setLoadAttempt]=useState(0),[renderable,setRenderable]=useState(false);
   const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(true),[dragging,setDragging]=useState(false),[showHighlights,setShowHighlights]=useState(true);
   const hidden=useRef(false),resumeScroll=useRef(false),savedScroll=useRef({top:0,left:0});
   const [appearance,setAppearance]=useState(0);
@@ -100,7 +99,7 @@ export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=fa
   useEffect(()=>watchDocumentInterruption(cancelDrag,window,document),[cancelDrag]);
   const doc=loaded?.id===id?loaded.doc:null;
   useEffect(()=>{let stopped=false,task:any;setError('');setLoaded(null);setMeasured({id,values:{}});
-    (async()=>{try{const m=await pdfModule();if(stopped)return;task=m.getDocument({url:assetUrl(id),cMapUrl:localAsset('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:localAsset('./vendor/pdfjs/standard_fonts/'),wasmUrl:localAsset('./vendor/pdfjs/wasm/')});const document=await task.promise;if(!stopped)setLoaded({id,doc:document});}catch(e){if(!stopped)setError(pdfLoadError(e));}})();
+    (async()=>{try{const m=await pdfModule();if(stopped)return;task=m.getDocument({url:assetUrl(id),cMapUrl:localAsset('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:localAsset('./vendor/pdfjs/standard_fonts/'),wasmUrl:localAsset('./vendor/pdfjs/wasm/')});const document=await task.promise;if(!stopped)setLoaded({id,doc:document,runtime:m});}catch(e){if(!stopped)setError(pdfLoadError(e));}})();
     return()=>{stopped=true;void task?.destroy();};
   },[id,loadAttempt]);
   const sizes=useMemo(()=>({...Object.fromEntries(pageSizes.map(s=>[s.page,{width:s.width,height:s.height}])),...(measured.id===id?measured.values:{})}),[pageSizes,measured,id]);
@@ -134,11 +133,11 @@ export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=fa
       onPointerMove={e=>{const d=drag.current;if(!d||d.pointerId!==e.pointerId)return;if(!d.moved&&movedPointer(d,e.clientX,e.clientY)){d.moved=true;e.currentTarget.setPointerCapture(e.pointerId);setDragging(true);}if(d.moved){e.currentTarget.scrollTop=d.top-(e.clientY-d.y);e.currentTarget.scrollLeft=d.left-(e.clientX-d.x);}}}
       onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}
       onClickCapture={e=>{if(e.detail>0&&performance.now()<suppressClickUntil.current){e.preventDefault();e.stopPropagation();}}}>
-      {error&&<div className="pdf-error" role="alert">{error} <button onClick={()=>setLoadAttempt(value=>value+1)}>다시 불러오기</button> <a href={assetUrl(id)} target="_blank" rel="noreferrer">원문 열기 ↗</a></div>}
+      {error&&<div className="pdf-error" role="alert">{error} <button onClick={()=>{pdfRuntime.retry();setLoadAttempt(value=>value+1);}}>다시 불러오기</button> <a href={assetUrl(id)} target="_blank" rel="noreferrer">원문 열기 ↗</a></div>}
       {!doc&&!error&&<div className="pdf-status" role="status">문서를 불러오는 중…</div>}
       <div className="pdf-continuous-pages" style={{width:layout.width,height:layout.totalHeight}}>
         {visible.map(p=><div key={id+'-'+p} className="pdf-page-slot" style={{top:layout.offsets[p-1],width:layout.width,height:layout.heights[p-1]}} data-slot-page={p}>
-          {doc?<PdfPage doc={doc} page={p} width={layout.width} height={layout.heights[p-1]} highlights={showHighlights?highlights.filter(h=>h.page===p):[]} targets={targets.filter(t=>t.page===p)} pins={pins.filter(n=>n.page===p)} onTarget={onTarget} onPin={onPin} onPlace={onPlace} placing={placing} onSize={onSize} proposalIndicators={proposalIndicators} onProposal={onProposal}/>:<div className="pdf-page-placeholder">PDF {p}쪽</div>}
+          {doc?<PdfPage doc={doc} runtime={loaded!.runtime} page={p} width={layout.width} height={layout.heights[p-1]} highlights={showHighlights?highlights.filter(h=>h.page===p):[]} targets={targets.filter(t=>t.page===p)} pins={pins.filter(n=>n.page===p)} onTarget={onTarget} onPin={onPin} onPlace={onPlace} placing={placing} onSize={onSize} proposalIndicators={proposalIndicators} onProposal={onProposal}/>:<div className="pdf-page-placeholder">PDF {p}쪽</div>}
           <span className="pdf-page-number" aria-hidden="true">{p}</span>
         </div>)}
       </div>

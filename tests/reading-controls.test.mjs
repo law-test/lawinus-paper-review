@@ -11,13 +11,13 @@ import * as menuSwipe from '../src/mobile-menu-swipe.ts';
 const require=createRequire(import.meta.url);
 const source=readFileSync(new URL('../src/reading-controls.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
-function renderControl(view,menuOpen=false,mobile=false){
+function renderControl(view,menuOpen=false,mobile=false,pane='source'){
  const changed=[],panelChanges=[],widthChanges=[];
  const module={exports:{}};
  vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:initial=>[menuOpen||initial,()=>{}],useEffect:()=>{},useRef:initial=>({current:initial})}:id==='./reading-view'?readingView:id==='./mobile-menu-swipe'?menuSwipe:require(id)});
- const tree=module.exports.default({view,onChange:v=>changed.push(v),sidebar:true,metadata:true,mobile,onSidebar:v=>panelChanges.push(v),onMetadata:v=>panelChanges.push(v),document:'source',onEqualWidth:()=>widthChanges.push('equal'),onDocument:()=>{throw Error('Reading view must not switch documents');}});
- const all=[];function walk(node){if(!node||typeof node!=='object')return;if(node.type==='button')all.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
- return {html:renderToStaticMarkup(tree),buttons:all,changed,panelChanges,widthChanges};
+ const tree=module.exports.default({view,onChange:v=>changed.push(v),sidebar:true,metadata:true,mobile,pane,onSidebar:v=>panelChanges.push(v),onMetadata:v=>panelChanges.push(v),document:'source',onEqualWidth:()=>widthChanges.push('equal'),onDocument:()=>{throw Error('Reading view must not switch documents');}});
+ const all=[],labels=[];function walk(node){if(!node||typeof node!=='object')return;if(node.type==='button')all.push(node);if(node.type==='label')labels.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
+ return {html:renderToStaticMarkup(tree),buttons:all,labels,changed,panelChanges,widthChanges};
 }
 test('direct collapse is reachable without opening the view options',()=>{
  const normal={...readingView.DEFAULT_READING_VIEW,tools:false,footnotes:false};
@@ -86,4 +86,28 @@ test('a mouse on a narrow screen can use the dedicated menu gesture without chan
  const view={...readingView.DEFAULT_READING_VIEW};const result=renderControl(view,false,true),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
  button.props.onPointerDown(pointer({pointerType:'mouse'}));button.props.onPointerMove(pointer({pointerType:'mouse',clientY:14,timeStamp:9000}));button.props.onPointerUp(pointer({pointerType:'mouse',clientY:14,timeStamp:9100}));
  assert.deepEqual(result.changed,[{...view,focus:true}]);assert.deepEqual(result.panelChanges,[]);
+});
+
+function surfaceInput(result,text){const label=result.labels.find(node=>React.Children.toArray(node.props.children).includes(text));return React.Children.toArray(label.props.children).find(node=>typeof node==='object'&&node.type==='input');}
+test('mobile pane checks follow the visible tab and open a hidden panel with one selection',()=>{
+ const normal={...readingView.DEFAULT_READING_VIEW};const result=renderControl(normal,true,true,'thesis');
+ assert.equal(surfaceInput(result,'목차').props.checked,false);
+ assert.equal(surfaceInput(result,'각주 상세정보').props.checked,false);
+ surfaceInput(result,'각주 상세정보').props.onChange({target:{checked:true}});
+ assert.deepEqual(result.panelChanges,[true]);assert.deepEqual(result.changed,[]);
+ const details=renderControl(normal,true,true,'metadata');
+ assert.equal(surfaceInput(details,'각주 상세정보').props.checked,true);
+ assert.equal(surfaceInput(details,'목차').props.checked,false);
+ assert.equal(details.buttons.filter(b=>b.props['aria-pressed']===true).length,0,'no document is shown while the metadata tab is selected');
+});
+test('mobile tab changes override stale focus panel flags without altering desktop pane preferences',()=>{
+ const focused={...readingView.DEFAULT_READING_VIEW,focus:true,focusSurfaces:{sidebar:true,metadata:true}};
+ const mobile=renderControl(focused,true,true,'source');
+ assert.equal(surfaceInput(mobile,'목차').props.checked,false);
+ assert.equal(surfaceInput(mobile,'각주 상세정보').props.checked,false);
+ const contents=renderControl(focused,true,true,'contents');assert.equal(surfaceInput(contents,'목차').props.checked,true);
+ const desktop=renderControl(readingView.DEFAULT_READING_VIEW,true,false,'source');
+ assert.equal(surfaceInput(desktop,'목차').props.checked,true);
+ assert.equal(surfaceInput(desktop,'각주 상세정보').props.checked,true);
+ assert.deepEqual(desktop.panelChanges,[]);
 });

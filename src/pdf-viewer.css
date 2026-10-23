@@ -3,7 +3,7 @@
 .pdf-reading-tools{display:flex;align-items:center;gap:12px;flex:0 0 auto;padding:5px 15px;border-top:1px solid #ded6cf;border-bottom:1px solid #d7cfc7;background:#f8f5f0;font-size:calc(10px * var(--review-font-scale,1.5));color:#766b62}
 .pdf-reading-tools>div{display:flex;gap:3px}.review-app .pdf-reading-tools button{padding:3px 8px;min-height:25px;font-size:calc(10px * var(--review-font-scale,1.5));border:1px solid transparent;color:#655a51}
 .review-app .pdf-reading-tools button.selected{background:#fff;border-color:#c9b9b1;color:var(--review-maroon,#8b0029)}.pdf-reading-page{margin-left:auto;font-variant-numeric:tabular-nums}
-.pdf-reader>.continuous-pdf{position:relative;flex:1;min-height:0;overflow:auto;padding:18px 22px 22px;touch-action:pan-x pan-y;overscroll-behavior:auto;overflow-anchor:none;scrollbar-gutter:stable}
+.pdf-reader>.continuous-pdf{position:relative;flex:1;min-height:0;overflow:auto;padding:18px 22px 22px;touch-action:pan-x pan-y pinch-zoom;overscroll-behavior:auto;overflow-anchor:none;scrollbar-gutter:stable}
 .pdf-continuous-pages{position:relative;margin:0 auto;isolation:isolate;flex-shrink:0}.pdf-page-slot{position:absolute;left:0}.continuous-pdf-page{margin:0!important}
 .pdf-page-placeholder{height:100%;background:white;display:grid;place-items:center;color:#b8aca4;font-size:calc(12px * var(--review-font-scale,1.5))}.pdf-page-number{position:absolute;left:0;right:0;bottom:-21px;text-align:center;font-size:calc(9px * var(--review-font-scale,1.5));line-height:18px;color:#8e8379;pointer-events:none}
 .pdf-page-state{position:absolute;top:10px;left:12px;z-index:8;padding:4px 8px;background:#fffaf0dd;border:1px solid #ece4d5;color:#82766b;font-size:calc(10px * var(--review-font-scale,1.5));pointer-events:none}

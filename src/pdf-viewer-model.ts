@@ -2,6 +2,26 @@ export type PdfRect = [number,number,number,number];
 export type PdfTarget = {page:number;rect:PdfRect;noteId:string;number:number;kind:string};
 type NoteGeometry = {id:string;number:number;clickTargets?:{page:number;rect:number[];kind?:string}[];noteHighlights?:{page:number;rect:number[];kind?:string}[]};
 export type PageSize = {width:number;height:number};
+
+// A new import generation bypasses PDF.js's cached worker-initialization failure.
+// Existing documents retain their own runtime and are never destroyed here.
+export function createPdfRuntimeCache<T>(load:(attempt:number)=>Promise<T>){
+  let attempt=0,pending:Promise<T>|undefined;
+  return {
+    get(){
+      if(!pending){
+        const current=attempt;
+        pending=Promise.resolve().then(()=>load(current)).catch(error=>{
+          if(attempt===current){pending=undefined;attempt++;}
+          throw error;
+        });
+      }
+      return pending;
+    },
+    retry(){pending=undefined;attempt++;},
+  };
+}
+
 export function validRect(value:unknown): value is PdfRect {
   return Array.isArray(value)&&value.length===4&&value.every(Number.isFinite)&&value[2]>value[0]&&value[3]>value[1];
 }

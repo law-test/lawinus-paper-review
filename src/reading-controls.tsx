@@ -1,10 +1,10 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {type ReadingView,readingVisibility,withReadingFocus,withReadingSurface} from './reading-view';
+import {type ReadingView,type ReadingPane,readingVisibility,withReadingFocus,withReadingSurface} from './reading-view';
 import {menuSwipeAction,type MenuSwipe} from './mobile-menu-swipe';
 
-type Props={view:ReadingView;onChange:(view:ReadingView)=>void;sidebar:boolean;metadata:boolean;onSidebar:(show:boolean)=>void;onMetadata:(show:boolean)=>void;document:'thesis'|'source';onDocument:(document:'thesis'|'source')=>void;onEqualWidth:()=>void;mobile?:boolean};
+type Props={view:ReadingView;onChange:(view:ReadingView)=>void;sidebar:boolean;metadata:boolean;onSidebar:(show:boolean)=>void;onMetadata:(show:boolean)=>void;document:'thesis'|'source';onDocument:(document:'thesis'|'source')=>void;onEqualWidth:()=>void;mobile?:boolean;pane?:ReadingPane};
 
-export default function ReadingControls({view,onChange,sidebar,metadata,onSidebar,onMetadata,document:currentDocument,onDocument,onEqualWidth,mobile=false}:Props){
+export default function ReadingControls({view,onChange,sidebar,metadata,onSidebar,onMetadata,document:currentDocument,onDocument,onEqualWidth,mobile=false,pane=currentDocument}:Props){
   const [open,setOpen]=useState(false);
   const menu=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);
   const swipe=useRef<MenuSwipe|null>(null),swipeMoved=useRef(false),suppressClick=useRef(false);
@@ -31,8 +31,8 @@ export default function ReadingControls({view,onChange,sidebar,metadata,onSideba
     ['상단 메뉴',visible.header,show=>onChange(withReadingSurface(view,'header',show))],
     ['보기 도구',visible.tools,show=>onChange(withReadingSurface(view,'tools',show))],
     ['하단 각주 목록',visible.footnotes,show=>onChange(withReadingSurface(view,'footnotes',show))],
-    ['목차',visible.sidebar,onSidebar],
-    ['각주 상세정보',visible.metadata,onMetadata],
+    ['목차',mobile?pane==='contents':visible.sidebar,onSidebar],
+    ['각주 상세정보',mobile?pane==='metadata':visible.metadata,onMetadata],
   ];
   return <div className="reading-view-menu" ref={menu}>
     {mobile&&<span id="mobile-swipe-hint" className="mobile-swipe-hint">접기 버튼을 위로 밀면 메뉴가 접히고, 아래로 밀면 펼쳐집니다.</span>}
@@ -44,7 +44,7 @@ export default function ReadingControls({view,onChange,sidebar,metadata,onSideba
       <button className="reading-focus-toggle" aria-pressed={view.focus} onClick={()=>{onChange(withReadingFocus(view,!view.focus));close();}}>{view.focus?'일반 보기로 돌아가기':'원문만 보기'}</button>
       <button className="reading-equal-width" onClick={()=>{onEqualWidth();close();}}>논문·원전 같은 폭</button>
       <fieldset className="reading-surface-options"><legend>화면에 표시</legend>{choices.map(([label,checked,change])=><label key={label}><input type="checkbox" checked={checked} onChange={event=>change(event.target.checked)}/>{label}</label>)}</fieldset>
-      <div className="reading-document-switch" aria-label="열람할 문서">{[['thesis','논문'],['source','참고문헌']].map(([id,label])=><button key={id} aria-pressed={currentDocument===id} onClick={()=>{onDocument(id as 'thesis'|'source');close();}}>{label}</button>)}</div>
+      <div className="reading-document-switch" aria-label="열람할 문서">{[['thesis','논문'],['source','참고문헌']].map(([id,label])=><button key={id} aria-pressed={(mobile?pane:currentDocument)===id} onClick={()=>{onDocument(id as 'thesis'|'source');close();}}>{label}</button>)}</div>
     </div>}
   </div>;
 }
