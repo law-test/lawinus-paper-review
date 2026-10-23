@@ -239,7 +239,7 @@ test('resetting preserves the newest saved text including deliberate deletion ra
  assert.equal(clean.revision,5);assert.equal(clean.baseText,'');assert.equal(clean.draft,'');assert.equal(clean.autoProposal,false);assert.equal(clean.conflict,false);
  const afterHistory=reset({...state,revision:6,baseText:'최신 이력에서 본 문안'},{originalText:'원문',proposalApplyText:'최신 제안',current:edit(5,'이전 공통 문안')});
  assert.equal(afterHistory.revision,6);assert.equal(afterHistory.draft,'최신 이력에서 본 문안');
- assert.match(source,/conflict:resetUndo\.conflict\|\|state\.revision>resetUndo\.revision/);
+ assert.equal(module.exports.undoSharedEditorReset(state,afterHistory).conflict,true);
 });
 
 test('resetting a manual compound proposal restores its locked state and does not turn layout instructions into editable body text',()=>{
@@ -247,4 +247,26 @@ test('resetting a manual compound proposal restores its locked state and does no
  const clean=reset({...init('원문'),draft:'수동 편집 초안',comparisonEdited:true},{originalText:'원문',proposalDisplayText:'부록으로 이동하고 새 각주를 추가한다.',proposalReason:'전체 조판 필요'});
  assert.equal(clean.manualLocked,true);assert.equal(clean.draft,'원문');assert.equal(clean.baseText,'원문');
  assert.equal(parseComparison(clean.comparison).parts.after,'부록으로 이동하고 새 각주를 추가한다.');
+});
+
+test('undoing a reset retains a conflict detected while an automatically displayed proposal was open',()=>{
+ const {resetSharedEditorDraft:reset,undoSharedEditorReset:undo}=module.exports;
+ const previous={...init('원문'),draft:'내 기존 초안',comparisonEdited:true};
+ const clean=reset(previous,{originalText:'원문',proposalApplyText:'최신 안전한 After'});
+ const notified=reduce(clean,{type:'incoming',revision:1,text:'다른 방문자 문안'});
+ assert.equal(notified.revision,0);assert.equal(notified.conflict,true);
+ const restored=undo(previous,notified,1);
+ assert.equal(restored.draft,'내 기존 초안');assert.equal(restored.revision,0);assert.equal(restored.conflict,true);
+ assert.equal(undo(previous,clean,1).conflict,true);
+ assert.equal(undo(previous,clean,0).conflict,false);
+});
+
+test('resetting uses the newest already-read history and keeps a conflict when its newest body is unavailable',()=>{
+ const {resetSharedEditorDraft:reset}=module.exports;
+ const state={...init('원문',edit(4,'네 번째 문안')),draft:'내 초안',comparisonEdited:true,conflict:true};
+ const latest=reset(state,{originalText:'원문',current:edit(4,'네 번째 문안'),history:{currentRevision:5,revisions:[edit(5,'이력에서 읽은 최신 문안')]}});
+ assert.equal(latest.revision,5);assert.equal(latest.draft,'이력에서 읽은 최신 문안');assert.equal(latest.conflict,false);
+ const missing=reset(state,{originalText:'원문',current:edit(4,'네 번째 문안'),history:{currentRevision:5,revisions:[]}});
+ assert.equal(missing.revision,4);assert.equal(missing.conflict,true);
+ assert.equal(reset(state,{originalText:'원문',current:edit(4,'네 번째 문안')}).conflict,true);
 });

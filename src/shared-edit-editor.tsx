@@ -57,14 +57,21 @@ export function initialSharedEditorState(originalText:string,current?:SharedEdit
  return {draft:text,reason:'',baseText:text,revision:current?.revision??0,conflict:false,confirmOverwrite:false};
 }
 
-export function resetSharedEditorDraft(state:EditorState,props:Pick<SharedEditEditorProps,'originalText'|'proposalBeforeText'|'proposalDisplayText'|'proposalReason'|'proposalApplyText'|'current'>):EditorState {
- const revision=Math.max(state.revision,props.current?.revision??0);
- const baseText=revision===0?props.originalText:props.current&&props.current.revision>=state.revision?props.current.text:state.baseText;
+export function resetSharedEditorDraft(state:EditorState,props:Pick<SharedEditEditorProps,'originalText'|'proposalBeforeText'|'proposalDisplayText'|'proposalReason'|'proposalApplyText'|'current'>&{history?:SharedHistory|null}):EditorState {
+ const historyCurrent=props.history?.revisions.find(edit=>edit.revision===props.history?.currentRevision);
+ const current=historyCurrent&&historyCurrent.revision>(props.current?.revision??0)?historyCurrent:props.current;
+ const revision=Math.max(state.revision,current?.revision??0);
+ const baseText=revision===0?props.originalText:current&&current.revision>=state.revision?current.text:state.baseText;
+ const conflict=(props.history?.currentRevision??0)>revision||(state.conflict&&revision<=state.revision);
  const autoProposal=revision===0&&props.proposalApplyText!==undefined;
  const manualLocked=revision===0&&props.proposalApplyText===undefined&&props.proposalDisplayText!==undefined;
  const draft=autoProposal?props.proposalApplyText!:baseText;
- return {draft,reason:'',baseText,revision,conflict:false,confirmOverwrite:false,comparisonEdited:false,autoProposal,manualLocked,
+ return {draft,reason:'',baseText,revision,conflict,confirmOverwrite:false,comparisonEdited:false,autoProposal,manualLocked,
   comparison:formatRevisionComparison({before:props.proposalBeforeText??props.originalText,after:manualLocked?props.proposalDisplayText!:draft,reason:props.proposalReason??''})};
+}
+
+export function undoSharedEditorReset(previous:EditorState,current:EditorState,externalRevision=0):EditorState {
+ return {...previous,conflict:previous.conflict||current.conflict||Math.max(current.revision,externalRevision)>previous.revision};
 }
 
 export function sharedEditorReducer(state:EditorState,action:EditorAction):EditorState {
@@ -204,12 +211,12 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
 
  function resetInput(){
   setResetUndo(state);
-  dispatch({type:'resetDraft',state:resetSharedEditorDraft(state,{originalText,proposalBeforeText,proposalDisplayText,proposalReason,proposalApplyText,current:validCurrent})});
+  dispatch({type:'resetDraft',state:resetSharedEditorDraft(state,{originalText,proposalBeforeText,proposalDisplayText,proposalReason,proposalApplyText,current:validCurrent,history})});
   setShowLatest(false);setError('');setNotice('이 항목의 입력을 초기화했습니다. 저장된 문안은 바뀌지 않았습니다.');
  }
  function undoReset(){
   if(!resetUndo)return;
-  dispatch({type:'resetDraft',state:{...resetUndo,conflict:resetUndo.conflict||state.revision>resetUndo.revision}});
+  dispatch({type:'resetDraft',state:undoSharedEditorReset(resetUndo,state,validCurrent?.revision)});
   setResetUndo(null);setError('');setNotice('초기화 전 입력을 되돌렸습니다.');
  }
 
