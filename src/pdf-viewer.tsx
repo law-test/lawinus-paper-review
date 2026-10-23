@@ -24,7 +24,7 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
   const selectedNote=focused||hover?.noteId;
   const keyboardTargets=useMemo(()=>{const rows=new Map<string,PdfTarget>();for(const t of targets){const old=rows.get(t.noteId);if(!old||old.kind==='body-marker'&&t.kind!=='body-marker')rows.set(t.noteId,t);}return [...rows.values()];},[targets]);
   return <div className={'pdf-sheet continuous-pdf-page'+(hover&&!placing?' has-citation-hover':'')} ref={sheet} data-pdf-page={page} style={{width,height}}
-    title={!placing&&hover?'클릭하면 이동':undefined}
+    title={!placing&&hover?(hover.kind==='paragraph'?'클릭하면 수정안':'클릭하면 이동'):undefined}
     onPointerDown={e=>{gesture.current={x:e.clientX,y:e.clientY};}}
     onPointerMove={e=>{if(!placing&&e.pointerType==='mouse'){const next=targetFromEvent(e);setHover(old=>old?.noteId===next?.noteId&&old?.rect===next?.rect?old:next||null);}}}
     onPointerLeave={()=>setHover(null)} onClick={e=>{
@@ -36,11 +36,11 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
     }}>
     <canvas ref={canvas}/><div className="textLayer" ref={textLayer}/>
     {(loading||error)&&<div className="pdf-page-state" role="status">{error||`PDF ${page}쪽 불러오는 중…`}</div>}
-    <div className="pdf-overlays">{highlights.map((h,i)=><span key={i} className="pdf-highlight" style={rectStyle(h.rect)}/>)}
+    <div className="pdf-overlays">{highlights.map((h,i)=>h.kind==='cited-page'?<span key={i} className="pdf-cited-page" aria-label={`인용면 ${h.printed||page}`}/>:<span key={i} className="pdf-highlight" style={rectStyle(h.rect)}/>)}
       {!placing&&targets.filter(t=>t.noteId===selectedNote).map((t,i)=><span key={'link'+i} className="citation-hover-region" style={rectStyle(t.rect)}/>)}
     </div>
-    {!placing&&keyboardTargets.map(t=><a key={t.noteId} className="citation-keyboard-link" style={rectStyle(t.rect)} href={'#'+t.noteId} aria-label={`각주 ${t.number} 원전과 검토 내용 열기`} title="클릭하면 이동" onFocus={()=>setFocused(t.noteId)} onBlur={()=>setFocused(null)} onClick={e=>{e.preventDefault();onTarget?.(t.noteId);}} onKeyDown={e=>{if(e.key===' '){e.preventDefault();onTarget?.(t.noteId);}}}/>)}
-    {!placing&&hover&&<span className="citation-hover-tooltip" role="tooltip" style={{left:Math.min(hover.rect[0]/dims.width*100,70)+'%',top:hover.rect[3]/dims.height*100+'%'}}>클릭하면 이동</span>}
+    {!placing&&keyboardTargets.map(t=><a key={t.noteId} className="citation-keyboard-link" style={rectStyle(t.rect)} href={'#'+t.noteId} aria-label={t.kind==='paragraph'?'문단 수정안 열기':`각주 ${t.number} 원전과 검토 내용 열기`} title={t.kind==='paragraph'?'클릭하면 수정안':'클릭하면 이동'} onFocus={()=>setFocused(t.noteId)} onBlur={()=>setFocused(null)} onClick={e=>{e.preventDefault();onTarget?.(t.noteId);}} onKeyDown={e=>{if(e.key===' '){e.preventDefault();onTarget?.(t.noteId);}}}/>)}
+    {!placing&&hover&&<span className="citation-hover-tooltip" role="tooltip" style={{left:Math.min(hover.rect[0]/dims.width*100,70)+'%',top:hover.rect[3]/dims.height*100+'%'}}>{hover.kind==='paragraph'?'클릭하면 수정안':'클릭하면 이동'}</span>}
     {!placing&&pins.filter(p=>p.x!=null&&p.y!=null).map((p,i)=><button key={p.id} className={'memo-pin '+(p.status==='resolved'?'resolved':'')} style={{left:p.x!*100+'%',top:p.y!*100+'%'}} title={p.text} aria-label={'메모: '+p.text.slice(0,50)} onClick={e=>{e.stopPropagation();onPin?.(p);}}>{i+1}</button>)}
   </div>;
 }

@@ -12,10 +12,12 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--source', type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument('--output', type=Path, default=Path(__file__).resolve().parents[1]/'work')
+    parser.add_argument('--profile', type=Path, help='Current public profile JSON; never the private CV evidence file')
     args=parser.parse_args()
     base=args.source.resolve(); out=args.output.resolve()
     manifest_path=base/'data-pipeline/deploy-manifest.json'
-    profile_path=base/'research/profile.professional.json'
+    profile_path=(args.profile.resolve() if args.profile else base/'research/profile.public.current.json')
+    assert profile_path.is_file(), '현재 공개 약력 파일이 없습니다. 이전 이력서로 대체하지 말고 --profile로 확인된 공개 JSON을 지정하세요.'
     map_path=base/'data-pipeline/deploy-assets.private.json'
     manifest=json.loads(manifest_path.read_text(encoding='utf-8-sig'))
     assets=json.loads(map_path.read_text(encoding='utf-8-sig'))

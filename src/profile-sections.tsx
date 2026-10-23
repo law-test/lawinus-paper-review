@@ -13,7 +13,7 @@ export default function ProfileSections({profile}: {profile: Profile}) {
     ['research','연구업적'], ['projects','주요 작품'], ['press','언론'],
     ['service','공익·자문 활동(역임 포함)'],
     ['professionalActivities','학회·전문단체 활동(역임 포함)'],
-    ['qualifications','자격·전문 등록'], ['patents','특허 출원']
+    ['qualifications','자격·전문 등록']
   ];
   const book: Entry = {name:'대한민국 표준판례 5급편', role:'헌법·민법·형법 50판례 · 저자 김민규', detail:'PDF'};
 
@@ -28,12 +28,6 @@ export default function ProfileSections({profile}: {profile: Profile}) {
           <span className="press-summary">{item.summary}</span>
         </a>
       </li>)}</ul>
-    </section>;
-    if (key === 'patents') return <section key={key} className="profile-patents">
-      <h3>{title}</h3>
-      <div className="profile-patent"><b>인공지능 활용 법학 판례집 단계별 편성 및 개정 동기화 기기</b>
-        <dl><div><dt>출원번호</dt><dd>10-2026-0191635</dd></div><div><dt>출원일</dt><dd>2026.10.06.</dd></div><div><dt>출원인</dt><dd>김민규</dd></div></dl>
-      </div>
     </section>;
     const rows: Entry[] = (profile?.[key] || []).filter((row: Entry) => key !== 'qualifications' || row.name !== '세무대리 등록');
     if (key === 'projects' && !rows.some(row => row.name === book.name)) rows.push(book);

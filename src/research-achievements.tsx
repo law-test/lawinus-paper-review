@@ -14,5 +14,11 @@ export default function ResearchAchievements() {
         <p>{[item.publication,item.authors,item.role].filter(Boolean).join(' · ')}</p>
       </li>)}</ul>
     </div>)}
+    <div className="research-group profile-patents">
+      <h4>특허 출원</h4>
+      <div className="profile-patent"><b>인공지능 활용 법학 판례집 단계별 편성 및 개정 동기화 기기</b>
+        <dl><div><dt>출원번호</dt><dd>10-2026-0191635</dd></div><div><dt>출원일</dt><dd>2026.10.06.</dd></div><div><dt>출원인</dt><dd>김민규</dd></div></dl>
+      </div>
+    </div>
   </section>;
 }

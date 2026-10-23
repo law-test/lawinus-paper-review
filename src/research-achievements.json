@@ -80,17 +80,18 @@
     "title": "저서",
     "items": [
       {
+        "title": "대한민국 표준판례 5급편",
+        "publication": "헌법·민법·형법 50판례",
+        "authors": "김민규",
+        "url": "./books/korea-standard-cases-grade5-v033.pdf"
+      },
+      {
         "title": "회생위원이 감수한 알기 쉬운 개인회생·파산",
         "publication": "비피기술거래",
         "authors": "김민규·김미현",
         "role": "공저",
         "url": "https://www.yes24.com/product/goods/91326670"
-      }
-    ]
-  },
-  {
-    "title": "매뉴얼",
-    "items": [
+      },
       {
         "title": "전세피해 법률지원 매뉴얼 — 주요 질의·답변 사례",
         "publication": "대한변호사협회",
