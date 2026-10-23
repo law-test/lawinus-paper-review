@@ -16,7 +16,7 @@ function App() {
   }, []);
   if (state === 'ready') return <ReviewWorkspace/>;
   return <main className="review-app"><section className="loading-screen" role="status" aria-live="polite">
-    <div className="brand-mark" aria-hidden="true"><img src="./tiger-mark.svg" alt="" width="48" height="48"/></div>
+    <div className="law-logo"><img src="./korea-law-logo.svg" alt="고대법대 KU Law" width="244" height="100"/></div>
     <h1>LAW IN US · 논문 심사실</h1>
     <h2>{state === 'setup' ? '심사 자료를 불러오지 못했습니다.' : '심사 자료를 불러오는 중…'}</h2>
     {state === 'setup' ? <>

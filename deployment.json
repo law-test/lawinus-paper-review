@@ -1,1 +1,30 @@
-{"supabase":{"projectId":"cefaekvclooytgjkcqum","organizationId":"ybkypkdksrtvnupubyzf","name":"lawinus-paper-review","region":"ap-northeast-2"},"github":{"owner":"law-test","repository":null},"domain":"paper.lawinus.org","datasetId":"human-1021-1559","state":"supabase-created-not-deployed"}
+{
+  "supabase": {
+    "projectId": "cefaekvclooytgjkcqum",
+    "organizationId": "ybkypkdksrtvnupubyzf",
+    "name": "lawinus-paper-review",
+    "region": "ap-northeast-2"
+  },
+  "github": {
+    "owner": "law-test",
+    "repository": "lawinus-paper-review",
+    "repositoryUrl": "https://github.com/law-test/lawinus-paper-review",
+    "sourceBranch": "main",
+    "deploymentBranch": "gh-pages",
+    "sourceDirectory": "/",
+    "pagesUrl": "https://law-test.github.io/lawinus-paper-review/"
+  },
+  "domain": "paper.lawinus.org",
+  "datasetId": "human-1021-1559",
+  "state": "deployed",
+  "lastVerifiedDeployment": {
+    "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
+    "pagesCommit": "0e3037f30c1ef5d6771cde0e488ac7228c914f3a",
+    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/39878801349",
+    "pagesBuildConclusion": "success",
+    "sourceFiles": 237,
+    "pagesFiles": 211,
+    "remoteBlobHashMismatches": 0,
+    "customDomainCnamePreserved": true
+  }
+}
