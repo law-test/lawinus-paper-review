@@ -44,6 +44,9 @@ export function reflowScrollPosition(previous:ReturnType<typeof pageLayout>,next
   const target=Math.min(index,next.heights.length-1);
   return next.offsets[target]+Math.max(0,Math.min(1,fraction))*next.heights[target];
 }
+export function pendingPdfReflow(committed:ReturnType<typeof pageLayout>|undefined,rendered:ReturnType<typeof pageLayout>,renderedWidth:number,measuredWidth:number){
+  return committed!==rendered||Math.abs(renderedWidth-measuredWidth)>.5;
+}
 export function movedPointer(start:{x:number;y:number}|null,x:number,y:number){return !!start&&Math.hypot(x-start.x,y-start.y)>5;}
 export function measurableViewport(width:number,height:number,paddingX=0):{width:number;height:number}|null{
   if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return null;

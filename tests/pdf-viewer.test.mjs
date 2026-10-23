@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {footnoteTargets,targetAt,normalizedPoint,pageLayout,pageIndexAt,visiblePageRange,reflowScrollPosition,movedPointer,watchDocumentInterruption,measurableViewport} from '../src/pdf-viewer-model.ts';
+import {footnoteTargets,targetAt,normalizedPoint,pageLayout,pageIndexAt,visiblePageRange,reflowScrollPosition,pendingPdfReflow,movedPointer,watchDocumentInterruption,measurableViewport} from '../src/pdf-viewer-model.ts';
 
 // Actual fn-001 coordinates from the unchanged human-1021-1559 manifest.
 const first={id:'fn-001',number:1,clickTargets:[{page:20,rect:[117.16,390.416,124.53,398.69],kind:'body-marker'},{page:20,rect:[56.543,546.952,62.47,553.667],kind:'footnote-marker'}],noteHighlights:[{page:20,rect:[62.533,547.048,464.014,556.041],kind:'footnote-text'},{page:20,rect:[69.601,563.716,170.157,572.709],kind:'footnote-text'}]};
@@ -38,6 +38,30 @@ test('zoom/column resize keeps the same page and relative reading position',()=>
   const oldPosition=before.offsets[49]+before.heights[49]*.4,newPosition=reflowScrollPosition(before,after,oldPosition);
   assert.equal(pageIndexAt(after.offsets,newPosition),49);
   assert.ok(Math.abs((newPosition-after.offsets[49])/after.heights[49]-.4)<1e-9);
+});
+test('late-page panel resize restores the saved position after the DOM clamps its scroll range',()=>{
+  for(const [count,page] of [[279,249],[220,200]]){
+    const wide=pageLayout(count,800,1,{}),narrow=pageLayout(count,570,1,{}),fraction=.1;
+    const saved=wide.offsets[page-1]+wide.heights[page-1]*fraction;
+    const clampedDOM=Math.min(saved,narrow.totalHeight-650);
+    assert.ok(clampedDOM<saved,'fixture must exercise browser scroll-range clamping');
+    assert.notEqual(pageIndexAt(narrow.offsets,reflowScrollPosition(wide,narrow,clampedDOM)),page-1,'reading the post-resize DOM reproduces the old jump');
+    const restored=reflowScrollPosition(wide,narrow,saved);
+    assert.equal(pageIndexAt(narrow.offsets,restored),page-1);
+    assert.ok(Math.abs((restored-narrow.offsets[page-1])/narrow.heights[page-1]-fraction)<1e-9);
+    const expanded=reflowScrollPosition(narrow,wide,restored);
+    assert.ok(Math.abs(expanded-saved)<1e-8,'closing the detail panel returns to the same page fraction');
+    const zoomed=pageLayout(count,800,1.15,{}),zoomPosition=reflowScrollPosition(wide,zoomed,expanded);
+    assert.equal(pageIndexAt(zoomed.offsets,zoomPosition),page-1);
+    assert.ok(Math.abs(reflowScrollPosition(zoomed,wide,zoomPosition)-saved)<1e-8);
+  }
+});
+test('transitional resize and stale frames cannot report a clamped page before layout restoration',()=>{
+  const old=pageLayout(279,800,1,{}),next=pageLayout(279,570,1,{});
+  assert.equal(pendingPdfReflow(old,old,800,570),true,'CSS width changed before ResizeObserver rendered new pages');
+  assert.equal(pendingPdfReflow(old,next,570,570),true,'new DOM rendered but saved position not committed yet');
+  assert.equal(pendingPdfReflow(next,next,570,570),false,'restoration has committed and genuine scrolling can report again');
+  assert.equal(pendingPdfReflow(undefined,next,570,570),true,'first layout must establish a position before reporting');
 });
 test('mixed page sizes use their measured height without merging left/right document navigation',()=>{
   const thesis=pageLayout(279,515,1,{}),source=pageLayout(3,600,1,{2:{width:800,height:400}},{width:600,height:900});
