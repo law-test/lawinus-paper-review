@@ -1,0 +1,53 @@
+{
+  "sourceId": "t-undritz-ins165",
+  "title": "Sven-Holger Undritz, InsO §165, Rn. 4–6",
+  "language": "de",
+  "sourceSha256": "d0e61bd974f1e54ee34f8f2df23556e0df3119f24f405a04316c1cb149063b91",
+  "totalPages": 1,
+  "scope": "보유 원문 Rn. 4–6 및 각주 18–19",
+  "translationStatus": "complete-for-held-excerpt",
+  "pages": [
+    {
+      "pdfPage": 1,
+      "printedPage": "Rn. 4–6",
+      "blocks": [
+        {
+          "id": "u-h1",
+          "kind": "heading",
+          "original": "2. Das Verfahren der Zwangsverwertung durch Zwangsversteigerung und Zwangsverwaltung",
+          "translation": "2. 강제경매와 강제관리를 통한 강제환가절차"
+        },
+        {
+          "id": "u-rn4",
+          "kind": "body",
+          "original": "Rn 4\nNach § 165 kann das Grundstück im Wege der formalisierten Verfahren der Zwangsversteigerung (unten Rn. 7 ff.) und der Zwangsverwaltung (unten Rn. 31 ff.) verwertet werden.\nZuständig für die Anordnung der Zwangsversteigerung und der Zwangsverwaltung ist nach § 1 Abs. 1 ZVG das Amtsgericht als Vollstreckungsgericht am Ort der Belegenheit des unbeweglichen Gegenstandes. Dort ist der Antrag auf Zwangsverwaltung oder Zwangsversteigerung nach §§ 15, 16 ZVG (ggf. i.V.m. § 146 ZVG) zu stellen.",
+          "translation": "Rn. 4\n제165조에 따라 부동산은 강제경매(아래 Rn. 7 이하)와 강제관리(아래 Rn. 31 이하)라는 법정 절차를 통하여 환가할 수 있다.\n강제경매와 강제관리를 명하는 법원은 강제경매·강제관리법(ZVG) 제1조 제1항에 따라 부동산 소재지의 집행법원인 구법원(Amtsgericht)이다. 강제관리 또는 강제경매의 신청은 ZVG 제15조·제16조에 따라(해당하는 경우에는 제146조와 함께 적용하여) 그 법원에 하여야 한다."
+        },
+        {
+          "id": "u-rn5",
+          "kind": "body",
+          "original": "Rn 5\nWeder den ungesicherten noch den absonderungsberechtigten Gläubigern steht gegen die Verwertung gemäß § 165 ein Rechtsbehelf zu, auch wenn sie im Einzelfall eine solche Verwertung nicht für opportun halten.[18]",
+          "translation": "Rn. 5\n무담보채권자와 별제권자는 어느 쪽이든 제165조에 따른 환가에 대하여 불복할 수 없다. 개별 사건에서 그러한 환가가 적절하지 않다고 판단하더라도 마찬가지이다.[18]"
+        },
+        {
+          "id": "u-rn6",
+          "kind": "body",
+          "original": "Rn 6\nDer Insolvenzverwalter nimmt in dem Zwangsverwaltungs- oder Zwangsversteigerungsverfahren sowohl die Rechte und Pflichten des Insolvenzschuldners als auch die Interessen der Gläubigergesamtheit wahr. Ihm stehen deshalb sowohl die Beteiligtenrechte nach § 9 ZVG (der Insolvenzschuldner ist nur im Falle der Freigabe des Grundstücks durch den Insolvenzverwalter Beteiligter des Zwangsversteigerungsverfahrens, sonst nicht[19]) als auch die Rechte der Gläubiger (z.B. § 22 Abs. 2, §§ 29, 30, § 37 Nr. 4, § 97, § 153 Abs. 1, § 161 Abs. 3 ZVG) zu.",
+          "translation": "Rn. 6\n도산관재인은 강제관리 또는 강제경매절차에서 도산채무자의 권리를 행사하고 의무를 이행하며, 채권자 전체의 이익을 대표한다. 따라서 도산관재인에게는 ZVG 제9조에 따른 이해관계인의 권리뿐 아니라 채권자의 권리(예컨대 ZVG 제22조 제2항, 제29조, 제30조, 제37조 제4호, 제97조, 제153조 제1항, 제161조 제3항)도 인정된다. 도산채무자는 도산관재인이 해당 부동산을 도산재단에서 제외한 경우(Freigabe)에만 강제경매절차의 이해관계인이 되며, 그 밖의 경우에는 그러한 지위를 갖지 않는다.[19]"
+        },
+        {
+          "id": "u-fn18",
+          "kind": "footnote",
+          "original": "[18] Braun-Dithmar/Schneider, 4. Aufl. 2010, § 165 Rn. 5.",
+          "translation": "[18] Braun-Dithmar/Schneider, 제4판, 2010, §165 Rn. 5."
+        },
+        {
+          "id": "u-fn19",
+          "kind": "footnote",
+          "original": "[19] Grundsätzlich verdrängt der Insolvenzverwalter den Schuldner von der Ausübung seiner Befugnisse, MünchKomm-Lwowski/Tetzlaff, 2. Aufl. 2008, § 165 Rn. 40; ferner Uhlenbruck-Brinkmann, 13. Aufl. 2010, § 165 Rn. 10.",
+          "translation": "[19] 원칙적으로 채무자 권한의 행사는 도산관재인에게 이전되고, 채무자는 그 권한 행사에서 배제된다. MünchKomm-Lwowski/Tetzlaff, 제2판, 2008, §165 Rn. 40; 또한 Uhlenbruck-Brinkmann, 제13판, 2010, §165 Rn. 10."
+        }
+      ]
+    }
+  ]
+}
