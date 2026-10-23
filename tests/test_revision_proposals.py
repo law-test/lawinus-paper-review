@@ -22,8 +22,8 @@ class SafeProposalText(unittest.TestCase):
     def item(self, identity='P0001', before='원문〔각주 1〕', after=''):
         return dict(id=identity, before=before, after=after, reason='이유', priority='반드시 수정', page=20, page_end=20)
 
-    def compile(self, item):
-        return sync.compile_proposals([item], self.patches, self.baseline, self.catalog, self.originals, self.note_map)[0]
+    def compile(self, item, manual_layout=None):
+        return sync.compile_proposals([item], self.patches, self.baseline, self.catalog, self.originals, self.note_map, manual_layout)[0]
 
     def test_deletion_is_empty_payload_without_changing_display(self):
         self.patches['edits'] = [{'id': 'P0001', 'before': '원문[^1]', 'after': ''}]
@@ -81,6 +81,52 @@ class SafeProposalText(unittest.TestCase):
         self.catalog['paragraphs'][0]['text'] = '바뀐 원본'
         with self.assertRaisesRegex(ValueError, 'Human paragraph changed'):
             self.compile(self.item())
+
+    def test_new_v094_note_cross_reference_is_converted_for_display_but_blocked_for_apply(self):
+        self.patches['new_notes'].append({'id': 'N94_NEW', 'text': '새 자료.'})
+        self.note_map['N94_NEW'] = 4
+        self.patches['notes'] = [{'number': 2, 'before': '앞의 책(주 1), 10면.',
+                                 'after': '앞의 보고서(주 N94_NEW), 11면.'}]
+        result = self.compile(self.item('FN2', '각주 2: 앞의 책(주 1), 10면.',
+                                        '각주 3: 앞의 보고서(주 4), 11면.'))
+        self.assertNotIn('applyText', result)
+        self.assertIn('새 각주', result['applyUnsupportedReason'])
+
+    def test_appendix_move_does_not_delete_source_or_insert_layout_instruction(self):
+        self.patches['edits'] = [{'id': 'P0001', 'before': '원문[^1]', 'after': ''}]
+        result = self.compile(self.item(after='이 표의 전문을 부록으로 이동한다.'),
+                              {'P0001': '표의 부록 이동에 관한 제안입니다. 문서의 배치를 함께 수정해 주세요.'})
+        self.assertNotIn('applyText', result)
+        self.assertIn('부록 이동', result['applyUnsupportedReason'])
+        self.assertEqual(result['after'], '이 표의 전문을 부록으로 이동한다.')
+
+    def test_manual_layout_override_still_validates_immutable_human_before(self):
+        with self.assertRaisesRegex(ValueError, 'Guide Before differs'):
+            self.compile(self.item(before='다른 원문'), {'P0001': '수동 이동'})
+
+    def test_manual_layout_unknown_id_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'Unknown manual layout paragraph'):
+            self.compile(self.item(), {'P9999': '수동 이동'})
+
+    def test_manual_layout_requires_a_reason(self):
+        with self.assertRaisesRegex(ValueError, 'Missing manual layout reason'):
+            self.compile(self.item(), {'P0001': ''})
+
+    def test_structural_layout_item_keeps_specific_reason_without_payload(self):
+        reason = '목차와 문서의 배치를 함께 수정해 주세요.'
+        result = self.compile(self.item('TOC11', '기존 목차', '새 목차'), {'TOC11': reason})
+        self.assertNotIn('applyText', result)
+        self.assertEqual(result['applyUnsupportedReason'], reason)
+
+    def test_manual_table_move_validates_full_header_and_all_original_rows(self):
+        for paragraph in self.baseline['paragraphs']:
+            paragraph.update(kind='table_row', table=1, section_file='section1.xml')
+        item = self.item('P0002', '원문〔각주 1〕\n\n다음 문단', '표를 부록에 배치한다.')
+        result = self.compile(item, {'P0002': '표의 부록 이동'})
+        self.assertNotIn('applyText', result)
+        item['before'] = '임의의 표 머리말\n\n다음 문단'
+        with self.assertRaisesRegex(ValueError, 'Guide Before differs'):
+            self.compile(item, {'P0002': '표의 부록 이동'})
 
 
 if __name__ == '__main__':

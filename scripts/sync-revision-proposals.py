@@ -32,15 +32,21 @@ def normalize_before(text):
 def display_text(text, note_map):
     # Number conversion is solely for comparing the published display guide.
     text = re.sub(r'\(주 (\d+),', r'(주 \1),', text)
-    text = re.sub(r'주 (\d+|N(?:8[56789]|9[0123])_[A-Z_0-9]+)(?=\))',
+    text = re.sub(r'주 (\d+|N\d+_[A-Z_0-9]+)(?=\))',
                   lambda m: '주 ' + str(note_map[m[1]]), text)
     return re.sub(r'\[\^([^\]]+)\]', lambda m: '〔각주 ' + str(note_map[m[1]]) + '〕', text).replace('\t', ' ')
 
 
-def compile_proposals(items, patches, baseline, catalog, originals, note_map):
+def compile_proposals(items, patches, baseline, catalog, originals, note_map, manual_layout=None):
     if not isinstance(items, list) or not items:
         raise ValueError('The guide must be a nonempty item list.')
-    unique_map(items, 'id')
+    item_map = unique_map(items, 'id')
+    manual_layout = manual_layout or {}
+    for identity, reason in manual_layout.items():
+        if identity not in item_map or re.fullmatch(r'FN\d+', identity):
+            raise ValueError(f'Unknown manual layout paragraph or structural item: {identity}')
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError(f'Missing manual layout reason: {identity}')
     paragraphs = unique_map(baseline['paragraphs'], 'id')
     footnotes = unique_map(baseline['footnotes'], 'number')
     editable = unique_map(catalog['paragraphs'], 'id')
@@ -103,9 +109,24 @@ def compile_proposals(items, patches, baseline, catalog, originals, note_map):
             if identity not in editable:
                 raise ValueError(f'Unknown editable human paragraph: {identity}')
             original = editable[identity]['text']
-            if normalize_before(item['before']) != original.replace('\t', ' '):
+            before_candidates = {original.replace('\t', ' ')}
+            source_row = paragraphs[identity]
+            if identity in manual_layout and source_row.get('kind') == 'table_row':
+                table_rows = [p for p in baseline['paragraphs']
+                              if p.get('kind') == 'table_row'
+                              and p.get('table') == source_row.get('table')
+                              and p.get('section_file') == source_row.get('section_file')]
+                # A table-move guide includes the original header and all rows.
+                # Each constituent row must already have passed fixture validation.
+                if all(p['id'] in editable for p in table_rows):
+                    before_candidates.add('\n\n'.join(p['text'].replace('\t', ' ') for p in table_rows))
+            if normalize_before(item['before']) not in before_candidates:
                 raise ValueError(f'Guide Before differs from human paragraph: {identity}')
-            if identity not in edits and identity not in insertions:
+            if identity in manual_layout:
+                # A move is not a deletion: the web editor cannot relocate a table
+                # or update a different appendix target in the same transaction.
+                row['applyUnsupportedReason'] = manual_layout[identity]
+            elif identity not in edits and identity not in insertions:
                 row['applyUnsupportedReason'] = '문단 배치에 관한 제안입니다. 필요한 문안은 직접 편집해 주세요.'
             else:
                 raw = edits[identity]['after'] if identity in edits else original
@@ -139,7 +160,7 @@ def compile_proposals(items, patches, baseline, catalog, originals, note_map):
             else:
                 row['applyText'] = raw
         else:
-            row['applyUnsupportedReason'] = '여러 문단의 구성에 관한 제안입니다. 해당 문단에서 각각 편집해 주세요.'
+            row['applyUnsupportedReason'] = manual_layout.get(identity, '여러 문단의 구성에 관한 제안입니다. 해당 문단에서 각각 편집해 주세요.')
         output.append(row)
     if [item['page'] for item in output] != sorted(item['page'] for item in output):
         raise ValueError('Guide items are not in human PDF page order.')
@@ -149,9 +170,13 @@ def compile_proposals(items, patches, baseline, catalog, originals, note_map):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--guide", type=Path, required=True)
+    parser.add_argument("--guide-markdown", type=Path,
+                        help="Optional delivered guide Markdown for a separate raw-file hash")
     parser.add_argument("--patches", type=Path, required=True)
     parser.add_argument("--baseline", type=Path, required=True)
     parser.add_argument("--note-map", type=Path, required=True)
+    parser.add_argument("--manual-layout", type=Path,
+                        help="JSON object of exact paragraph/structural guide IDs and manual-layout reasons")
     parser.add_argument("--catalog", type=Path, default=Path("src/paragraph-catalog.json"))
     parser.add_argument("--originals", type=Path, default=Path("tests/fixtures/human-originals.json"))
     parser.add_argument("--version", required=True)
@@ -161,13 +186,16 @@ def main():
     raw = args.guide.read_bytes()
     display = json.loads(raw.decode("utf-8-sig"))
     read = lambda path: json.loads(path.read_text(encoding='utf-8-sig'))
-    items = compile_proposals(display, read(args.patches), read(args.baseline), read(args.catalog), read(args.originals), read(args.note_map))
+    manual_layout = read(args.manual_layout) if args.manual_layout else {}
+    items = compile_proposals(display, read(args.patches), read(args.baseline), read(args.catalog), read(args.originals), read(args.note_map), manual_layout)
     output = json.dumps({"version": args.version, "items": items}, ensure_ascii=False, indent=2) + "\n"
-    args.output.write_text(output, encoding="utf-8")
+    # Write the exact bytes hashed below on Windows as well as Unix.
+    args.output.write_bytes(output.encode("utf-8"))
     evidence = {
         "version": args.version,
         "count": len(items),
-        "guideSha256": hashlib.sha256(raw).hexdigest(),
+        "guideItemsJsonSha256": hashlib.sha256(raw).hexdigest(),
+        "guideMarkdownRawFileSha256": hashlib.sha256(args.guide_markdown.read_bytes()).hexdigest() if args.guide_markdown else None,
         "publicJsonSha256": hashlib.sha256(output.encode("utf-8")).hexdigest(),
         "semanticPatchesSha256": hashlib.sha256(args.patches.read_bytes()).hexdigest(),
         "allDisplayFieldsPreserved": all(all(row[key] == value for key, value in source.items()) for source, row in zip(display, items)),
@@ -176,6 +204,8 @@ def main():
         "deletions": [row['id'] for row in items if row.get('applyText') == ''],
         "unsupported": dict(Counter(row['applyUnsupportedReason'] for row in items if 'applyUnsupportedReason' in row)),
         "humanOriginalsValidated": True,
+        "manualLayoutIds": list(manual_layout),
+        "manualLayoutSha256": hashlib.sha256(args.manual_layout.read_bytes()).hexdigest() if args.manual_layout else None,
         "deploymentVerified": False,
     }
     args.evidence.parent.mkdir(parents=True, exist_ok=True)
