@@ -21,6 +21,7 @@ type EditorAction =
  | {type:'replaceComparison'; value:string}
  | {type:'incoming'|'latest'; revision:number; text:string}
  | {type:'saved'; edit:SharedEdit; comparison?:string}
+ | {type:'resetDraft'; state:EditorState}
  | {type:'conflict'};
 
 export function hasSharedUserDraft(state:EditorState):boolean {return !!state.comparisonEdited||!!state.reason||(!state.autoProposal&&state.draft!==state.baseText);}
@@ -56,8 +57,19 @@ export function initialSharedEditorState(originalText:string,current?:SharedEdit
  return {draft:text,reason:'',baseText:text,revision:current?.revision??0,conflict:false,confirmOverwrite:false};
 }
 
+export function resetSharedEditorDraft(state:EditorState,props:Pick<SharedEditEditorProps,'originalText'|'proposalBeforeText'|'proposalDisplayText'|'proposalReason'|'proposalApplyText'|'current'>):EditorState {
+ const revision=Math.max(state.revision,props.current?.revision??0);
+ const baseText=revision===0?props.originalText:props.current&&props.current.revision>=state.revision?props.current.text:state.baseText;
+ const autoProposal=revision===0&&props.proposalApplyText!==undefined;
+ const manualLocked=revision===0&&props.proposalApplyText===undefined&&props.proposalDisplayText!==undefined;
+ const draft=autoProposal?props.proposalApplyText!:baseText;
+ return {draft,reason:'',baseText,revision,conflict:false,confirmOverwrite:false,comparisonEdited:false,autoProposal,manualLocked,
+  comparison:formatRevisionComparison({before:props.proposalBeforeText??props.originalText,after:manualLocked?props.proposalDisplayText!:draft,reason:props.proposalReason??''})};
+}
+
 export function sharedEditorReducer(state:EditorState,action:EditorAction):EditorState {
  switch(action.type){
+  case 'resetDraft': return action.state;
   case 'draft': return {...state,draft:action.value};
   case 'reason': return {...state,reason:action.value};
   case 'comparison': {const parsed=parseRevisionComparison(action.value);return {...state,comparison:action.value,comparisonEdited:true,autoProposal:false,...(parsed.ok?{draft:parsed.parts.after}:{} )};}
@@ -118,6 +130,7 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
  const [showHistory,setShowHistory]=useState(false),[history,setHistory]=useState<SharedHistory|null>(null);
  const [notice,setNotice]=useState(boot.recovered?'입력 중이던 문안을 불러왔습니다.':''),[error,setError]=useState('');
  const [showLatest,setShowLatest]=useState(false);
+ const [resetUndo,setResetUndo]=useState<EditorState|null>(null);
  const comparisonInput=useRef<HTMLTextAreaElement>(null);
  const alive=useRef(true),saving=useRef(false),loading=useRef(false),epoch=useRef(0);
  const ids=useId(),bodyId=`${ids}-body`,reasonId=`${ids}-reason`,historyId=`${ids}-history`;
@@ -186,11 +199,23 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
   if(!parsed.ok){if(!window.confirm('구분 표지를 원래대로 복원하고 After에 선택한 문안을 넣으시겠습니까? Before와 상세이유도 수정지시서 내용으로 복원됩니다.'))return;}
   else if(hasSharedUserDraft(state)&&!window.confirm('입력 중인 After를 선택한 문안으로 바꾸시겠습니까? Before와 상세이유는 유지됩니다.'))return;
   const parts=parsed.ok?parsed.parts:{before:proposalBeforeText??originalText,after:'',reason:proposalReason??''};
-  dispatch({type:'replaceComparison',value:formatRevisionComparison({...parts,after:text})});setNotice('');setError('');
+  setResetUndo(null);dispatch({type:'replaceComparison',value:formatRevisionComparison({...parts,after:text})});setNotice('');setError('');
+ }
+
+ function resetInput(){
+  setResetUndo(state);
+  dispatch({type:'resetDraft',state:resetSharedEditorDraft(state,{originalText,proposalBeforeText,proposalDisplayText,proposalReason,proposalApplyText,current:validCurrent})});
+  setShowLatest(false);setError('');setNotice('이 항목의 입력을 초기화했습니다. 저장된 문안은 바뀌지 않았습니다.');
+ }
+ function undoReset(){
+  if(!resetUndo)return;
+  dispatch({type:'resetDraft',state:{...resetUndo,conflict:resetUndo.conflict||state.revision>resetUndo.revision}});
+  setResetUndo(null);setError('');setNotice('초기화 전 입력을 되돌렸습니다.');
  }
 
  function acceptSaved(edit:SharedEdit){
   epoch.current++;
+  setResetUndo(null);
   try{window.sessionStorage.removeItem(sharedDraftKey(kind,targetId));setStorageFailed(false);}catch{setStorageFailed(true);}
   dispatch({type:'saved',edit,comparison:formatRevisionComparison({...(parsedComparison.ok?parsedComparison.parts:{before:proposalBeforeText??originalText,reason:proposalReason??''}),after:edit.text})});setShowLatest(false);setError('');
   setHistory(previous=>previous?{
@@ -240,16 +265,18 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
    {parsedComparison.ok&&!state.manualLocked&&<RevisionCopyButton text={parsedComparison.parts.after} label="입력한 After 복사"/>}
    <button type="button" disabled={busy||historyBusy} onClick={()=>putText(originalText)}>Before 넣기</button>
    {proposalApplyText!==undefined&&<button type="button" disabled={busy||historyBusy} onClick={()=>putText(proposalApplyText)}>{proposalApplyText===''?'삭제안 넣기':'After 넣기'}</button>}
+   {hasSharedUserDraft(state)&&<button type="button" disabled={busy||historyBusy} onClick={resetInput}>입력 초기화</button>}
+   {resetUndo&&<button type="button" disabled={busy||historyBusy} onClick={undoReset}>초기화 취소</button>}
   </div>
   {proposalApplyText===undefined&&proposalUnsupportedReason&&<p className="shared-edit-proposal-note">{proposalUnsupportedReason}</p>}
   {state.manualLocked&&<div className="shared-edit-proposal-note"><p>이 수정안은 여러 문단·각주 또는 조판을 함께 다뤄야 하므로 그대로 반영할 수 없습니다.</p><button type="button" disabled={busy||historyBusy} onClick={()=>putText(state.baseText)}>원문으로 직접 편집 시작</button></div>}
   <label className="shared-edit-label" htmlFor={bodyId}>수정할 문안</label>
   <p className="shared-edit-proposal-note">After 부분만 본문에 반영됩니다. Before와 상세이유는 함께 확인할 내용입니다.</p>
-  <textarea ref={comparisonInput} id={bodyId} className="shared-edit-body shared-edit-comparison" value={state.comparison??''} disabled={busy} onChange={event=>dispatch({type:'comparison',value:event.target.value})} spellCheck={false}/>
+  <textarea ref={comparisonInput} id={bodyId} className="shared-edit-body shared-edit-comparison" value={state.comparison??''} disabled={busy} onChange={event=>{setResetUndo(null);dispatch({type:'comparison',value:event.target.value});}} spellCheck={false}/>
   {comparisonInvalid&&<p className="shared-edit-error" role="alert">{parsedComparison.message}</p>}
   {dirty&&state.draft.trim()===''&&<p className="shared-edit-proposal-note">저장하면 {label} 내용이 삭제됩니다. 원문과 변경 이력은 유지됩니다.</p>}
   <label className="shared-edit-label" htmlFor={reasonId}>수정 이유 <span>(선택)</span></label>
-  <textarea id={reasonId} className="shared-edit-reason" value={state.reason} disabled={busy} onChange={event=>dispatch({type:'reason',value:event.target.value})} rows={2}/>
+  <textarea id={reasonId} className="shared-edit-reason" value={state.reason} disabled={busy} onChange={event=>{setResetUndo(null);dispatch({type:'reason',value:event.target.value});}} rows={2}/>
   {storageFailed&&(dirty||state.reason)&&<p className="shared-edit-error" role="alert">이 브라우저에서 초안을 보관하지 못했습니다. 다른 화면으로 이동하기 전에 저장하거나 메모로 남겨 주세요.</p>}
   {tooLong&&<p className="shared-edit-error" role="alert">수정 내용은 100,000자, 수정 이유는 2,000자 이내로 입력해 주세요.</p>}
   {state.conflict&&<div className="shared-edit-conflict" role="alert">

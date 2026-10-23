@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {DEFAULT_FOUR_PANE_CUTS,normalizeFourPaneCuts,moveFourPaneBoundary,fourPaneColumns} from '../src/four-pane-size.ts';
+import {DEFAULT_FOUR_PANE_CUTS,normalizeFourPaneCuts,moveFourPaneBoundary,fourPaneColumns,normalizeCollapsedSplit,collapsedPaneColumns} from '../src/four-pane-size.ts';
 
 test('missing and malformed saved dividers retain usable document widths',()=>{
   assert.deepEqual(normalizeFourPaneCuts(null),DEFAULT_FOUR_PANE_CUTS);
@@ -23,4 +23,19 @@ test('each document divider moves independently without collapsing its neighbor'
 });
 test('grid proportions exclude the two drag handles from document widths',()=>{
   assert.equal(fourPaneColumns({thesis:40,sourceEnd:72}),'minmax(0, 40fr) 6px minmax(0, 32fr) 6px minmax(0, 28fr)');
+});
+test('collapsed reading layout reclaims the editing width and keeps both documents usable',()=>{
+  assert.equal(collapsedPaneColumns(undefined),'minmax(0, 56fr) 6px minmax(0, 44fr)');
+  assert.equal(normalizeCollapsedSplit(-10),28);
+  assert.equal(normalizeCollapsedSplit(99),72);
+  assert.equal(normalizeCollapsedSplit(NaN),56);
+  assert.equal(collapsedPaneColumns(65),'minmax(0, 65fr) 6px minmax(0, 35fr)');
+});
+test('reading-width adjustments leave the saved four-pane layout intact',()=>{
+  const editingCuts={thesis:35,sourceEnd:68};
+  const editingGrid=fourPaneColumns(editingCuts);
+  collapsedPaneColumns(72);
+  collapsedPaneColumns(28);
+  assert.deepEqual(editingCuts,{thesis:35,sourceEnd:68});
+  assert.equal(fourPaneColumns(editingCuts),editingGrid);
 });

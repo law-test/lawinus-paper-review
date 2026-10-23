@@ -217,3 +217,34 @@ test('viewing a prefilled After alone needs no overwrite prompt while actual inp
  assert.equal(hasSharedUserDraft({...automatic,autoProposal:false}),true);
  assert.match(source,/else if\(hasSharedUserDraft\(state\)&&!window\.confirm/);
 });
+
+test('resetting an unsaved comparison restores the safe latest After and removes only that target draft',()=>{
+ const {resetSharedEditorDraft:reset,hasSharedUserDraft}=module.exports;
+ const store=memoryStorage();
+ const dirty={...init('원문'),draft:'내 문안',comparison:'깨진 표지',comparisonEdited:true,reason:'내 이유'};
+ writeDraft(store,'paragraph','P0001','원문',dirty);writeDraft(store,'footnote','fn-001','별도 각주',dirty);
+ const clean=reset(dirty,{originalText:'원문',proposalBeforeText:'전체 원문',proposalApplyText:'안전한 After [^7]',proposalDisplayText:'표시용 After 〔각주 8〕',proposalReason:'상세이유'});
+ assert.equal(clean.draft,'안전한 After [^7]');assert.equal(clean.autoProposal,true);assert.equal(hasSharedUserDraft(clean),false);
+ assert.equal(parseComparison(clean.comparison).parts.before,'전체 원문');assert.equal(parseComparison(clean.comparison).parts.after,clean.draft);
+ writeDraft(store,'paragraph','P0001','원문',clean);assert.equal(store.getItem(sharedDraftKey('paragraph','P0001')),null);
+ assert.notEqual(store.getItem(sharedDraftKey('footnote','fn-001')),null);
+ const restored=reduce(clean,{type:'resetDraft',state:dirty});assert.equal(restored.comparison,'깨진 표지');assert.equal(restored.reason,'내 이유');
+ assert.doesNotMatch(source.slice(source.indexOf('function resetInput()'),source.indexOf('function acceptSaved(')),/saveSharedEdit|restoreSharedEdit|window\.confirm/);
+});
+
+test('resetting preserves the newest saved text including deliberate deletion rather than overwriting it with a proposal',()=>{
+ const {resetSharedEditorDraft:reset}=module.exports;
+ const state={...init('원문',edit(4,'기존 저장 문안')),draft:'내 초안',comparisonEdited:true,conflict:true};
+ const clean=reset(state,{originalText:'원문',proposalApplyText:'최신 제안',current:edit(5,'')});
+ assert.equal(clean.revision,5);assert.equal(clean.baseText,'');assert.equal(clean.draft,'');assert.equal(clean.autoProposal,false);assert.equal(clean.conflict,false);
+ const afterHistory=reset({...state,revision:6,baseText:'최신 이력에서 본 문안'},{originalText:'원문',proposalApplyText:'최신 제안',current:edit(5,'이전 공통 문안')});
+ assert.equal(afterHistory.revision,6);assert.equal(afterHistory.draft,'최신 이력에서 본 문안');
+ assert.match(source,/conflict:resetUndo\.conflict\|\|state\.revision>resetUndo\.revision/);
+});
+
+test('resetting a manual compound proposal restores its locked state and does not turn layout instructions into editable body text',()=>{
+ const {resetSharedEditorDraft:reset}=module.exports;
+ const clean=reset({...init('원문'),draft:'수동 편집 초안',comparisonEdited:true},{originalText:'원문',proposalDisplayText:'부록으로 이동하고 새 각주를 추가한다.',proposalReason:'전체 조판 필요'});
+ assert.equal(clean.manualLocked,true);assert.equal(clean.draft,'원문');assert.equal(clean.baseText,'원문');
+ assert.equal(parseComparison(clean.comparison).parts.after,'부록으로 이동하고 새 각주를 추가한다.');
+});

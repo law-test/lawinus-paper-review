@@ -19,6 +19,9 @@
 .four-pane-app .translation-supplement-link button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .four-pane-app .metadata-pane>.reference-heading{height:auto;min-height:44px;flex:0 0 auto;gap:8px;padding:8px 12px;overflow-wrap:anywhere}
 .four-pane-app .metadata-pane>.reference-heading>span{min-width:0}
+.four-pane-app .metadata-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex:0 0 auto}
+.four-pane-app .metadata-heading-actions button{min-height:40px;white-space:nowrap}
+.four-pane-app .metadata-collapse{font-size:calc(10px * var(--review-font-scale,1.5));color:var(--review-maroon-dark)}
 .four-pane-app .metadata-pane .source-panel,.four-pane-app .metadata-pane .scroll-panel,.four-pane-app .metadata-pane .revision-panel{flex:1;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain}
 .four-pane-app .metadata-pane .citation-card{padding:16px}.four-pane-app .metadata-pane .section-eyebrow{flex-wrap:wrap}
 .four-pane-app .metadata-pane .rationale blockquote{max-height:none;overflow:visible}
@@ -75,6 +78,7 @@
  .four-pane-app .source-caption h2{font-size:calc(13px * var(--review-font-scale,1.5))}
  .four-pane-app .source-locators{max-height:90px}
 }
+.four-pane-app.metadata-collapsed .metadata-pane{display:none}
 @media print{
  .four-pane-app .source-viewer-pane,.four-pane-app .metadata-pane,.four-pane-app .pane-region-heading,.four-pane-app .mobile-navigation{display:none!important}
  .four-pane-app .four-pane-workspace{display:block;overflow:visible}
