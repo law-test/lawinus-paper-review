@@ -2,6 +2,7 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {assetUrl} from './review-api';
 import {measurableViewport,movedPointer,normalizedPoint,pageIndexAt,pageLayout,reflowScrollPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
 import './pdf-viewer.css';
+import PdfQuickControls from './pdf-quick-controls';
 import {pageProposalMarkers,placeProposalMarkers,proposalLabel,type ProposalIndicator} from './proposal-indicators';
 import './proposal-indicators.css';
 type Obj=Record<string,any>;
@@ -10,7 +11,7 @@ const NO_PAGE_SIZES:{page:number;width:number;height:number}[]=[];
 let pdfLibrary:Promise<any>|undefined;
 const localAsset=(path:string)=>new URL(path,document.baseURI).href;
 function pdfModule(){return pdfLibrary??=import(/* @vite-ignore */ localAsset('./vendor/pdfjs/pdf.mjs')).then(m=>{m.GlobalWorkerOptions.workerSrc=localAsset('./vendor/pdfjs/pdf.worker.mjs');return m;});}
-type Props={id:string;page:number;total:number;zoom?:number;onZoomChange?:(zoom:number)=>void;compactControls?:boolean;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void};
+type Props={id:string;page:number;total:number;zoom?:number;onZoomChange?:(zoom:number)=>void;quickTools?:boolean;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void};
 
 function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,onPlace,placing,onSize,proposalIndicators,onProposal}:{doc:any;page:number;width:number;height:number;highlights:Obj[];targets:PdfTarget[];pins:Pin[];onTarget?:Props['onTarget'];onPin?:Props['onPin'];onPlace?:Props['onPlace'];placing:boolean;onSize:(page:number,size:PageSize)=>void;proposalIndicators:Record<string,ProposalIndicator>;onProposal?:Props['onProposal']}){
   const sheet=useRef<HTMLDivElement>(null),canvas=useRef<HTMLCanvasElement>(null),textLayer=useRef<HTMLDivElement>(null);
@@ -57,14 +58,13 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
   </div>;
 }
 
-export default function PdfPane({id,page,total,zoom=1,onZoomChange,compactControls=false,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',proposalIndicators={},onProposal}:Props){
+export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=false,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',proposalIndicators={},onProposal}:Props){
   const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange);
   onPageRef.current=onPageChange;
   const [loaded,setLoaded]=useState<{id:string;doc:any}|null>(null),[error,setError]=useState('');
-  const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(true),[dragging,setDragging]=useState(false);
+  const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(true),[dragging,setDragging]=useState(false),[showHighlights,setShowHighlights]=useState(true);
   const hidden=useRef(false),resumeScroll=useRef(false),savedScroll=useRef({top:0,left:0});
   const [appearance,setAppearance]=useState(0);
-  const [showHighlights,setShowHighlights]=useState(true);
   const drag=useRef<{pointerId:number;x:number;y:number;top:number;left:number;moved:boolean}|null>(null),suppressClickUntil=useRef(0);
   const cancelDrag=useCallback(()=>{const current=drag.current;if(!current)return;drag.current=null;if(current.moved)suppressClickUntil.current=performance.now()+400;setDragging(false);if(host.current?.hasPointerCapture(current.pointerId))host.current.releasePointerCapture(current.pointerId);},[]);
   useEffect(()=>watchDocumentInterruption(cancelDrag,window,document),[cancelDrag]);
@@ -92,13 +92,10 @@ export default function PdfPane({id,page,total,zoom=1,onZoomChange,compactContro
   const onSize=useCallback((p:number,size:PageSize)=>setMeasured(previous=>{const values=previous.id===id?previous.values:{};const old=values[p];return old&&Math.abs(old.width-size.width)<.01&&Math.abs(old.height-size.height)<.01?previous:{id,values:{...values,[p]:size}};}),[id]);
   const visible=visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1);
   const currentProposals=pageProposalMarkers(targets.filter(t=>t.page===page),proposalIndicators);
-  const pageCount=doc?.numPages||total;
-  const requestedPage=(value:string)=>Math.min(pageCount,Math.max(1,Math.trunc(Number(value)||1)));
-  const interactionTools=<div className="pdf-interaction-tools"><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그하여 선택·복사">Ⅰ 글자 선택</button></div>;
-  const highlightControl=highlights.length>0&&<button className="pdf-highlight-toggle" aria-pressed={showHighlights} aria-label={label+' 인용 강조 '+(showHighlights?'숨기기':'표시')} onClick={()=>setShowHighlights(!showHighlights)}>강조 {showHighlights?'켬':'끔'}</button>;
   function finishDrag(e:React.PointerEvent){if(drag.current?.pointerId===e.pointerId)cancelDrag();}
   return <div className="pdf-reader" aria-label={label}>
-    {compactControls?<div className="pdf-compact-controls" role="toolbar" aria-label={label+' 읽기 도구'}><b>{label}</b><div className="pdf-compact-pager"><button aria-label={label+' 이전 쪽'} disabled={page<=1} onClick={()=>onPageChange(page-1)}>‹</button><input aria-label={label+' PDF 쪽수'} type="number" min={1} max={pageCount} key={page} defaultValue={page} onKeyDown={e=>{if(e.key==='Enter')onPageChange(requestedPage(e.currentTarget.value));}} onBlur={e=>onPageChange(requestedPage(e.currentTarget.value))}/><span>/ {pageCount}</span><button aria-label={label+' 다음 쪽'} disabled={page>=pageCount} onClick={()=>onPageChange(page+1)}>›</button></div>{onZoomChange&&<div className="pdf-compact-zoom"><button aria-label={label+' 축소'} onClick={()=>onZoomChange(Math.max(.7,zoom-.15))}>−</button><button aria-label={label+' 너비에 맞추기'} title="너비에 맞추기" onClick={()=>onZoomChange(1)}>{Math.round(zoom*100)}%</button><button aria-label={label+' 확대'} onClick={()=>onZoomChange(Math.min(2,zoom+.15))}>＋</button></div>}{interactionTools}{highlightControl}</div>:<div className="pdf-reading-tools"><span>연속 보기</span>{interactionTools}{highlightControl}<span className="pdf-reading-page">{page} / {pageCount}</span></div>}
+    {quickTools&&<PdfQuickControls key={id} id={id} label={label} page={page} total={doc?.numPages||total} zoom={zoom} hand={hand} onPageChange={onPageChange} onZoomChange={onZoomChange} onHandChange={setHand} showHighlights={showHighlights} onHighlightsChange={highlights.length?setShowHighlights:undefined}/>}
+    <div className="pdf-reading-tools"><span>연속 보기</span><div><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그하여 선택·복사">Ⅰ 글자 선택</button>{highlights.length>0&&<button aria-pressed={showHighlights} onClick={()=>setShowHighlights(!showHighlights)}>{showHighlights?'강조 숨기기':'강조 보기'}</button>}</div><span className="pdf-reading-page">{page} / {doc?.numPages||total}</span></div>
     {Object.keys(proposalIndicators).length>0&&<div className="pdf-proposal-legend"><b>수정제안 있음</b><span className="proposal-required">필수 · 반드시 수정</span><span className="proposal-recommended">권고 · 강하게 권고</span><span className="proposal-optional">선택 · 선택적</span>{currentProposals.length>0&&<button onClick={()=>{const first=currentProposals[0];if(onProposal)onProposal(first.indicator.primaryProposalId);else onTarget?.(first.target.noteId);}}>현재 쪽 {currentProposals.length}건 보기</button>}</div>}
     <div className={'pdf-stage continuous-pdf'+(hand?' hand-mode':' selection-mode')+(dragging?' is-dragging':'')+(placing?' placing':'')} ref={host} tabIndex={0} aria-label={`${label} 연속 스크롤`}
       onScroll={e=>{if(hidden.current||resumeScroll.current||!viewportSize(e.currentTarget))return;savedScroll.current={top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft};cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}

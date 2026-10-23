@@ -1,15 +1,5 @@
 .pdf-reader{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden;background:#e9e6e1}
 .pdf-cited-page{position:absolute;inset:0;box-sizing:border-box;border:2px solid #b29025b3;background:transparent;pointer-events:none}
-.pdf-compact-controls{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;flex:0 0 auto;min-height:40px;padding:4px 8px;border-bottom:1px solid #d7cfc7;background:#fbf9f5;color:#51474b;font-size:13px;line-height:1.35}
-.pdf-compact-controls>b{flex:0 0 auto;font-size:13px;color:#70000c}
-.pdf-compact-controls>div{display:flex;align-items:center;gap:2px;flex:0 0 auto}
-.review-app .pdf-compact-controls button{min-height:30px;padding:3px 6px;border:1px solid #d8cdd0;border-radius:4px;background:#fff;font-size:13px;line-height:1.35}
-.review-app .pdf-compact-controls button.selected,.review-app .pdf-compact-controls button[aria-pressed="true"]{background:#f2e7eb;border-color:#b6929c;color:#70000c}
-.pdf-compact-pager input{width:46px;min-width:0;height:30px;padding:2px 3px;text-align:center;border:1px solid #cdbfc4;border-radius:3px;font-size:13px;font-variant-numeric:tabular-nums;appearance:textfield}
-.pdf-compact-pager input::-webkit-inner-spin-button,.pdf-compact-pager input::-webkit-outer-spin-button{appearance:none;margin:0}
-.pdf-compact-pager>span{font-variant-numeric:tabular-nums;white-space:nowrap}
-.pdf-compact-controls .pdf-interaction-tools{margin-left:auto}
-.pdf-compact-controls button:focus-visible,.pdf-compact-controls input:focus-visible{outline:2px solid #8b0029;outline-offset:1px}
 .pdf-reading-tools{display:flex;align-items:center;gap:12px;flex:0 0 auto;padding:5px 15px;border-top:1px solid #ded6cf;border-bottom:1px solid #d7cfc7;background:#f8f5f0;font-size:calc(10px * var(--review-font-scale,1.5));color:#766b62}
 .pdf-reading-tools>div{display:flex;gap:3px}.review-app .pdf-reading-tools button{padding:3px 8px;min-height:25px;font-size:calc(10px * var(--review-font-scale,1.5));border:1px solid transparent;color:#655a51}
 .review-app .pdf-reading-tools button.selected{background:#fff;border-color:#c9b9b1;color:var(--review-maroon,#8b0029)}.pdf-reading-page{margin-left:auto;font-variant-numeric:tabular-nums}
@@ -26,4 +16,4 @@
 .citation-hover-tooltip{position:absolute;z-index:9;margin-top:5px;padding:4px 8px;border-radius:4px;background:#38282e;color:white;font-size:calc(10px * var(--review-font-scale,1.5));line-height:1.4;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px #0002}
 .source-panel>.pdf-reader{height:min(76dvh,900px);min-height:420px;flex:none;margin:0;max-height:none}.source-panel>.pdf-reader>.continuous-pdf{min-height:0;max-height:none}
 @media(max-width:899px){.thesis-pane>.pdf-reader{flex:1;min-height:0}.source-panel>.pdf-reader{height:74dvh;min-height:360px}.pdf-reader>.continuous-pdf{padding-left:12px;padding-right:12px}.pdf-reading-tools{padding:5px 10px}}
-@media print{.pdf-reading-tools,.pdf-compact-controls,.citation-keyboard-link,.citation-hover-tooltip,.citation-hover-region,.pdf-page-number{display:none!important}.pdf-reader{overflow:visible}}
+@media print{.pdf-reading-tools,.citation-keyboard-link,.citation-hover-tooltip,.citation-hover-region,.pdf-page-number{display:none!important}.pdf-reader{overflow:visible}}

@@ -11,17 +11,15 @@ function loadTranslation(entry:TranslationEntry){
   if(!pending){pending=fetch(new URL('./translations/'+entry.file,document.baseURI),{credentials:'omit'}).then(async r=>{if(!r.ok)throw Error('번역을 불러오지 못했습니다.');return validateTranslation(await r.json(),entry);}).catch(e=>{cache.delete(entry.file);throw e;});cache.set(entry.file,pending);}
   return pending;
 }
-type Props={sourceId:string;page:number;onPageChange:(page:number)=>void;children?:React.ReactNode;readingFocus?:boolean};
+type Props={sourceId:string;page:number;onPageChange:(page:number)=>void;children?:React.ReactNode};
 export default function ParallelSourceReader(props:Props){
   const entry=translationEntries.find(row=>row.sourceId===props.sourceId);
   if(!entry)return <div className="source-reader-single">{props.children}</div>;
   return <TranslationReader key={entry.sourceId} {...props} entry={entry}/>;
 }
-function TranslationReader({entry,page,onPageChange,children,readingFocus=false}:Props&{entry:TranslationEntry}){
+function TranslationReader({entry,page,onPageChange,children}:Props&{entry:TranslationEntry}){
   const [doc,setDoc]=useState<TranslationDocument|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
-  const [normalParallel,setNormalParallel]=useState(true),[focusParallel,setFocusParallel]=useState(false),[split,setSplit]=useState(52),[mobileView,setMobileView]=useState<'original'|'translation'>('original');
-  const parallel=readingFocus?focusParallel:normalParallel;
-  const setParallel=(show:boolean)=>readingFocus?setFocusParallel(show):setNormalParallel(show);
+  const [parallel,setParallel]=useState(true),[split,setSplit]=useState(52),[mobileView,setMobileView]=useState<'original'|'translation'>('original');
   const pair=useRef<HTMLDivElement>(null),scroll=useRef<HTMLDivElement>(null),fromTranslation=useRef<number|null>(null),programmaticTop=useRef<number|null>(null),raf=useRef(0);
   const latestPage=useRef(page);latestPage.current=page;
   const current=doc?.pages.find(row=>row.pdfPage===page);
