@@ -87,7 +87,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .loading-screen p { color: var(--review-muted); }
 .loading-screen button { border: 1px solid var(--review-line); background: white; padding: 8px 16px; }
 .review-body { display: flex; flex: 1; min-height: 0; min-width: 0; position: relative; }
-.workspace-sidebar { flex: 0 0 208px; width: 208px; min-height: 0; display: flex; flex-direction: column; background: #f7f7f7; border-right: 1px solid #dadada; overflow: hidden; }
+.workspace-sidebar { flex: 0 0 var(--sidebar-width,208px); width: var(--sidebar-width,208px); min-height: 0; display: flex; flex-direction: column; background: #f7f7f7; border-right: 1px solid #dadada; overflow: hidden; }
 .sidebar-collapsed .workspace-sidebar { display: none; }
 .sidebar-heading { height: 48px; flex: 0 0 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 19px; border-bottom: 1px solid #e6e6e6; color: #70000c; font-size: 12px; }
 .sidebar-heading button { font-size: 23px; line-height: 1; padding: 3px 7px; }
@@ -113,6 +113,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .split-divider { position: relative; background: #e3ded7; cursor: col-resize; touch-action: none; user-select: none; z-index: 10; transition: background-color 120ms ease; }
 .split-divider:hover, .split-divider:focus-visible { background: #b78691; outline-offset: -2px; }
 .split-divider span { display: block; position: absolute; left: 2px; width: 2px; height: 34px; top: calc(50% - 17px); border-radius: 2px; background: #a89b92; }
+.pane-resizer { position: relative; cursor: col-resize; touch-action: none; user-select: none; z-index: 10; background: #dadada; }
+.pane-resizer > span { position: absolute; left: 2px; width: 2px; height: 34px; top: calc(50% - 17px); border-radius: 2px; background: #92232f; }
+.pane-resizer:hover, .pane-resizer:focus-visible, .pane-resizer.resizing { background: #cfa2ae; outline-offset: -2px; }
+.sidebar-divider { flex: 0 0 6px; width: 6px; }
 .pane-toolbar { height: 48px; flex: 0 0 48px; display: flex; align-items: center; gap: 4px; background: #ffffff; border-bottom: 1px solid var(--review-line); padding: 0 15px; font-size: 11px; }
 .pane-toolbar button { white-space: nowrap; padding: 6px 8px; }
 .thesis-pane > .pane-toolbar { height: auto; min-height: 48px; flex-basis: auto; flex-wrap: wrap; padding-top: 5px; padding-bottom: 5px; }
@@ -275,6 +279,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 @media (max-width: 1150px) {
   .workspace-sidebar { position: fixed; z-index: 90; inset: 0 auto 0 0; width: 230px; box-shadow: 8px 0 24px #00000018; }
+  .sidebar-divider { display: none; }
   .sidebar-open .sidebar-backdrop { display: block; position: fixed; z-index: 80; inset: 0; width: 100%; height: 100%; border-radius: 0; background: #1b172433; }
   .review-app .sidebar-backdrop:hover:not(:disabled) { background: #1b172433; }
   .app-header .access-badge, .app-header .visitor-label { display: none; }
@@ -366,7 +371,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 @media print {
   .review-app { height: auto; overflow: visible; }
-  .app-header, .basis-bar, .pane-toolbar, .right-tabs, .reference-heading, .workspace-sidebar, .sidebar-backdrop, .split-divider, .page-footnotes, .app-error { display: none; }
+  .app-header, .basis-bar, .pane-toolbar, .right-tabs, .reference-heading, .workspace-sidebar, .sidebar-backdrop, .pane-resizer, .page-footnotes, .app-error { display: none; }
   .review-body { display: block; }
   .split-workspace { display: block; overflow: visible; }
   .thesis-pane, .reference-pane, .source-panel, .scroll-panel, .pdf-stage { overflow: visible; height: auto; max-height: none; }

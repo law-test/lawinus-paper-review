@@ -45,3 +45,15 @@ export function reflowScrollPosition(previous:ReturnType<typeof pageLayout>,next
   return next.offsets[target]+Math.max(0,Math.min(1,fraction))*next.heights[target];
 }
 export function movedPointer(start:{x:number;y:number}|null,x:number,y:number){return !!start&&Math.hypot(x-start.x,y-start.y)>5;}
+export function measurableViewport(width:number,height:number,paddingX=0):{width:number;height:number}|null{
+  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return null;
+  return {width:Math.max(160,width-(Number.isFinite(paddingX)?paddingX:0)),height};
+}
+
+// Pointer-up is not guaranteed when the browser loses focus or leaves the page.
+// Keep a hand drag from resuming unexpectedly when the reader returns.
+export function watchDocumentInterruption(cancel:()=>void,win:EventTarget,doc:EventTarget&{hidden:boolean}){
+  const visibility=()=>{if(doc.hidden)cancel();};
+  win.addEventListener('blur',cancel);win.addEventListener('pagehide',cancel);doc.addEventListener('visibilitychange',visibility);
+  return()=>{win.removeEventListener('blur',cancel);win.removeEventListener('pagehide',cancel);doc.removeEventListener('visibilitychange',visibility);};
+}

@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {assetUrl} from './review-api';
-import {movedPointer,normalizedPoint,pageIndexAt,pageLayout,reflowScrollPosition,targetAt,visiblePageRange,type PageSize,type PdfTarget} from './pdf-viewer-model';
+import {measurableViewport,movedPointer,normalizedPoint,pageIndexAt,pageLayout,reflowScrollPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
 import './pdf-viewer.css';
 type Obj=Record<string,any>;
 type Pin={id:string;page:number|null;x:number|null;y:number|null;text:string;status:string;[key:string]:any};
@@ -50,7 +50,11 @@ export default function PdfPane({id,page,total,zoom=1,pageSizes=NO_PAGE_SIZES,hi
   onPageRef.current=onPageChange;
   const [loaded,setLoaded]=useState<{id:string;doc:any}|null>(null),[error,setError]=useState('');
   const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(true),[dragging,setDragging]=useState(false);
+  const hidden=useRef(false),resumeScroll=useRef(false),savedScroll=useRef({top:0,left:0});
+  const [appearance,setAppearance]=useState(0);
   const drag=useRef<{pointerId:number;x:number;y:number;top:number;left:number;moved:boolean}|null>(null),suppressClickUntil=useRef(0);
+  const cancelDrag=useCallback(()=>{const current=drag.current;if(!current)return;drag.current=null;if(current.moved)suppressClickUntil.current=performance.now()+400;setDragging(false);if(host.current?.hasPointerCapture(current.pointerId))host.current.releasePointerCapture(current.pointerId);},[]);
+  useEffect(()=>watchDocumentInterruption(cancelDrag,window,document),[cancelDrag]);
   const doc=loaded?.id===id?loaded.doc:null;
   useEffect(()=>{let stopped=false,task:any;setError('');setLoaded(null);setMeasured({id,values:{}});
     (async()=>{try{const m=await pdfModule();if(stopped)return;task=m.getDocument({url:assetUrl(id),cMapUrl:localAsset('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:localAsset('./vendor/pdfjs/standard_fonts/'),wasmUrl:localAsset('./vendor/pdfjs/wasm/')});const document=await task.promise;if(!stopped)setLoaded({id,doc:document});}catch{if(!stopped)setError('PDF를 불러오지 못했습니다. 원문을 새 창에서 열어 주세요.');}})();
@@ -60,27 +64,28 @@ export default function PdfPane({id,page,total,zoom=1,pageSizes=NO_PAGE_SIZES,hi
   const layout=useMemo(()=>pageLayout(doc?.numPages||total,viewport.width,zoom,sizes),[doc,total,viewport.width,zoom,sizes]);
   const previousLayout=useRef<{id:string;layout:typeof layout}|null>(null);
   const layoutRef=useRef(layout);layoutRef.current=layout;
-  const contentWidth=(el:HTMLElement)=>{const style=getComputedStyle(el);return Math.max(160,el.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight));};
-  const updateViewport=useCallback(()=>{const el=host.current;if(!el)return;setViewport({width:contentWidth(el),height:el.clientHeight,top:el.scrollTop});
+  const viewportSize=(el:HTMLElement)=>{const style=getComputedStyle(el);return measurableViewport(el.clientWidth,el.clientHeight,parseFloat(style.paddingLeft)+parseFloat(style.paddingRight));};
+  const updateViewport=useCallback(()=>{const el=host.current;if(!el||hidden.current||resumeScroll.current)return;const size=viewportSize(el);if(!size)return;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport({...size,top:el.scrollTop});
     const index=pageIndexAt(layoutRef.current.offsets,Math.max(0,el.scrollTop-18)+Math.min(el.clientHeight*.2,150));const current=index+1;
     if(current!==reported.current){reported.current=current;onPageRef.current(current);}
   },[]);
-  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{setViewport(v=>({...v,width:contentWidth(el),height:el.clientHeight}));});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[]);
-  useLayoutEffect(()=>{const el=host.current;if(!el)return;const previous=previousLayout.current;let top:number|undefined;
+  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{const size=viewportSize(el);if(!size){hidden.current=true;cancelDrag();cancelAnimationFrame(frame.current);return;}if(hidden.current){hidden.current=false;resumeScroll.current=true;setAppearance(value=>value+1);}setViewport(v=>v.width===size.width&&v.height===size.height?v:{...v,...size});});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[cancelDrag]);
+  useLayoutEffect(()=>{const el=host.current;if(!el)return;if(!viewportSize(el)){hidden.current=true;return;}if(hidden.current){hidden.current=false;resumeScroll.current=true;}const previous=previousLayout.current,returning=resumeScroll.current,readingTop=returning?savedScroll.current.top:el.scrollTop;let top:number|undefined;
     if(!previous||previous.id!==id||page!==reported.current){const index=Math.min(layout.heights.length-1,Math.max(0,page-1));top=layout.offsets[index];reported.current=index+1;}
-    else if(previous.layout!==layout){top=reflowScrollPosition(previous.layout,layout,el.scrollTop-18);}
-    previousLayout.current={id,layout};if(top!==undefined){el.scrollTop=top+18;setViewport(v=>({...v,top:el.scrollTop}));}
-  },[page,id,layout]);
+    else if(previous.layout!==layout){top=reflowScrollPosition(previous.layout,layout,readingTop-18);}
+    else if(returning){top=readingTop-18;}
+    previousLayout.current={id,layout};resumeScroll.current=false;if(top!==undefined){el.scrollTop=top+18;if(returning)el.scrollLeft=savedScroll.current.left;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>({...v,top:el.scrollTop}));cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}
+  },[page,id,layout,appearance,updateViewport]);
   const onSize=useCallback((p:number,size:PageSize)=>setMeasured(previous=>{const values=previous.id===id?previous.values:{};const old=values[p];return old&&Math.abs(old.width-size.width)<.01&&Math.abs(old.height-size.height)<.01?previous:{id,values:{...values,[p]:size}};}),[id]);
   const visible=visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1);
-  function finishDrag(e:React.PointerEvent){const current=drag.current;if(!current||current.pointerId!==e.pointerId)return;if(current.moved)suppressClickUntil.current=performance.now()+400;if(host.current?.hasPointerCapture(e.pointerId))host.current.releasePointerCapture(e.pointerId);drag.current=null;setDragging(false);}
+  function finishDrag(e:React.PointerEvent){if(drag.current?.pointerId===e.pointerId)cancelDrag();}
   return <div className="pdf-reader" aria-label={label}>
     <div className="pdf-reading-tools"><span>연속 보기</span><div><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그하여 선택·복사">Ⅰ 글자 선택</button></div><span className="pdf-reading-page">{page} / {doc?.numPages||total}</span></div>
     <div className={'pdf-stage continuous-pdf'+(hand?' hand-mode':' selection-mode')+(dragging?' is-dragging':'')+(placing?' placing':'')} ref={host} tabIndex={0} aria-label={`${label} 연속 스크롤`}
-      onScroll={()=>{cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
+      onScroll={e=>{if(hidden.current||resumeScroll.current||!viewportSize(e.currentTarget))return;savedScroll.current={top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft};cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
       onPointerDown={e=>{if(!hand||placing||e.pointerType!=='mouse'||e.button!==0||(e.target as HTMLElement).closest('button,a,input,textarea'))return;e.preventDefault();drag.current={pointerId:e.pointerId,x:e.clientX,y:e.clientY,top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft,moved:false};}}
       onPointerMove={e=>{const d=drag.current;if(!d||d.pointerId!==e.pointerId)return;if(!d.moved&&movedPointer(d,e.clientX,e.clientY)){d.moved=true;e.currentTarget.setPointerCapture(e.pointerId);setDragging(true);}if(d.moved){e.currentTarget.scrollTop=d.top-(e.clientY-d.y);e.currentTarget.scrollLeft=d.left-(e.clientX-d.x);}}}
-      onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={()=>{drag.current=null;setDragging(false);}}
+      onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}
       onClickCapture={e=>{if(e.detail>0&&performance.now()<suppressClickUntil.current){e.preventDefault();e.stopPropagation();}}}>
       {error&&<div className="pdf-error" role="alert">{error} <a href={assetUrl(id)} target="_blank" rel="noreferrer">원문 열기 ↗</a></div>}
       {!doc&&!error&&<div className="pdf-status" role="status">문서를 불러오는 중…</div>}

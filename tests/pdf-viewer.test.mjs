@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {footnoteTargets,targetAt,normalizedPoint,pageLayout,pageIndexAt,visiblePageRange,reflowScrollPosition,movedPointer} from '../src/pdf-viewer-model.ts';
+import {footnoteTargets,targetAt,normalizedPoint,pageLayout,pageIndexAt,visiblePageRange,reflowScrollPosition,movedPointer,watchDocumentInterruption,measurableViewport} from '../src/pdf-viewer-model.ts';
 
 // Actual fn-001 coordinates from the unchanged human-1021-1559 manifest.
 const first={id:'fn-001',number:1,clickTargets:[{page:20,rect:[117.16,390.416,124.53,398.69],kind:'body-marker'},{page:20,rect:[56.543,546.952,62.47,553.667],kind:'footnote-marker'}],noteHighlights:[{page:20,rect:[62.533,547.048,464.014,556.041],kind:'footnote-text'},{page:20,rect:[69.601,563.716,170.157,572.709],kind:'footnote-text'}]};
@@ -43,4 +43,23 @@ test('mixed page sizes use their measured height without merging left/right docu
   const thesis=pageLayout(279,515,1,{}),source=pageLayout(3,600,1,{2:{width:800,height:400}},{width:600,height:900});
   assert.equal(source.heights[0],900);assert.equal(source.heights[1],300);assert.equal(source.offsets[2],1248);
   assert.equal(pageIndexAt(source.offsets,1248),2);assert.equal(pageIndexAt(thesis.offsets,1248),1);
+});
+test('hand drag is cancelled on focus loss/page hide, with no retained listeners after unmount',()=>{
+  const win=new EventTarget(),doc=Object.assign(new EventTarget(),{hidden:false});let cancelled=0;
+  const dispose=watchDocumentInterruption(()=>cancelled++,win,doc);
+  win.dispatchEvent(new Event('blur'));assert.equal(cancelled,1);
+  doc.dispatchEvent(new Event('visibilitychange'));assert.equal(cancelled,1,'returning to the page must not start or cancel a fresh gesture');
+  doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));assert.equal(cancelled,2);
+  win.dispatchEvent(new Event('pagehide'));assert.equal(cancelled,3);
+  dispose();win.dispatchEvent(new Event('blur'));doc.dispatchEvent(new Event('visibilitychange'));assert.equal(cancelled,3);
+});
+test('a hidden mobile pane cannot replace its last readable dimensions with zero',()=>{
+  assert.equal(measurableViewport(0,0,24),null);assert.equal(measurableViewport(390,0,24),null);assert.equal(measurableViewport(0,700,24),null);
+  assert.deepEqual(measurableViewport(390,700,24),{width:366,height:700});
+  const shown=measurableViewport(390,700,24),before=pageLayout(279,shown.width,1,{}),top=before.offsets[119]+before.heights[119]*.65;
+  const hiddenSize=measurableViewport(0,0,24);
+  const retained=hiddenSize?pageLayout(279,hiddenSize.width,1,{}):before;
+  assert.equal(retained,before,'hidden tab must retain its layout rather than shrink every page');
+  const reopened=measurableViewport(844,390,24),after=pageLayout(279,reopened.width,1,{}),restored=reflowScrollPosition(retained,after,top);
+  assert.equal(pageIndexAt(after.offsets,restored),119);assert.ok(Math.abs((restored-after.offsets[119])/after.heights[119]-.65)<1e-9);
 });
