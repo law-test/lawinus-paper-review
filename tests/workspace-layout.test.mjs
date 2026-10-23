@@ -38,7 +38,7 @@ function renderWorkspace(focus=false,mode='pdf'){
  }});
  return renderToStaticMarkup(React.createElement(module.exports.default));
 }
-test('review opens with footnote details expanded and accurately named controls',()=>{
+test('normal view restores footnote details and accurately named controls',()=>{
  const html=renderWorkspace();
  assert.match(html,/class="review-app four-pane-app mobile-show-thesis metadata-open"/);
  assert.match(html,/aria-controls="reference-metadata" aria-expanded="true"[^>]*>각주 상세정보<\/button>/);

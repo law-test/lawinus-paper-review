@@ -19,11 +19,11 @@ function renderControl(view){
  return {html:renderToStaticMarkup(tree),buttons:all,changed,panelChanges};
 }
 test('direct collapse is reachable without opening the view options',()=>{
- const normal={...readingView.DEFAULT_READING_VIEW,tools:false,footnotes:false};
+ const normal={...readingView.DEFAULT_READING_VIEW,focus:false,tools:false,footnotes:false};
  const result=renderControl(normal);
  assert.ok(result.html.includes('메뉴 접기'));
  assert.ok(!result.html.includes('id="reading-view-options"'));
- const direct=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
+ const direct=result.buttons.find(b=>b.props.className?.split(' ').includes('reading-collapse-toggle'));
  assert.equal(direct.props['aria-expanded'],true);
  direct.props.onClick();
  assert.deepEqual(result.changed,[{...normal,focus:true}]);
@@ -31,10 +31,10 @@ test('direct collapse is reachable without opening the view options',()=>{
  assert.equal(normal.focus,false);
 });
 test('one-click restore preserves every original menu preference and document selection',()=>{
- const normal={...readingView.DEFAULT_READING_VIEW,header:false,tools:false};
+ const normal={...readingView.DEFAULT_READING_VIEW,focus:false,header:false,tools:false};
  const result=renderControl(readingView.withReadingFocus(normal,true));
  assert.ok(result.html.includes('메뉴 펼치기'));
- const direct=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
+ const direct=result.buttons.find(b=>b.props.className?.split(' ').includes('reading-collapse-toggle'));
  assert.equal(direct.props['aria-expanded'],false);
  direct.props.onClick();
  assert.deepEqual(result.changed,[normal]);

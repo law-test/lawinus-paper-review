@@ -1,7 +1,7 @@
 export type ReadingSurface='header'|'tools'|'footnotes'|'sidebar'|'metadata';
 export type ReadingView={focus:boolean;header:boolean;tools:boolean;footnotes:boolean;focusSurfaces?:Partial<Record<ReadingSurface,boolean>>};
 export type ReadingPane='contents'|'thesis'|'source'|'metadata';
-export const DEFAULT_READING_VIEW:ReadingView={focus:false,header:true,tools:true,footnotes:true};
+export const DEFAULT_READING_VIEW:ReadingView={focus:true,header:true,tools:true,footnotes:true};
 
 export function readingVisibility(view:ReadingView,sidebar:boolean,metadata:boolean){
   const normal={header:view.header,tools:view.tools,footnotes:view.footnotes,sidebar,metadata};
