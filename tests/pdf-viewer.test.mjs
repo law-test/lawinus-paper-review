@@ -44,6 +44,14 @@ test('mixed page sizes use their measured height without merging left/right docu
   assert.equal(source.heights[0],900);assert.equal(source.heights[1],300);assert.equal(source.offsets[2],1248);
   assert.equal(pageIndexAt(source.offsets,1248),2);assert.equal(pageIndexAt(thesis.offsets,1248),1);
 });
+test('equal reading widths at 100 percent show equal paper widths regardless of page format',()=>{
+  const thesisViewport=measurableViewport(700,650,44),sourceViewport=measurableViewport(700,420,44);
+  const thesis=pageLayout(279,thesisViewport.width,1,{1:{width:515,height:728}});
+  const source=pageLayout(48,sourceViewport.width,1,{1:{width:612,height:792}});
+  assert.equal(thesis.width,656);assert.equal(source.width,thesis.width);
+  assert.notEqual(thesis.heights[0],source.heights[0],'page aspect ratios must remain intact');
+  assert.equal(pageLayout(48,sourceViewport.width,1.3,{}).width,656*1.3,'source zoom remains independent');
+});
 test('hand drag is cancelled on focus loss/page hide, with no retained listeners after unmount',()=>{
   const win=new EventTarget(),doc=Object.assign(new EventTarget(),{hidden:false});let cancelled=0;
   const dispose=watchDocumentInterruption(()=>cancelled++,win,doc);

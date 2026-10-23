@@ -3,6 +3,8 @@
 .four-pane-app .source-viewer-pane{container:source-pane / inline-size}
 .four-pane-app .pane-region-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;min-height:44px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--review-line);color:var(--review-maroon-dark);font-size:calc(12px * var(--review-font-scale,1.5));font-weight:700;overflow-wrap:anywhere}
 .four-pane-app .pane-region-heading>span{min-width:0}.four-pane-app .pane-region-heading button{flex:0 0 auto;font-size:calc(10px * var(--review-font-scale,1.5));min-height:34px}
+.four-pane-app .pane-region-heading{flex-wrap:wrap}
+.four-pane-app .source-heading-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:4px;margin-left:auto}
 .four-pane-app .source-reader-body{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden}
 .four-pane-app .source-reader-body>.source-caption,.four-pane-app .source-reader-body>.source-locators,.four-pane-app .source-reader-body>.citation-highlight-key,.four-pane-app .source-reader-body>.pane-toolbar,.four-pane-app .source-reader-body>.evidence-label,.four-pane-app .source-reader-body>.placement-hint,.four-pane-app .source-reader-body>.translation-supplement-link{flex:0 0 auto}
 .four-pane-app .source-caption{padding:12px 14px;gap:10px;min-width:0}.four-pane-app .source-caption>div{min-width:0}.four-pane-app .source-caption h2{font-size:calc(13px * var(--review-font-scale,1.5));overflow-wrap:anywhere;line-height:1.6}
@@ -17,11 +19,12 @@
 .four-pane-app .source-reader-body>.text-source{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 .four-pane-app .source-reader-body>.translation-supplement-link{margin:0;padding:8px 12px;border-bottom:1px solid var(--review-line)}
 .four-pane-app .translation-supplement-link button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
-.four-pane-app .metadata-pane>.reference-heading{height:auto;min-height:44px;flex:0 0 auto;gap:8px;padding:8px 12px;overflow-wrap:anywhere}
+.four-pane-app .metadata-pane>.reference-heading{height:auto;min-height:44px;flex:0 0 auto;gap:8px;padding:8px 12px;overflow-wrap:anywhere;flex-wrap:wrap}
 .four-pane-app .metadata-pane>.reference-heading>span{min-width:0}
-.four-pane-app .metadata-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex:0 0 auto}
+.four-pane-app .metadata-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex:0 1 auto;min-width:0;margin-left:auto}
 .four-pane-app .metadata-heading-actions button{min-height:40px;white-space:nowrap}
-.four-pane-app .metadata-collapse{font-size:calc(10px * var(--review-font-scale,1.5));color:var(--review-maroon-dark)}
+.four-pane-app .metadata-heading-actions .metadata-collapse{font-size:calc(10px * var(--review-font-scale,1.5));color:var(--review-maroon-dark);white-space:normal;min-width:0}
+.four-pane-app .pdf-reader>.continuous-pdf{margin-top:var(--document-align-top,0px);margin-bottom:var(--document-align-bottom,0px)}
 .four-pane-app .metadata-pane .source-panel,.four-pane-app .metadata-pane .scroll-panel,.four-pane-app .metadata-pane .revision-panel{flex:1;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain}
 .four-pane-app .metadata-pane .citation-card{padding:16px}.four-pane-app .metadata-pane .section-eyebrow{flex-wrap:wrap}
 .four-pane-app .metadata-pane .rationale blockquote{max-height:none;overflow:visible}
@@ -56,6 +59,7 @@
  .four-pane-app .sidebar-divider{display:block}.four-pane-app .sidebar-backdrop{display:none}
 }
 @media screen and (max-width:1199px){
+ .four-pane-app .equal-width-control{display:none}
  html,body,#root{height:100%;overflow:hidden}
  .four-pane-app.review-app{height:100dvh;min-height:0;overflow:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
  .four-pane-app .review-body{flex:1;min-width:0;min-height:0;overflow:hidden}
