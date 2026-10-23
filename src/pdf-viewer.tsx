@@ -2,19 +2,24 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {assetUrl} from './review-api';
 import {measurableViewport,movedPointer,normalizedPoint,pageIndexAt,pageLayout,reflowScrollPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
 import './pdf-viewer.css';
+import {pageProposalMarkers,placeProposalMarkers,proposalLabel,type ProposalIndicator} from './proposal-indicators';
+import './proposal-indicators.css';
 type Obj=Record<string,any>;
 type Pin={id:string;page:number|null;x:number|null;y:number|null;text:string;status:string;[key:string]:any};
 const NO_PAGE_SIZES:{page:number;width:number;height:number}[]=[];
 let pdfLibrary:Promise<any>|undefined;
 const localAsset=(path:string)=>new URL(path,document.baseURI).href;
 function pdfModule(){return pdfLibrary??=import(/* @vite-ignore */ localAsset('./vendor/pdfjs/pdf.mjs')).then(m=>{m.GlobalWorkerOptions.workerSrc=localAsset('./vendor/pdfjs/pdf.worker.mjs');return m;});}
-type Props={id:string;page:number;total:number;zoom?:number;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string};
+type Props={id:string;page:number;total:number;zoom?:number;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void};
 
-function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,onPlace,placing,onSize}:{doc:any;page:number;width:number;height:number;highlights:Obj[];targets:PdfTarget[];pins:Pin[];onTarget?:Props['onTarget'];onPin?:Props['onPin'];onPlace?:Props['onPlace'];placing:boolean;onSize:(page:number,size:PageSize)=>void}){
+function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,onPlace,placing,onSize,proposalIndicators,onProposal}:{doc:any;page:number;width:number;height:number;highlights:Obj[];targets:PdfTarget[];pins:Pin[];onTarget?:Props['onTarget'];onPin?:Props['onPin'];onPlace?:Props['onPlace'];placing:boolean;onSize:(page:number,size:PageSize)=>void;proposalIndicators:Record<string,ProposalIndicator>;onProposal?:Props['onProposal']}){
   const sheet=useRef<HTMLDivElement>(null),canvas=useRef<HTMLCanvasElement>(null),textLayer=useRef<HTMLDivElement>(null);
   const gesture=useRef<{x:number;y:number}|null>(null);
   const [dims,setDims]=useState<PageSize>({width:515,height:728}),[loading,setLoading]=useState(true),[error,setError]=useState('');
   const [hover,setHover]=useState<PdfTarget|null>(null),[focused,setFocused]=useState<string|null>(null);
+  const [proposalHover,setProposalHover]=useState<string|null>(null);
+  const [labelScale,setLabelScale]=useState(1.5);
+  useEffect(()=>{const read=()=>setLabelScale(Math.max(1,Math.min(2,Number(document.documentElement.dataset.textSize||150)/100)));read();const observer=new MutationObserver(read);observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-text-size']});return()=>observer.disconnect();},[]);
   useEffect(()=>{let stopped=false,render:any,layer:any;setLoading(true);setError('');
     (async()=>{try{const pg=await doc.getPage(page);if(stopped)return;const base=pg.getViewport({scale:1});const size={width:base.width,height:base.height};setDims(size);onSize(page,size);const scale=width/base.width,vp=pg.getViewport({scale}),dpr=Math.min(window.devicePixelRatio||1,2);const cv=canvas.current!,tl=textLayer.current!;cv.width=Math.round(vp.width*dpr);cv.height=Math.round(vp.height*dpr);cv.style.width=vp.width+'px';cv.style.height=vp.height+'px';tl.replaceChildren();tl.style.setProperty('--scale-factor',String(scale));tl.style.setProperty('--total-scale-factor',String(scale));tl.style.width=vp.width+'px';tl.style.height=vp.height+'px';render=pg.render({canvas:cv,canvasContext:cv.getContext('2d'),viewport:vp,transform:dpr!==1?[dpr,0,0,dpr,0,0]:undefined});await render.promise;if(stopped)return;const m=await pdfModule();layer=new m.TextLayer({textContentSource:await pg.getTextContent(),container:tl,viewport:vp});await layer.render();if(!stopped)setLoading(false);}catch(e:any){if(!stopped&&e?.name!=='RenderingCancelledException')setError('이 쪽을 불러오지 못했습니다.');}})();
     return()=>{stopped=true;render?.cancel();layer?.cancel();};
@@ -22,6 +27,10 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
   const rectStyle=(r:number[])=>({left:r[0]/dims.width*100+'%',top:r[1]/dims.height*100+'%',width:(r[2]-r[0])/dims.width*100+'%',height:(r[3]-r[1])/dims.height*100+'%'});
   function targetFromEvent(e:React.PointerEvent|React.MouseEvent){const box=sheet.current!.getBoundingClientRect(),p=normalizedPoint(e.clientX,e.clientY,box);return targetAt(targets,p.x*dims.width,p.y*dims.height);}
   const selectedNote=focused||hover?.noteId;
+  const proposalMarkers=useMemo(()=>pageProposalMarkers(targets,proposalIndicators),[targets,proposalIndicators]);
+  const markerHeight=Math.ceil(8*labelScale*1.35+5),placedMarkers=placeProposalMarkers(proposalMarkers,height,dims.height,markerHeight);
+  const openTarget=(t:PdfTarget)=>{const indicator=t.kind==='paragraph'?proposalIndicators[t.noteId]:undefined;if(indicator&&onProposal)onProposal(indicator.primaryProposalId);else onTarget?.(t.noteId);};
+  const hoveredProposal=proposalMarkers.find(p=>p.indicator.primaryProposalId===proposalHover);
   const keyboardTargets=useMemo(()=>{const rows=new Map<string,PdfTarget>();for(const t of targets){const old=rows.get(t.noteId);if(!old||old.kind==='body-marker'&&t.kind!=='body-marker')rows.set(t.noteId,t);}return [...rows.values()];},[targets]);
   return <div className={'pdf-sheet continuous-pdf-page'+(hover&&!placing?' has-citation-hover':'')} ref={sheet} data-pdf-page={page} style={{width,height}}
     title={!placing&&hover?(hover.kind==='paragraph'?'클릭하면 수정안':'클릭하면 이동'):undefined}
@@ -32,20 +41,23 @@ function PdfPage({doc,page,width,height,highlights,targets,pins,onTarget,onPin,o
       if(movedPointer(gesture.current,e.clientX,e.clientY)||e.shiftKey)return;
       if(placing){const point=normalizedPoint(e.clientX,e.clientY,e.currentTarget.getBoundingClientRect());onPlace?.(point.x,point.y,page);return;}
       const selection=window.getSelection();if(selection&&!selection.isCollapsed&&(sheet.current?.contains(selection.anchorNode)||sheet.current?.contains(selection.focusNode)))return;
-      const target=targetFromEvent(e);if(target)onTarget?.(target.noteId);
+      const target=targetFromEvent(e);if(target)openTarget(target);
     }}>
     <canvas ref={canvas}/><div className="textLayer" ref={textLayer}/>
     {(loading||error)&&<div className="pdf-page-state" role="status">{error||`PDF ${page}쪽 불러오는 중…`}</div>}
     <div className="pdf-overlays">{highlights.map((h,i)=>h.kind==='cited-page'?<span key={i} className="pdf-cited-page" aria-label={`인용면 ${h.printed||page}`}/>:<span key={i} className="pdf-highlight" style={rectStyle(h.rect)}/>)}
       {!placing&&targets.filter(t=>t.noteId===selectedNote).map((t,i)=><span key={'link'+i} className="citation-hover-region" style={rectStyle(t.rect)}/>)}
+      {targets.filter(t=>t.kind==='paragraph'&&proposalIndicators[t.noteId]).map((t,i)=><span key={'proposal'+i} className={'pdf-proposal-region proposal-'+proposalIndicators[t.noteId].tone} style={rectStyle(t.rect)}/>)}
     </div>
-    {!placing&&keyboardTargets.map(t=><a key={t.noteId} className="citation-keyboard-link" style={rectStyle(t.rect)} href={'#'+t.noteId} aria-label={t.kind==='paragraph'?'문단 수정안 열기':`각주 ${t.number} 원전과 검토 내용 열기`} title={t.kind==='paragraph'?'클릭하면 수정안':'클릭하면 이동'} onFocus={()=>setFocused(t.noteId)} onBlur={()=>setFocused(null)} onClick={e=>{e.preventDefault();onTarget?.(t.noteId);}} onKeyDown={e=>{if(e.key===' '){e.preventDefault();onTarget?.(t.noteId);}}}/>)}
+    {!placing&&keyboardTargets.map(t=><a key={t.noteId} className="citation-keyboard-link" style={rectStyle(t.rect)} href={'#'+t.noteId} aria-label={t.kind==='paragraph'?(proposalIndicators[t.noteId]?proposalLabel(proposalIndicators[t.noteId]):'문단 수정안 열기'):`각주 ${t.number} 원전과 검토 내용 열기`} title={t.kind==='paragraph'?'클릭하면 수정안':'클릭하면 이동'} onFocus={()=>setFocused(t.noteId)} onBlur={()=>setFocused(null)} onClick={e=>{e.preventDefault();openTarget(t);}} onKeyDown={e=>{if(e.key===' '){e.preventDefault();openTarget(t);}}}/>)}
+    {!placing&&placedMarkers.map(({target:t,indicator,top})=><button key={indicator.primaryProposalId} className={'pdf-proposal-marker proposal-'+indicator.tone} style={{left:Math.max(1,t.rect[0]/dims.width*width-48),top,height:markerHeight,maxWidth:Math.max(18,Math.min(44,t.rect[0]/dims.width*width-3))}} title={proposalLabel(indicator)} aria-label={proposalLabel(indicator)+' · 수정안 열기'} onMouseEnter={()=>setProposalHover(indicator.primaryProposalId)} onMouseLeave={()=>setProposalHover(null)} onFocus={()=>setProposalHover(indicator.primaryProposalId)} onBlur={()=>setProposalHover(null)} onClick={e=>{e.stopPropagation();if(onProposal)onProposal(indicator.primaryProposalId);else onTarget?.(t.noteId);}}>{indicator.shortLabel}</button>)}
+    {!placing&&hoveredProposal&&<span className={'pdf-proposal-tooltip proposal-'+hoveredProposal.indicator.tone} role="tooltip" style={{left:Math.max(2,hoveredProposal.target.rect[0]/dims.width*100)+'%',top:hoveredProposal.target.rect[1]/dims.height*100+'%'}}>{proposalLabel(hoveredProposal.indicator)}</span>}
     {!placing&&hover&&<span className="citation-hover-tooltip" role="tooltip" style={{left:Math.min(hover.rect[0]/dims.width*100,70)+'%',top:hover.rect[3]/dims.height*100+'%'}}>{hover.kind==='paragraph'?'클릭하면 수정안':'클릭하면 이동'}</span>}
     {!placing&&pins.filter(p=>p.x!=null&&p.y!=null).map((p,i)=><button key={p.id} className={'memo-pin '+(p.status==='resolved'?'resolved':'')} style={{left:p.x!*100+'%',top:p.y!*100+'%'}} title={p.text} aria-label={'메모: '+p.text.slice(0,50)} onClick={e=>{e.stopPropagation();onPin?.(p);}}>{i+1}</button>)}
   </div>;
 }
 
-export default function PdfPane({id,page,total,zoom=1,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서'}:Props){
+export default function PdfPane({id,page,total,zoom=1,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',proposalIndicators={},onProposal}:Props){
   const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange);
   onPageRef.current=onPageChange;
   const [loaded,setLoaded]=useState<{id:string;doc:any}|null>(null),[error,setError]=useState('');
@@ -78,9 +90,11 @@ export default function PdfPane({id,page,total,zoom=1,pageSizes=NO_PAGE_SIZES,hi
   },[page,id,layout,appearance,updateViewport]);
   const onSize=useCallback((p:number,size:PageSize)=>setMeasured(previous=>{const values=previous.id===id?previous.values:{};const old=values[p];return old&&Math.abs(old.width-size.width)<.01&&Math.abs(old.height-size.height)<.01?previous:{id,values:{...values,[p]:size}};}),[id]);
   const visible=visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1);
+  const currentProposals=pageProposalMarkers(targets.filter(t=>t.page===page),proposalIndicators);
   function finishDrag(e:React.PointerEvent){if(drag.current?.pointerId===e.pointerId)cancelDrag();}
   return <div className="pdf-reader" aria-label={label}>
     <div className="pdf-reading-tools"><span>연속 보기</span><div><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그하여 선택·복사">Ⅰ 글자 선택</button></div><span className="pdf-reading-page">{page} / {doc?.numPages||total}</span></div>
+    {Object.keys(proposalIndicators).length>0&&<div className="pdf-proposal-legend"><b>수정제안 있음</b><span className="proposal-required">필수 · 반드시 수정</span><span className="proposal-recommended">권고 · 강하게 권고</span><span className="proposal-optional">선택 · 선택적</span>{currentProposals.length>0&&<button onClick={()=>{const first=currentProposals[0];if(onProposal)onProposal(first.indicator.primaryProposalId);else onTarget?.(first.target.noteId);}}>현재 쪽 {currentProposals.length}건 보기</button>}</div>}
     <div className={'pdf-stage continuous-pdf'+(hand?' hand-mode':' selection-mode')+(dragging?' is-dragging':'')+(placing?' placing':'')} ref={host} tabIndex={0} aria-label={`${label} 연속 스크롤`}
       onScroll={e=>{if(hidden.current||resumeScroll.current||!viewportSize(e.currentTarget))return;savedScroll.current={top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft};cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
       onPointerDown={e=>{if(!hand||placing||e.pointerType!=='mouse'||e.button!==0||(e.target as HTMLElement).closest('button,a,input,textarea'))return;e.preventDefault();drag.current={pointerId:e.pointerId,x:e.clientX,y:e.clientY,top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft,moved:false};}}
@@ -91,7 +105,7 @@ export default function PdfPane({id,page,total,zoom=1,pageSizes=NO_PAGE_SIZES,hi
       {!doc&&!error&&<div className="pdf-status" role="status">문서를 불러오는 중…</div>}
       <div className="pdf-continuous-pages" style={{width:layout.width,height:layout.totalHeight}}>
         {visible.map(p=><div key={id+'-'+p} className="pdf-page-slot" style={{top:layout.offsets[p-1],width:layout.width,height:layout.heights[p-1]}} data-slot-page={p}>
-          {doc?<PdfPage doc={doc} page={p} width={layout.width} height={layout.heights[p-1]} highlights={highlights.filter(h=>h.page===p)} targets={targets.filter(t=>t.page===p)} pins={pins.filter(n=>n.page===p)} onTarget={onTarget} onPin={onPin} onPlace={onPlace} placing={placing} onSize={onSize}/>:<div className="pdf-page-placeholder">PDF {p}쪽</div>}
+          {doc?<PdfPage doc={doc} page={p} width={layout.width} height={layout.heights[p-1]} highlights={highlights.filter(h=>h.page===p)} targets={targets.filter(t=>t.page===p)} pins={pins.filter(n=>n.page===p)} onTarget={onTarget} onPin={onPin} onPlace={onPlace} placing={placing} onSize={onSize} proposalIndicators={proposalIndicators} onProposal={onProposal}/>:<div className="pdf-page-placeholder">PDF {p}쪽</div>}
           <span className="pdf-page-number" aria-hidden="true">{p}</span>
         </div>)}
       </div>

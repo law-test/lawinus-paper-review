@@ -14,7 +14,7 @@ export type SharedEditEditorProps = {
 
 type EditorState = {
  draft:string; reason:string; baseText:string; revision:number;
- conflict:boolean; confirmOverwrite:boolean; comparison?:string; comparisonEdited?:boolean; manualLocked?:boolean;
+ conflict:boolean; confirmOverwrite:boolean; comparison?:string; comparisonEdited?:boolean; manualLocked?:boolean; autoProposal?:boolean;
 };
 type EditorAction =
  | {type:'draft'|'reason'|'comparison'; value:string}
@@ -22,6 +22,8 @@ type EditorAction =
  | {type:'incoming'|'latest'; revision:number; text:string}
  | {type:'saved'; edit:SharedEdit; comparison?:string}
  | {type:'conflict'};
+
+export function hasSharedUserDraft(state:EditorState):boolean {return !!state.comparisonEdited||!!state.reason||(!state.autoProposal&&state.draft!==state.baseText);}
 
 type DraftStorage = Pick<Storage,'getItem'|'setItem'|'removeItem'>;
 export function sharedDraftKey(kind:SharedEditKind,targetId:string){
@@ -44,7 +46,7 @@ export function readSharedEditorDraft(storage:DraftStorage,kind:SharedEditKind,t
 
 export function writeSharedEditorDraft(storage:DraftStorage,kind:SharedEditKind,targetId:string,originalText:string,state:EditorState){
  const key=sharedDraftKey(kind,targetId);
- if(state.draft===state.baseText&&!state.reason&&!state.comparisonEdited){storage.removeItem(key);return;}
+ if((state.draft===state.baseText||state.autoProposal)&&!state.reason&&!state.comparisonEdited){storage.removeItem(key);return;}
  storage.setItem(key,JSON.stringify({schema:1,kind,targetId,originalText,state}));
 }
 
@@ -58,19 +60,19 @@ export function sharedEditorReducer(state:EditorState,action:EditorAction):Edito
  switch(action.type){
   case 'draft': return {...state,draft:action.value};
   case 'reason': return {...state,reason:action.value};
-  case 'comparison': {const parsed=parseRevisionComparison(action.value);return {...state,comparison:action.value,comparisonEdited:true,...(parsed.ok?{draft:parsed.parts.after}:{} )};}
-  case 'replaceComparison': {const parsed=parseRevisionComparison(action.value);if(!parsed.ok)return state;return {...state,comparison:action.value,comparisonEdited:true,draft:parsed.parts.after,manualLocked:false};}
+  case 'comparison': {const parsed=parseRevisionComparison(action.value);return {...state,comparison:action.value,comparisonEdited:true,autoProposal:false,...(parsed.ok?{draft:parsed.parts.after}:{} )};}
+  case 'replaceComparison': {const parsed=parseRevisionComparison(action.value);if(!parsed.ok)return state;return {...state,comparison:action.value,comparisonEdited:true,autoProposal:false,draft:parsed.parts.after,manualLocked:false};}
   case 'conflict': return {...state,conflict:true};
   case 'incoming':
    if(action.revision<=state.revision)return state;
    if(state.draft!==state.baseText||state.reason||state.comparisonEdited)return {...state,conflict:true};
-   return {...state,baseText:action.text,draft:action.text,comparison:comparisonWithAfter(state.comparison,action.text),revision:action.revision,conflict:false,confirmOverwrite:false,manualLocked:false};
+   return {...state,baseText:action.text,draft:action.text,comparison:comparisonWithAfter(state.comparison,action.text),revision:action.revision,conflict:false,confirmOverwrite:false,manualLocked:false,autoProposal:false};
   case 'latest':
    if(action.revision<state.revision)return state;
    return {...state,baseText:action.text,revision:action.revision,conflict:false,
     confirmOverwrite:state.draft!==action.text&&(action.revision>state.revision||state.conflict||state.confirmOverwrite)};
   case 'saved':
-   return {draft:action.edit.text,reason:'',baseText:action.edit.text,comparison:action.comparison??comparisonWithAfter(state.comparison,action.edit.text),comparisonEdited:false,manualLocked:false,revision:action.edit.revision,conflict:false,confirmOverwrite:false};
+   return {draft:action.edit.text,reason:'',baseText:action.edit.text,comparison:action.comparison??comparisonWithAfter(state.comparison,action.edit.text),comparisonEdited:false,manualLocked:false,autoProposal:false,revision:action.edit.revision,conflict:false,confirmOverwrite:false};
  }
 }
 
@@ -104,7 +106,7 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
   if(state.comparison===undefined){
    const useProposal=!restored.recovered&&!validCurrent&&proposalApplyText!==undefined;
    const manualLocked=!restored.recovered&&!validCurrent&&proposalApplyText===undefined&&proposalDisplayText!==undefined;
-   if(useProposal)state.draft=proposalApplyText!;
+   if(useProposal){state.draft=proposalApplyText!;state.autoProposal=true;}
    state.comparison=formatRevisionComparison({before:proposalBeforeText??originalText,after:manualLocked?proposalDisplayText!:state.draft,reason:proposalReason??''});
    state.manualLocked=manualLocked;
   }
@@ -143,11 +145,11 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
   catch{setStorageFailed(true);}
  },[kind,targetId,originalText,state]);
  useEffect(()=>{
-  if(!dirty&&!state.reason&&!state.comparisonEdited)return;
+  if((!dirty||state.autoProposal)&&!state.reason&&!state.comparisonEdited)return;
   const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};
   window.addEventListener('beforeunload',warn);
   return()=>window.removeEventListener('beforeunload',warn);
- },[dirty,state.reason,state.comparisonEdited]);
+ },[dirty,state.reason,state.comparisonEdited,state.autoProposal]);
 
  async function readHistory(mode:'first'|'more'|'latest'){
   if(loading.current||saving.current)return;
@@ -182,7 +184,7 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
  function putText(text:string){
   const parsed=parseRevisionComparison(state.comparison??'');
   if(!parsed.ok){if(!window.confirm('구분 표지를 원래대로 복원하고 After에 선택한 문안을 넣으시겠습니까? Before와 상세이유도 수정지시서 내용으로 복원됩니다.'))return;}
-  else if((dirty||state.comparisonEdited)&&!window.confirm('입력 중인 After를 선택한 문안으로 바꾸시겠습니까? Before와 상세이유는 유지됩니다.'))return;
+  else if(hasSharedUserDraft(state)&&!window.confirm('입력 중인 After를 선택한 문안으로 바꾸시겠습니까? Before와 상세이유는 유지됩니다.'))return;
   const parts=parsed.ok?parsed.parts:{before:proposalBeforeText??originalText,after:'',reason:proposalReason??''};
   dispatch({type:'replaceComparison',value:formatRevisionComparison({...parts,after:text})});setNotice('');setError('');
  }
@@ -214,7 +216,7 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
  async function restore(revision:number){
   if(saving.current||loading.current||state.conflict||revision===state.revision)return;
   const name=revision===0?'원문':`수정 ${revision}`;
-  const draftWarning=dirty?' 입력 중인 문안은 해당 내용으로 바뀝니다.':'';
+  const draftWarning=hasSharedUserDraft(state)?' 입력 중인 문안은 해당 내용으로 바뀝니다.':'';
   if(!window.confirm(`${name}으로 복원하시겠습니까? 복원은 새 변경 이력으로 저장되며 이전 이력은 유지됩니다.${draftWarning}`))return;
   saving.current=true;setBusy(true);setError('');setNotice('');
   try{

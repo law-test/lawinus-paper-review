@@ -8,7 +8,7 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 const require=createRequire(import.meta.url);
-function load(file){const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext(output,{module,exports:module.exports,require:n=>n.endsWith('.css')?{}:n.endsWith('.json')?{}:require(n)});return module.exports;}
+function load(file){const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext(output,{module,exports:module.exports,require:n=>n.endsWith('.css')?{}:n.endsWith('.json')?{}:n==='./proposal-indicators'?load('proposal-indicators.ts'):require(n)});return module.exports;}
 const {default:WebManuscript,InlineNoteText,manuscriptModeAfterRefresh,citationContextWasEdited}=load('web-manuscript.tsx');
 const {default:ProfileRow}=load('profile-row.tsx');
 const catalog=JSON.parse(readFileSync(new URL('../src/paragraph-catalog.json',import.meta.url),'utf8'));
@@ -63,6 +63,14 @@ test('web manuscript keeps its zoom factor at both desktop and mobile text sizes
   const html=renderToStaticMarkup(React.createElement(WebManuscript,{paragraphs:sample,overrides:{},notes:[],page:20,zoom,selected:'',onPageChange(){},onParagraph(){},onNote(){}}));
   assert.ok(html.includes(`--manuscript-zoom:${zoom}`));
  }
+});
+
+test('proposal labels retain urgency text and a deleted passage remains reviewable without reviving its content',()=>{
+ const indicator={priority:'반드시 수정',tone:'required',shortLabel:'필수',proposalIds:['P0283'],primaryProposalId:'P0283'};
+ const html=renderToStaticMarkup(React.createElement(WebManuscript,{paragraphs:sample,overrides:{P0283:{text:''}},proposalIndicators:{P0283:indicator},notes:[],page:20,zoom:1,selected:'',onPageChange(){},onParagraph(){},onNote(){},onProposal(){}}));
+ assert.match(html,/수정제안 있음 · 반드시 수정/);assert.match(html,/proposal-required/);
+ assert.match(html,/현재 본문에서 삭제된 문단/);assert.doesNotMatch(html,/<div hidden="" data-paragraph="P0283"/);
+ assert.doesNotMatch(html,/임차인 보호/);
 });
 test('every editable paragraph preserves the independently recorded human original',()=>{
  assert.equal(catalog.pdfSha256,originals.pdfSha256);assert.equal(catalog.paragraphs.length,1155);

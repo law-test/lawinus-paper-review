@@ -199,3 +199,21 @@ test('explicit restoration repairs a malformed comparison around the returned se
  const state=reduce(broken,{type:'saved',edit:edit(3,'복원된 서버 문안'),comparison:repaired});
  assert.equal(parseComparison(state.comparison).parts.after,state.draft);assert.equal(state.draft,'복원된 서버 문안');assert.equal(state.comparisonEdited,false);
 });
+
+
+test('automatic proposal display is not stored as a user draft until the user edits or inserts text',()=>{
+ const store=memoryStorage();let state={...init('원문'),draft:'최신 After',autoProposal:true,comparison:formatComparison({before:'원문',after:'최신 After',reason:'지시서 이유'})};
+ writeDraft(store,'paragraph','P0001','원문',state);assert.equal(store.getItem(sharedDraftKey('paragraph','P0001')),null);
+ state=reduce(state,{type:'comparison',value:formatComparison({before:'원문',after:'내가 편집한 After',reason:'지시서 이유'})});
+ writeDraft(store,'paragraph','P0001','원문',state);assert.equal(readDraft(store,'paragraph','P0001','원문').state.draft,'내가 편집한 After');assert.equal(state.autoProposal,false);
+});
+
+
+test('viewing a prefilled After alone needs no overwrite prompt while actual input remains protected',()=>{
+ const {hasSharedUserDraft}=module.exports;
+ const automatic={...init('원문'),draft:'지시서 After',autoProposal:true};assert.equal(hasSharedUserDraft(automatic),false);
+ assert.equal(hasSharedUserDraft({...automatic,reason:'내 입력 이유'}),true);
+ assert.equal(hasSharedUserDraft({...automatic,comparisonEdited:true}),true);
+ assert.equal(hasSharedUserDraft({...automatic,autoProposal:false}),true);
+ assert.match(source,/else if\(hasSharedUserDraft\(state\)&&!window\.confirm/);
+});
