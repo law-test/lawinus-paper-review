@@ -104,11 +104,11 @@ export default function AiMingyu(){
       </article>)}<div ref={answerEnd}/>
      </div>
      <form className="mingyu-question-form" onSubmit={ask}>
+      {!busy&&classification&&<p className="mingyu-route">자동 분류: {classification.label||classification.category}{classification.model&&` · 새 답변이 필요하면 ${classification.model}`}<small>{classification.reason}</small></p>}
+      {!busy&&!!suggestions.length&&<div className="mingyu-suggestions"><p>관련 FAQ · 선택하면 검토된 답변을 바로 봅니다.</p>{suggestions.map(item=><button key={item.id} type="button" onClick={()=>void submitQuestion(item.question,item.id)}><small>{item.examiner||item.category}</small>{item.question}</button>)}</div>}
       <label htmlFor="mingyu-question">AI민규에게 질문 보내기</label>
       <textarea id="mingyu-question" value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.nativeEvent.isComposing){e.preventDefault();if(!busy)void submitQuestion(question);}}} maxLength={1800} rows={3} placeholder="주장, 조문, 예외 또는 예상 반론을 질문해 주세요."/>
       <div className="mingyu-compose-footer"><span>{busy?'답변을 기다리는 동안 다음 질문을 적을 수 있어요.':'앞선 답변을 이어 묻더라도 필요한 사실관계를 함께 적어 주세요.'}</span><div className="mingyu-actions">{busy?<button type="button" className="mingyu-stop" onClick={cancel}>답변 중지</button>:<button type="submit" disabled={!question.trim()}>보내기 <span aria-hidden="true">↑</span></button>}</div></div>
-      {!busy&&classification&&<p className="mingyu-route">자동 분류: {classification.label||classification.category}{classification.model&&` · 새 답변이 필요하면 ${classification.model}`}<small>{classification.reason}</small></p>}
-      {!busy&&!!suggestions.length&&<div className="mingyu-suggestions"><p>관련 FAQ · 선택하면 검토된 답변을 바로 봅니다.</p>{suggestions.map(item=><button key={item.id} type="button" onClick={()=>void submitQuestion(item.question,item.id)}><small>{item.examiner||item.category}</small>{item.question}</button>)}</div>}
      </form>
     </div>
     <div className="mingyu-chat-footer"><p className="mingyu-caption">새 답변은 질문의 난도에 따라 Luna·Sol·Astra를 선택합니다. 질문·답변은 이 PC에만 누적 저장되며 ‘저장된 답변’에서 삭제할 수 있습니다.</p>{!!turns.length&&!busy&&<button type="button" onClick={()=>setTurns([])}>대화 화면 비우기</button>}</div>
