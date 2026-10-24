@@ -8,7 +8,7 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 const require=createRequire(import.meta.url);
-function load(file){const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext(output,{module,exports:module.exports,require:n=>n.endsWith('.css')?{}:n.endsWith('.json')?{}:n==='./proposal-indicators'?load('proposal-indicators.ts'):require(n)});return module.exports;}
+function load(file){const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext(output,{module,exports:module.exports,require:n=>n.endsWith('.css')?{}:n.endsWith('.json')?{}:n==='./proposal-indicators'?load('proposal-indicators.ts'):n==='./body-reading-hook'?load('body-reading-hook.ts'):n==='./body-reading-position'?load('body-reading-position.ts'):require(n)});return module.exports;}
 const {default:WebManuscript,InlineNoteText,manuscriptModeAfterRefresh,citationContextWasEdited,effectiveManuscriptEdits}=load('web-manuscript.tsx');
 const {default:ProfileRow}=load('profile-row.tsx');
 const catalog=JSON.parse(readFileSync(new URL('../src/paragraph-catalog.json',import.meta.url),'utf8'));

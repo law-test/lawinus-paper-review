@@ -3,6 +3,7 @@ import type {SharedEdit} from './shared-edits';
 import './web-manuscript.css';
 import {proposalLabel,type ProposalIndicator} from './proposal-indicators';
 import './proposal-indicators.css';
+import {useBodyReadingPosition} from './body-reading-hook';
 
 export type ManuscriptParagraph={id:string;text:string;page:number;printed:string|number|null;kind:string;heading:boolean;order:number;rects:{page:number;rect:number[]}[]};
 type Note={id:string;number:number;page:number;text:string};
@@ -22,14 +23,13 @@ export function InlineNoteText({text,onNote}:{text:string;onNote:(id:string)=>vo
   return <>{text.split(/(\[\^\d+\])/g).map((part,i)=>/^\[\^\d+\]$/.test(part)?<button key={i} className="manuscript-note-marker" title="클릭하면 이동" onClick={e=>{e.stopPropagation();onNote('fn-'+part.slice(2,-1).padStart(3,'0'));}}>{part.slice(2,-1)})</button>:part)}</>;
 }
 
-export default function WebManuscript({paragraphs,overrides,notes,page,zoom,selected,onPageChange,onParagraph,onNote,proposalIndicators={},onProposal}:{paragraphs:ManuscriptParagraph[];overrides:Record<string,SharedEdit>;notes:Note[];page:number;zoom:number;selected:string;onPageChange:(page:number)=>void;onParagraph:(id:string)=>void;onNote:(id:string)=>void;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void}){
-  const host=useRef<HTMLDivElement>(null),lastReported=useRef<number|null>(null),drag=useRef<{x:number;y:number;top:number;moved:boolean}|null>(null),suppressClick=useRef(false);
+export default function WebManuscript({paragraphs,overrides,notes,page,zoom,selected,onPageChange,onParagraph,onNote,proposalIndicators={},onProposal,persistenceKey,navigationToken,onNavigationHandled}:{paragraphs:ManuscriptParagraph[];overrides:Record<string,SharedEdit>;notes:Note[];page:number;zoom:number;selected:string;onPageChange:(page:number)=>void;onParagraph:(id:string)=>void;onNote:(id:string)=>void;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void;persistenceKey?:string;navigationToken?:number;onNavigationHandled?:(token:number)=>void}){
+  const host=useRef<HTMLDivElement>(null),drag=useRef<{x:number;y:number;top:number;moved:boolean}|null>(null),suppressClick=useRef(false);
+  const reportPage=useBodyReadingPosition(host,page,zoom,persistenceKey,onPageChange,navigationToken,onNavigationHandled,overrides);
   const [hand,setHand]=useState(true);
   const groups=new Map<number,ManuscriptParagraph[]>();
   for(const p of paragraphs){const group=groups.get(p.page)||[];group.push(p);groups.set(p.page,group);}
-  useEffect(()=>{if(lastReported.current===page)return;const root=host.current;if(!root)return;const all=Array.from(root.querySelectorAll<HTMLElement>('[data-manuscript-page]'));const target=all.find(e=>Number(e.dataset.manuscriptPage)>=page)||all.at(-1);if(target)root.scrollTop+=target.getBoundingClientRect().top-root.getBoundingClientRect().top;},[page]);
   useEffect(()=>{const cancel=()=>{drag.current=null;suppressClick.current=false;};window.addEventListener('blur',cancel);document.addEventListener('visibilitychange',cancel);return()=>{window.removeEventListener('blur',cancel);document.removeEventListener('visibilitychange',cancel);};},[]);
-  function reportPage(){const root=host.current;if(!root)return;const top=root.getBoundingClientRect().top;const blocks=Array.from(root.querySelectorAll<HTMLElement>('[data-manuscript-page]'));const visible=blocks.find(e=>e.getBoundingClientRect().bottom>top+70);if(visible){const n=Number(visible.dataset.manuscriptPage);lastReported.current=n;onPageChange(n);}}
   return <div className="web-manuscript-reader"><div className="manuscript-tools"><span>본문</span><button className={hand?'selected':''} onClick={()=>setHand(true)}>✋ 이동</button><button className={!hand?'selected':''} onClick={()=>setHand(false)}>글자 선택</button></div>
     <div className={'web-manuscript'+(hand?' hand-mode':'')} ref={host} onScroll={reportPage} style={{'--manuscript-zoom':zoom} as React.CSSProperties}
       onPointerDown={e=>{suppressClick.current=false;if(!hand||e.pointerType==='touch'||e.button!==0||(e.target as HTMLElement).closest('button'))return;drag.current={x:e.clientX,y:e.clientY,top:e.currentTarget.scrollTop,moved:false};}}

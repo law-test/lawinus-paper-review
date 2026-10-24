@@ -8,6 +8,7 @@ import React from 'react';
 import * as paneLayout from '../src/four-pane-size.ts';
 import * as readingView from '../src/reading-view.ts';
 import * as mobileMenu from '../src/mobile-menu-swipe.ts';
+import * as readingSession from '../src/reading-session.ts';
 const require=createRequire(import.meta.url);
 const compile=file=>ts.transpileModule(readFileSync(new URL('../src/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function loadReadingModel(){const module={exports:{}};vm.runInNewContext(compile('web-manuscript.tsx'),{module,exports:module.exports,require:id=>id.startsWith('.')?{}:require(id)});return module.exports;}
@@ -21,7 +22,7 @@ function harness(mode='pdf'){
  const states=[],refs=[];let stateIndex=0,refIndex=0,nullCount=0,oneCount=0,effects=[],tree;
  const module={exports:{}};
  const dependencies={
-  './four-pane-size':paneLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,
+  './four-pane-size':paneLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,'./reading-session':readingSession,
   './review-api':{assetUrl:id=>'https://example.invalid/'+id},
   './paragraph-catalog.json':{default:{paragraphs}},'./revision-proposals.json':{default:{items:[proposal]}},
   './proposal-indicators':{buildProposalIndicators:()=>({})},'./pdf-viewer-model':{footnoteTargets:()=>[]},

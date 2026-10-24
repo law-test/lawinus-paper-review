@@ -77,6 +77,41 @@ export function measurableViewport(width:number,height:number,paddingX=0):{width
   return {width:Math.max(160,width-(Number.isFinite(paddingX)?paddingX:0)),height};
 }
 
+type PdfStorage=Pick<Storage,'getItem'|'setItem'>;
+export type PdfReadingPosition={version:1;key:string;page:number;pages:number;anchorPage:number;fraction:number;gapOffset:number;inset:number;top:number;left:number;width:number;anchorOffset:number;anchorHeight:number;zoom:number;sizes:[number,number,number][]};
+const finiteWithin=(value:unknown,min:number,max:number):value is number=>typeof value==='number'&&Number.isFinite(value)&&value>=min&&value<=max;
+export function pdfReadingStorageKey(key:string){return /^[a-zA-Z0-9][a-zA-Z0-9:._-]{0,240}$/.test(key)?'lawinus.pdf-reading.v1:'+key:null;}
+export function readPdfReadingPosition(storage:PdfStorage|undefined,key:string,pages:number):PdfReadingPosition|null {
+ try{
+  const name=pdfReadingStorageKey(key);if(!storage||!name)return null;
+  const raw=storage.getItem(name);if(!raw||raw.length>65536)return null;
+  const v=JSON.parse(raw);
+  if(!v||v.version!==1||v.key!==key||v.pages!==pages||!Number.isInteger(v.pages)||!finiteWithin(v.pages,1,20000)||
+   !Number.isInteger(v.page)||!finiteWithin(v.page,1,pages)||!Number.isInteger(v.anchorPage)||!finiteWithin(v.anchorPage,1,pages)||
+   !finiteWithin(v.fraction,0,1)||!finiteWithin(v.gapOffset,0,24)||!finiteWithin(v.inset,0,18)||!finiteWithin(v.top,0,1e9)||!finiteWithin(v.left,0,50000)||
+   !finiteWithin(v.width,1,50000)||!finiteWithin(v.anchorOffset,0,1e9)||!finiteWithin(v.anchorHeight,1,100000)||!finiteWithin(v.zoom,.5,4)||
+   !Array.isArray(v.sizes)||v.sizes.length>256||v.sizes.some((row:unknown)=>!Array.isArray(row)||row.length!==3||!Number.isInteger(row[0])||!finiteWithin(row[0],1,pages)||!finiteWithin(row[1],1,20000)||!finiteWithin(row[2],1,20000)))return null;
+  if(new Set(v.sizes.map((row:number[])=>row[0])).size!==v.sizes.length)return null;
+  return v;
+ }catch{return null;}
+}
+export function writePdfReadingPosition(storage:PdfStorage|undefined,position:PdfReadingPosition):boolean {
+ try{const key=pdfReadingStorageKey(position.key);if(!storage||!key)return false;storage.setItem(key,JSON.stringify(position));return true;}catch{return false;}
+}
+export function capturePdfReadingPosition(key:string,layout:ReturnType<typeof pageLayout>,top:number,left:number,page:number,zoom:number,sizes:Record<number,PageSize>):PdfReadingPosition|null {
+ if(!pdfReadingStorageKey(key)||!finiteWithin(top,0,1e9)||!finiteWithin(left,0,50000)||!finiteWithin(layout.width,1,50000)||!finiteWithin(zoom,.5,4)||!Number.isInteger(page)||page<1||page>layout.heights.length||layout.heights.length>20000)return null;
+ const position=Math.max(0,top-18),index=pageIndexAt(layout.offsets,position),offset=position-layout.offsets[index],height=layout.heights[index];
+ const known=Object.entries(sizes).map(([p,s])=>[Number(p),s.width,s.height] as [number,number,number]).filter(row=>Number.isInteger(row[0])&&finiteWithin(row[0],1,layout.heights.length)&&finiteWithin(row[1],1,20000)&&finiteWithin(row[2],1,20000));
+ known.sort((a,b)=>Math.abs(a[0]-(index+1))-Math.abs(b[0]-(index+1)));
+ return {version:1,key,page,pages:layout.heights.length,anchorPage:index+1,fraction:Math.max(0,Math.min(1,offset/height)),gapOffset:Math.max(0,Math.min(layout.gap,offset-height)),inset:Math.min(18,top),top,left,width:layout.width,anchorOffset:layout.offsets[index],anchorHeight:height,zoom,sizes:known.slice(0,256)};
+}
+export function restorePdfReadingPosition(position:PdfReadingPosition,layout:ReturnType<typeof pageLayout>,explicitNavigation=false):{top:number;left:number;page:number}|null {
+ if(explicitNavigation||position.pages!==layout.heights.length)return null;
+ const index=position.anchorPage-1;
+ const exact=Math.abs(position.width-layout.width)<.01&&Math.abs(position.anchorOffset-layout.offsets[index])<.01&&Math.abs(position.anchorHeight-layout.heights[index])<.01;
+ return {page:position.page,top:exact?position.top:layout.offsets[index]+position.fraction*layout.heights[index]+position.gapOffset+position.inset,left:exact?position.left:reflowHorizontalPosition(position.width,layout.width,position.left)};
+}
+
 // Limit raster allocation only. CSS size, PDF coordinates, and zoom stay intact.
 export function pdfCanvasSize(width:number,height:number,deviceRatio:number,compact=false){
   const w=Math.max(1,Number.isFinite(width)?width:1),h=Math.max(1,Number.isFinite(height)?height:1);

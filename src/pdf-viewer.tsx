@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {assetUrl} from './review-api';
-import {createPdfRuntimeCache,measurableViewport,movedPointer,normalizedPoint,pendingPdfReflow,pageIndexAt,pageLayout,pdfCanvasSize,pdfLoadError,reflowScrollPosition,reflowHorizontalPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget} from './pdf-viewer-model';
+import {capturePdfReadingPosition,readPdfReadingPosition,restorePdfReadingPosition,writePdfReadingPosition,createPdfRuntimeCache,measurableViewport,movedPointer,normalizedPoint,pendingPdfReflow,pageIndexAt,pageLayout,pdfCanvasSize,pdfLoadError,reflowScrollPosition,reflowHorizontalPosition,targetAt,visiblePageRange,watchDocumentInterruption,type PageSize,type PdfTarget,type PdfReadingPosition} from './pdf-viewer-model';
 import './pdf-viewer.css';
 import PdfQuickControls from './pdf-quick-controls';
 import {pageProposalMarkers,placeProposalMarkers,proposalLabel,type ProposalIndicator} from './proposal-indicators';
@@ -17,7 +17,10 @@ const pdfRuntime=createPdfRuntimeCache(async attempt=>{
   m.GlobalWorkerOptions.workerSrc=localAsset(PDF_RUNTIME+'pdf.worker.bootstrap.mjs'+retry);return m;
 });
 const pdfModule=()=>pdfRuntime.get();
-type Props={id:string;page:number;total:number;zoom?:number;onZoomChange?:(zoom:number)=>void;quickTools?:boolean;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void};
+type Props={id:string;page:number;total:number;zoom?:number;onZoomChange?:(zoom:number)=>void;quickTools?:boolean;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void;persistenceKey?:string;navigationToken?:number;onNavigationHandled?:(token:number)=>void};
+type PositionSession={key?:string;pending:PdfReadingPosition|null;ready:boolean;last:PdfReadingPosition|null;timer:ReturnType<typeof setTimeout>|null;handledToken:number;localPage:number|null};
+const positionStorage=()=>{try{return typeof window==='undefined'?undefined:window.localStorage;}catch{return undefined;}};
+function flushPosition(session:PositionSession){if(session.timer!==null){clearTimeout(session.timer);session.timer=null;}if(session.last)writePdfReadingPosition(positionStorage(),session.last);}
 
 function PdfPage({doc,runtime,page,width,height,highlights,targets,pins,onTarget,onPin,onPlace,placing,onSize,proposalIndicators,onProposal}:{doc:any;runtime:any;page:number;width:number;height:number;highlights:Obj[];targets:PdfTarget[];pins:Pin[];onTarget?:Props['onTarget'];onPin?:Props['onPin'];onPlace?:Props['onPlace'];placing:boolean;onSize:(page:number,size:PageSize)=>void;proposalIndicators:Record<string,ProposalIndicator>;onProposal?:Props['onProposal']}){
   const sheet=useRef<HTMLDivElement>(null),canvas=useRef<HTMLCanvasElement>(null),textLayer=useRef<HTMLDivElement>(null);
@@ -87,49 +90,68 @@ function PdfPage({doc,runtime,page,width,height,highlights,targets,pins,onTarget
   </div>;
 }
 
-export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=false,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',proposalIndicators={},onProposal}:Props){
-  const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange);
-  onPageRef.current=onPageChange;
+export default function PdfPane({id,page,total,zoom=1,onZoomChange,quickTools=false,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',proposalIndicators={},onProposal,persistenceKey,navigationToken=0,onNavigationHandled}:Props){
+  const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange),onNavigationRef=useRef(onNavigationHandled);
+  onPageRef.current=onPageChange;onNavigationRef.current=onNavigationHandled;
   const [loaded,setLoaded]=useState<{id:string;doc:any;runtime:any}|null>(null),[error,setError]=useState(''),[loadAttempt,setLoadAttempt]=useState(0),[renderable,setRenderable]=useState(false);
   const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(true),[dragging,setDragging]=useState(false),[showHighlights,setShowHighlights]=useState(true);
   const hidden=useRef(false),resumeScroll=useRef(false),savedScroll=useRef({top:0,left:0});
+  const position=useMemo<PositionSession>(()=>({key:persistenceKey,pending:persistenceKey?readPdfReadingPosition(positionStorage(),persistenceKey,total):null,ready:false,last:null,timer:null,handledToken:0,localPage:null}),[id,persistenceKey,total]);
+  const positionRef=useRef(position);positionRef.current=position;
   const [appearance,setAppearance]=useState(0);
   const drag=useRef<{pointerId:number;x:number;y:number;top:number;left:number;moved:boolean}|null>(null),suppressClickUntil=useRef(0);
   const cancelDrag=useCallback(()=>{const current=drag.current;if(!current)return;drag.current=null;if(current.moved)suppressClickUntil.current=performance.now()+400;setDragging(false);if(host.current?.hasPointerCapture(current.pointerId))host.current.releasePointerCapture(current.pointerId);},[]);
   useEffect(()=>watchDocumentInterruption(cancelDrag,window,document),[cancelDrag]);
   const doc=loaded?.id===id?loaded.doc:null;
-  useEffect(()=>{let stopped=false,task:any;setError('');setLoaded(null);setMeasured({id,values:{}});
+  useEffect(()=>{let stopped=false,task:any;setError('');setLoaded(null);const cached=position.pending||position.last;setMeasured({id,values:Object.fromEntries((cached?.sizes||[]).map(([p,width,height])=>[p,{width,height}]))});
     (async()=>{try{const m=await pdfModule();if(stopped)return;task=m.getDocument({url:assetUrl(id),cMapUrl:localAsset('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:localAsset('./vendor/pdfjs/standard_fonts/'),wasmUrl:localAsset('./vendor/pdfjs/wasm/')});const document=await task.promise;if(!stopped)setLoaded({id,doc:document,runtime:m});}catch(e){if(!stopped)setError(pdfLoadError(e));}})();
     return()=>{stopped=true;void task?.destroy();};
-  },[id,loadAttempt]);
+  },[id,loadAttempt,position]);
   const sizes=useMemo(()=>({...Object.fromEntries(pageSizes.map(s=>[s.page,{width:s.width,height:s.height}])),...(measured.id===id?measured.values:{})}),[pageSizes,measured,id]);
   const layout=useMemo(()=>pageLayout(doc?.numPages||total,viewport.width,zoom,sizes),[doc,total,viewport.width,zoom,sizes]);
   const previousLayout=useRef<{id:string;layout:typeof layout}|null>(null);
   const renderedWidth=useRef(viewport.width);renderedWidth.current=viewport.width;
   const layoutRef=useRef(layout);layoutRef.current=layout;
+  const readingInfo=useRef({zoom,sizes,docReady:!!doc});readingInfo.current={zoom,sizes,docReady:!!doc};
   const viewportSize=(el:HTMLElement)=>{const style=getComputedStyle(el);return measurableViewport(el.clientWidth,el.clientHeight,parseFloat(style.paddingLeft)+parseFloat(style.paddingRight));};
-  const updateViewport=useCallback(()=>{const el=host.current;if(!el||hidden.current||resumeScroll.current)return;const size=viewportSize(el);if(!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedWidth.current,size.width))return;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport({...size,top:el.scrollTop});
+  const rememberPosition=useCallback((el:HTMLElement)=>{const session=positionRef.current;if(!session.key||!session.ready||!readingInfo.current.docReady)return;
+    const current=pageIndexAt(layoutRef.current.offsets,Math.max(0,el.scrollTop-18)+Math.min(el.clientHeight*.2,150))+1;
+    session.last=capturePdfReadingPosition(session.key,layoutRef.current,el.scrollTop,el.scrollLeft,current,readingInfo.current.zoom,readingInfo.current.sizes);
+    if(session.last&&session.timer===null)session.timer=setTimeout(()=>flushPosition(session),180);
+  },[]);
+  const updateViewport=useCallback(()=>{const el=host.current,session=positionRef.current;if(!el||hidden.current||resumeScroll.current||!session.ready||!readingInfo.current.docReady)return;const size=viewportSize(el);if(!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedWidth.current,size.width))return;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>v.width===size.width&&v.height===size.height&&v.top===el.scrollTop?v:{...size,top:el.scrollTop});
     const index=pageIndexAt(layoutRef.current.offsets,Math.max(0,el.scrollTop-18)+Math.min(el.clientHeight*.2,150));const current=index+1;
     if(current!==reported.current){reported.current=current;onPageRef.current(current);}
-  },[]);
-  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{const size=viewportSize(el);if(!size){hidden.current=true;setRenderable(false);cancelDrag();cancelAnimationFrame(frame.current);return;}setRenderable(true);if(hidden.current){hidden.current=false;resumeScroll.current=true;setAppearance(value=>value+1);}if(Math.abs(size.width-renderedWidth.current)>.5)cancelAnimationFrame(frame.current);setViewport(v=>v.width===size.width&&v.height===size.height?v:{...v,...size});});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[cancelDrag]);
-  useLayoutEffect(()=>{const el=host.current;if(!el)return;if(!viewportSize(el)){hidden.current=true;return;}if(hidden.current){hidden.current=false;resumeScroll.current=true;}const previous=previousLayout.current,returning=resumeScroll.current,reflowing=previous?.id===id&&previous.layout!==layout,readingTop=returning||reflowing?savedScroll.current.top:el.scrollTop;let top:number|undefined;
-    if(!previous||previous.id!==id||page!==reported.current){const index=Math.min(layout.heights.length-1,Math.max(0,page-1));top=layout.offsets[index];reported.current=index+1;}
+    rememberPosition(el);
+  },[rememberPosition]);
+  useEffect(()=>{const flush=()=>{updateViewport();flushPosition(position);};const onVisibility=()=>{if(document.hidden)flush();};window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',onVisibility);return()=>{window.removeEventListener('pagehide',flush);document.removeEventListener('visibilitychange',onVisibility);flushPosition(position);};},[position,updateViewport]);
+  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{const size=viewportSize(el);if(!size){flushPosition(positionRef.current);hidden.current=true;setRenderable(false);cancelDrag();cancelAnimationFrame(frame.current);return;}setRenderable(true);if(hidden.current){hidden.current=false;resumeScroll.current=true;setAppearance(value=>value+1);}if(Math.abs(size.width-renderedWidth.current)>.5)cancelAnimationFrame(frame.current);setViewport(v=>v.width===size.width&&v.height===size.height?v:{...v,...size});});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[cancelDrag]);
+  useLayoutEffect(()=>{const el=host.current;if(!el)return;const size=viewportSize(el);if(!size){hidden.current=true;return;}if(hidden.current){hidden.current=false;resumeScroll.current=true;}const previous=previousLayout.current,returning=resumeScroll.current,reflowing=previous?.id===id&&previous.layout!==layout,readingTop=returning||reflowing?savedScroll.current.top:el.scrollTop;let top:number|undefined;
+    const externalNavigation=navigationToken>0&&navigationToken!==position.handledToken,explicit=externalNavigation||position.localPage!==null;
+    const targetPage=externalNavigation?page:position.localPage??page;
+    if(explicit)position.pending=null;
+    const canRestore=!!doc&&Math.abs(viewport.width-size.width)<.5;
+    const restored=!position.ready&&canRestore&&position.pending?restorePdfReadingPosition(position.pending,layout,explicit):null;
+    if(restored){top=restored.top-18;reported.current=restored.page;if(page!==restored.page)onPageRef.current(restored.page);}
+    else if(explicit||!previous||previous.id!==id||page!==reported.current){const index=Math.min(layout.heights.length-1,Math.max(0,targetPage-1));top=layout.offsets[index];reported.current=index+1;}
     else if(previous.layout!==layout){top=reflowScrollPosition(previous.layout,layout,readingTop-18);}
     else if(returning){top=readingTop-18;}
-    const left=reflowing?reflowHorizontalPosition(previous!.layout.width,layout.width,savedScroll.current.left):savedScroll.current.left;
-    previousLayout.current={id,layout};resumeScroll.current=false;if(top!==undefined){el.scrollTop=top+18;if(returning||reflowing)el.scrollLeft=left;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>({...v,top:el.scrollTop}));cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}
-  },[page,id,layout,appearance,updateViewport]);
+    const documentChanged=!previous||previous.id!==id;
+    const left=restored?restored.left:documentChanged?0:reflowing?reflowHorizontalPosition(previous!.layout.width,layout.width,savedScroll.current.left):savedScroll.current.left;
+    previousLayout.current={id,layout};resumeScroll.current=false;if(top!==undefined){el.scrollTop=top+18;if(restored||returning||reflowing||documentChanged)el.scrollLeft=left;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>({...v,top:el.scrollTop}));cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}
+    if(canRestore){position.ready=true;position.pending=null;if(explicit){position.localPage=null;if(externalNavigation){position.handledToken=navigationToken;onNavigationRef.current?.(navigationToken);}}if(top===undefined){cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
+  },[page,id,layout,appearance,updateViewport,position,doc,viewport.width,navigationToken]);
   const onSize=useCallback((p:number,size:PageSize)=>setMeasured(previous=>{const values=previous.id===id?previous.values:{};const old=values[p];return old&&Math.abs(old.width-size.width)<.01&&Math.abs(old.height-size.height)<.01?previous:{id,values:{...values,[p]:size}};}),[id]);
   const visible=renderable?visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1):[];
+  const requestPage=(next:number)=>{position.pending=null;position.localPage=next;setAppearance(value=>value+1);onPageRef.current(next);};
   const currentProposals=pageProposalMarkers(targets.filter(t=>t.page===page),proposalIndicators);
   function finishDrag(e:React.PointerEvent){if(drag.current?.pointerId===e.pointerId)cancelDrag();}
   return <div className="pdf-reader" aria-label={label}>
-    {quickTools&&<PdfQuickControls key={id} id={id} label={label} page={page} total={doc?.numPages||total} zoom={zoom} hand={hand} onPageChange={onPageChange} onZoomChange={onZoomChange} onHandChange={setHand} showHighlights={showHighlights} onHighlightsChange={highlights.length?setShowHighlights:undefined}/>}
+    {quickTools&&<PdfQuickControls key={id} id={id} label={label} page={page} total={doc?.numPages||total} zoom={zoom} hand={hand} onPageChange={requestPage} onZoomChange={onZoomChange} onHandChange={setHand} showHighlights={showHighlights} onHighlightsChange={highlights.length?setShowHighlights:undefined}/>}
     <div className="pdf-reading-tools"><span>연속 보기</span><div><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그하여 선택·복사">Ⅰ 글자 선택</button>{highlights.length>0&&<button aria-pressed={showHighlights} onClick={()=>setShowHighlights(!showHighlights)}>{showHighlights?'강조 숨기기':'강조 보기'}</button>}</div><span className="pdf-reading-page">{page} / {doc?.numPages||total}</span></div>
     {Object.keys(proposalIndicators).length>0&&<div className="pdf-proposal-legend"><b>수정제안 있음</b><span className="proposal-required">필수 · 반드시 수정</span><span className="proposal-recommended">권고 · 강하게 권고</span><span className="proposal-optional">선택 · 선택적</span>{currentProposals.length>0&&<button onClick={()=>{const first=currentProposals[0];if(onProposal)onProposal(first.indicator.primaryProposalId);else onTarget?.(first.target.noteId);}}>현재 쪽 {currentProposals.length}건 보기</button>}</div>}
     <div className={'pdf-stage continuous-pdf'+(hand?' hand-mode':' selection-mode')+(dragging?' is-dragging':'')+(placing?' placing':'')} ref={host} tabIndex={0} aria-label={`${label} 연속 스크롤`}
-      onScroll={e=>{const size=viewportSize(e.currentTarget);if(hidden.current||resumeScroll.current||!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedWidth.current,size.width))return;savedScroll.current={top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft};cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
+      onScroll={e=>{const size=viewportSize(e.currentTarget);if(hidden.current||resumeScroll.current||!position.ready||!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedWidth.current,size.width))return;savedScroll.current={top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft};rememberPosition(e.currentTarget);cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
       onPointerDown={e=>{if(!hand||placing||e.pointerType!=='mouse'||e.button!==0||(e.target as HTMLElement).closest('button,a,input,textarea'))return;e.preventDefault();drag.current={pointerId:e.pointerId,x:e.clientX,y:e.clientY,top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft,moved:false};}}
       onPointerMove={e=>{const d=drag.current;if(!d||d.pointerId!==e.pointerId)return;if(!d.moved&&movedPointer(d,e.clientX,e.clientY)){d.moved=true;e.currentTarget.setPointerCapture(e.pointerId);setDragging(true);}if(d.moved){e.currentTarget.scrollTop=d.top-(e.clientY-d.y);e.currentTarget.scrollLeft=d.left-(e.clientX-d.x);}}}
       onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}
