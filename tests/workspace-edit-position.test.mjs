@@ -16,9 +16,9 @@ const readingModel=loadReadingModel();
 const paragraphs=[{id:'P0283',text:'원문[^1]',page:20,printed:1,heading:false,kind:'paragraph',rects:[],order:283}];
 const proposal={id:'P0283',page:20,page_end:249,priority:'권고',before:'원문[^1]',after:'수정문[^1]',reason:'수정 이유',applyText:'수정문[^1]'};
 const fixture={meta:{pageCount:279},pages:[],sources:[{id:'source-1',kind:'pdf',title:'원전',pages:220}],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[{sourceId:'source-1'}],clickTargets:[],noteHighlights:[]}]};
-function PdfPane(){return null;}function WebManuscript(){return null;}function SharedEditEditor(){return null;}
+function PdfPane(){return null;}function WebManuscript(){return null;}function SharedEditEditor(){return null;}function MemoDialog(){return null;}
 const empty={__esModule:true,default:()=>null};
-function harness(mode='pdf'){
+function harness(mode='pdf',memoRows=[]){
  const states=[],refs=[];let stateIndex=0,refIndex=0,nullCount=0,oneCount=0,effects=[],tree;
  const module={exports:{}};
  const dependencies={
@@ -27,13 +27,13 @@ function harness(mode='pdf'){
   './paragraph-catalog.json':{default:{paragraphs}},'./revision-proposals.json':{default:{items:[proposal]}},
   './proposal-indicators':{buildProposalIndicators:()=>({})},'./pdf-viewer-model':{footnoteTargets:()=>[]},
   './web-manuscript':{...readingModel,__esModule:true,default:WebManuscript},'./pdf-viewer':{__esModule:true,default:PdfPane},
-  './shared-edit-editor':{__esModule:true,default:SharedEditEditor},'./parallel-source-reader':{...empty,translationEntries:[]},
+  './shared-edit-editor':{__esModule:true,default:SharedEditEditor},'./memo-dialog':{__esModule:true,default:MemoDialog},'./parallel-source-reader':{...empty,translationEntries:[]},
   './citation-model':{citedSourceRefs:note=>note.sourceRefs||[],citedPages:()=>[],citationHighlights:()=>[],citationStartPage:()=>27},
   './text-size-control':{TextSizeControl:()=>null},'./document-alignment':{useDocumentAlignment:()=>{}},
  };
  vm.runInNewContext(compile('review-workspace.tsx'),{module,exports:module.exports,window:{innerWidth:390,innerHeight:844,localStorage:{getItem:()=>null}},require:id=>{
   if(id==='react')return {...React,useState:initial=>{
-   const index=stateIndex++;if(!(index in states)){let value=typeof initial==='function'?initial():initial;if(initial===null&&++nullCount===1)value=fixture;if(initial==='pdf')value=mode;if(initial===20)value=249;if(initial===1)value=++oneCount===1?1.6:29;states[index]=value;}
+   const index=stateIndex++;if(!(index in states)){let value=typeof initial==='function'?initial():initial;if(Array.isArray(initial)&&initial.length===0)value=memoRows;if(initial===null&&++nullCount===1)value=fixture;if(initial==='pdf')value=mode;if(initial===20)value=249;if(initial===1)value=++oneCount===1?1.6:29;states[index]=value;}
    return [states[index],next=>{states[index]=typeof next==='function'?next(states[index]):next;}];
   },useRef:initial=>{const index=refIndex++;return refs[index]??=( {current:initial});},useMemo:fn=>fn(),useEffect:(fn,deps)=>effects.push({fn,deps})};
   if(id in dependencies)return dependencies[id];if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:empty;return require(id);
@@ -42,7 +42,7 @@ function harness(mode='pdf'){
  function nodes(){const all=[];function walk(node){if(!node||typeof node!=='object')return;all.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);return all;}
  const label=node=>React.Children.toArray(node.props?.children).map(c=>typeof c==='object'?label(c):String(c)).join('');
  function pollView(){const effect=effects.find(e=>e.deps?.length===2&&e.deps[0]===fixture);assert.ok(effect);effect.fn();render();}
- render();return {render,nodes,label,pollView,pdf:()=>nodes().find(n=>n.type===PdfPane&&n.props.id==='thesis'),body:()=>nodes().find(n=>n.type===WebManuscript),editor:kind=>nodes().find(n=>n.type===SharedEditEditor&&n.props.kind===kind)};
+ render();return {render,nodes,label,pollView,memo:()=>nodes().find(n=>n.type===MemoDialog),pdf:()=>nodes().find(n=>n.type===PdfPane&&n.props.id==='thesis'),body:()=>nodes().find(n=>n.type===WebManuscript),editor:kind=>nodes().find(n=>n.type===SharedEditEditor&&n.props.kind===kind)};
 }
 const edit=(kind,text,revision=3)=>({id:String(revision+10),kind,targetId:kind==='paragraph'?'P0283':'fn-001',revision,text});
 
@@ -70,4 +70,32 @@ test('selecting a proposal from the list still explicitly navigates to its first
 test('restoring an original footnote keeps its revision for future saves without forcing body mode',()=>{
  const h=harness();h.editor('footnote').props.onSaved(edit('footnote','각주 원문',4));h.render();h.pollView();
  assert.equal(h.pdf().props.page,249);assert.equal(h.body(),undefined);assert.equal(h.editor('footnote').props.current.revision,4);
+});
+
+const memo=(anchorType,page,extra={})=>({id:'memo-'+anchorType,anchorType,page,noteId:null,sourceId:null,x:.4,y:.6,text:'메모 '+anchorType,quote:'원문 구절',visibility:'private',status:'open',revision:2,editable:true,...extra});
+function prepareSource(h){h.nodes().find(n=>n.type==='button'&&h.label(n)==='1. 원전').props.onClick();h.render();const source=()=>h.nodes().find(n=>n.type===PdfPane&&n.props.id==='source-1');source().props.onPageChange(29);source().props.onZoomChange(1.3);h.render();return source;}
+test('opening a thesis memo pin retains both readers and issues no page-start navigation',()=>{
+ const h=harness(),source=prepareSource(h),item=memo('thesis',249),thesisToken=h.pdf().props.navigationToken,sourceToken=source().props.navigationToken;
+ h.pdf().props.onPin(item);h.render();
+ assert.equal(h.pdf().props.page,249);assert.equal(h.pdf().props.zoom,1.6);assert.equal(h.pdf().props.navigationToken,thesisToken);
+ assert.equal(source().props.page,29);assert.equal(source().props.zoom,1.3);assert.equal(source().props.navigationToken,sourceToken);
+ assert.equal(h.memo().props.draft.id,item.id);assert.equal(h.memo().props.draft.page,249);assert.equal(h.memo().props.draft.revision,2);
+ h.memo().props.onClose();h.render();assert.equal(h.memo(),undefined);assert.equal(h.pdf().props.navigationToken,thesisToken);
+});
+test('opening a reference memo pin retains its exact reader and does not reselect the citation start',()=>{
+ const h=harness(),source=prepareSource(h),item=memo('source',29,{sourceId:'source-1',noteId:'fn-001'}),thesisToken=h.pdf().props.navigationToken,sourceToken=source().props.navigationToken;
+ source().props.onPin(item);h.render();
+ assert.equal(source().props.page,29);assert.equal(source().props.zoom,1.3);assert.equal(source().props.navigationToken,sourceToken);
+ assert.equal(h.pdf().props.page,249);assert.equal(h.pdf().props.zoom,1.6);assert.equal(h.pdf().props.navigationToken,thesisToken);
+ assert.equal(h.memo().props.draft.id,item.id);assert.equal(h.memo().props.draft.noteId,'fn-001');assert.equal(h.memo().props.draft.sourceId,'source-1');
+});
+test('memo list selections still explicitly navigate to their anchor in thesis and reference documents',()=>{
+ for(const item of [memo('thesis',79),memo('source',88,{sourceId:'source-1',noteId:'fn-001'})]){
+  const h=harness('pdf',[item]),source=prepareSource(h);
+  const menu=h.nodes().find(n=>n.type==='button'&&h.label(n).startsWith('▧검토 메모'));assert.ok(menu);menu.props.onClick();h.render();
+  const card=h.nodes().find(n=>n.type==='button'&&n.props.className==='memo-card open');assert.ok(card);card.props.onClick();h.render();
+  if(item.anchorType==='thesis'){assert.equal(h.pdf().props.page,79);assert.ok(h.pdf().props.navigationToken>0);assert.equal(source().props.page,29);}
+  else{assert.equal(source().props.page,88);assert.ok(source().props.navigationToken>0);assert.equal(h.pdf().props.page,249);}
+  assert.equal(h.pdf().props.zoom,1.6);assert.equal(source().props.zoom,1.3);assert.equal(h.memo().props.draft.id,item.id);
+ }
 });
