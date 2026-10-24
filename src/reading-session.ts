@@ -29,7 +29,7 @@ export function validateReadingSession(value:unknown,datasetId:string,catalog:Re
  const pane=['contents','thesis','source','metadata'].includes(String(v.mobilePane))?v.mobilePane as ReadingSession['mobilePane']:'thesis';
  const activeNote=typeof v.activeNote==='string'&&catalog.noteIds.includes(v.activeNote)?v.activeNote:fallback.activeNote;
  const textTranslation=typeof v.textTranslation==='string'&&catalog.textTranslations?.some(t=>t.sourceId===v.textTranslation&&t.kind==='text'&&t.noteIds?.includes(activeNote))?v.textTranslation:'';
- const tab=['source','library','memos','revision','profile'].includes(String(v.tab))?String(v.tab):'source';
+ const tab=['source','library','memos','revision','profile','faq'].includes(String(v.tab))?String(v.tab):'source';
  return {schema:1,datasetId,thesis:readingDocument(v.thesis,catalog.pageCount,20),sources,sourceId,textTranslation,
   activeNote,
   manuscriptMode:v.manuscriptMode==='body'?'body':'pdf',mobilePane:pane==='source'&&!sourceId&&!textTranslation?'thesis':pane,tab,

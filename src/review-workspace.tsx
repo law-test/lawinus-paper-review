@@ -17,6 +17,8 @@ import ThesisContents from './thesis-contents';
 import ParallelSourceReader,{translationEntries} from './parallel-source-reader';
 import './review-mobile.css';
 import ProfileSections from './profile-sections';
+import ThesisFaq from './thesis-faq';
+import {reviewDeepLink} from './thesis-faq-model';
 import citationExplanations from './citation-explanations.json';
 import citationPageData from './citation-pages.json';
 import {citedSourceRefs, citedPages, citationStartPage, citationHighlights, citedPageLabel, type CitationMap} from './citation-model';
@@ -106,6 +108,18 @@ export default function ReviewWorkspace(){
   function selectProposal(id:string,jump=true){const item=proposals.find(p=>p.id===id);if(!item)return;setMetadataVisibility(true);if(/^FN\d+$/.test(id)){openNote('fn-'+id.slice(2).padStart(3,'0'),jump);setMobilePane('metadata');return;}setProposalId(id);setParagraphId(manuscript.some(p=>p.id===id)?id:'');if(jump)navigateThesis(item.page);setTab('revision');setMobilePane('metadata');}
   async function downloadShared(){try{await downloadSharedEditsExport();}catch(e:any){setError(e.message);}}
 
+  const initialDeepLinkApplied=useRef(false);
+  useEffect(()=>{
+    if(!data||!readingDataset||initialDeepLinkApplied.current)return;
+    initialDeepLinkApplied.current=true;
+    const link=reviewDeepLink(window.location.search,proposals.map(item=>item.id));
+    if(!link)return;
+    if(link.view==='proposal')selectProposal(link.id);
+    else{setTab('faq');setMetadataVisibility(true);setMobilePane('metadata');}
+    if(window.innerWidth<1200)setSidebarVisibility(false);
+    setMobilePane('metadata');
+  },[data,readingDataset]);
+
   const splitRef=useRef<HTMLDivElement>(null);
   useDocumentAlignment(splitRef,!compact&&workspaceLayout.orientation==='columns'&&manuscriptMode==='pdf'&&!!data);
   const refreshMemos=()=>api('/api/notes').then(d=>{setMemos(d.notes);setMemoError(d.truncated?'메모가 5,000개를 넘어 화면에는 일부만 표시됩니다. 전체 내보내기를 이용해 주세요.':'');}).catch(e=>setMemoError('메모를 불러오지 못했습니다. 문서는 계속 열람할 수 있습니다. '+e.message));
@@ -175,6 +189,7 @@ export default function ReviewWorkspace(){
   const supplementalSources=sources.filter(s=>s.supplemental),filteredSupplemental=supplementalSources.filter(s=>!query||[s.title,s.reviewSummary].join(' ').toLowerCase().includes(query.toLowerCase()));
   const filteredMemos=memos.filter(m=>(filter==='all'||m.status===filter)&&(!query||[m.text,m.quote,m.displayName].join(' ').includes(query)));
   const selectMemo=(m:Memo,jump=true)=>{setComposerError('');if(jump){if(m.noteId)openNote(m.noteId,m.anchorType!=='source');if(m.anchorType==='source'&&m.sourceId){setTab('source');switchSource(m.sourceId,m.page||1,m.page||1);}else if(m.page)navigateThesis(m.page);}setComposer({...m});};
+  const metadataTitle=({source:'각주 상세정보',revision:'본문 수정안',memos:'검토 메모',library:'자료 목록',profile:'김민규 소개',faq:'논문 FAQ'} as Record<string,string>)[tab]||'상세정보';
   const rows=!compact&&workspaceLayout.orientation==='rows';
   const headerHeight=workspaceLayout.headerHeight===null?undefined:boundedPanelHeight(workspaceLayout.headerHeight,viewportHeight,44,.4,132);
   const footerHeight=workspaceLayout.footerHeight===null?undefined:boundedPanelHeight(workspaceLayout.footerHeight,thesisPaneRef.current?.clientHeight||viewportHeight,44,.35,48);
@@ -189,7 +204,7 @@ export default function ReviewWorkspace(){
       {visibleSurfaces.sidebar&&<button className="sidebar-backdrop" aria-label="탐색 메뉴 닫기" onClick={hideNavigation}/>}
       <aside ref={sidebarRef} className="workspace-sidebar" id="workspace-navigation" aria-label="논문 탐색">
         <div className="sidebar-heading"><b>논문 심사실</b><button aria-label="탐색 메뉴 접기" onClick={hideNavigation}>‹</button></div>
-        <nav ref={sidebarMenuRef} style={menuHeight===undefined?undefined:{height:menuHeight,flexBasis:menuHeight}} className="sidebar-menu" aria-label="검토 메뉴">{[['source','↔','원전 대조'],['revision','✎','수정안'],['memos','▧','검토 메모'],['library','≡','자료 목록'],['profile','○','김민규 소개']].map(([id,icon,label])=><button key={id} className={tab===id?'active':''} aria-current={tab===id?'page':undefined} onClick={()=>{setTab(id);if(id!=='source')setMetadataVisibility(true);setMobilePane(id==='source'?'source':'metadata');setQuery('');if(window.innerWidth<1200)setSidebarOpen(false);}}><span aria-hidden="true">{icon}</span>{label}{id==='memos'&&<small>{memos.length}</small>}</button>)}</nav>
+        <nav ref={sidebarMenuRef} style={menuHeight===undefined?undefined:{height:menuHeight,flexBasis:menuHeight}} className="sidebar-menu" aria-label="검토 메뉴">{[['source','↔','원전 대조'],['revision','✎','수정안'],['memos','▧','검토 메모'],['library','≡','자료 목록'],['profile','○','김민규 소개'],['faq','?','논문 FAQ']].map(([id,icon,label])=><button key={id} className={tab===id?'active':''} aria-current={tab===id?'page':undefined} onClick={()=>{setTab(id);if(id!=='source')setMetadataVisibility(true);setMobilePane(id==='source'?'source':'metadata');setQuery('');if(window.innerWidth<1200)setSidebarOpen(false);}}><span aria-hidden="true">{icon}</span>{label}{id==='memos'&&<small>{memos.length}</small>}</button>)}</nav>
         {outline&&<PaneResizer axis="y" className="sidebar-toc-divider" label="검토 메뉴와 목차 높이 조절" getValue={()=>sidebarMenuRef.current?.clientHeight??menuHeight??250} value={menuHeight??sidebarMenuRef.current?.clientHeight??250} min={88} max={Math.max(88,(sidebarRef.current?.clientHeight||viewportHeight)*.7)} unit="픽셀" step={16} onChange={value=>changeLayout({sidebarMenuHeight:value})} onReset={()=>changeLayout({sidebarMenuHeight:null})}/>}
         <button className="sidebar-outline-toggle" aria-expanded={outline} onClick={()=>setOutline(!outline)}>논문 목차 <span aria-hidden="true">{outline?'−':'＋'}</span></button>
         {outline&&<ThesisContents page={page} pdfSha256={data.meta.pdfSha256} onNavigate={goToThesis}/>}
@@ -212,7 +227,7 @@ export default function ReviewWorkspace(){
       {!source&&!textTranslation&&<div className="empty-state">각주에서 참고문헌을 선택해 주세요.</div>}
       </div></section>
       {visibleSurfaces.metadata&&<PaneResizer className="split-divider source-metadata-divider" label="원전과 정보·수정 화면 경계 조절" value={rows?workspaceLayout.stackedSourceEnd:paneCuts.sourceEnd} min={rows?50:paneCuts.thesis+20} max={rows?82:80} onChange={value=>rows?changeLayout({stackedSourceEnd:value}):setPaneCuts(old=>moveFourPaneBoundary(old,'source',value))} unitsPerPixel={()=>100/Math.max(1,(splitRef.current?.getBoundingClientRect().width||1)-(rows?6:12))}/>}
-      <section id="reference-metadata" className="reference-pane metadata-pane" aria-label="참고문헌 정보와 논문 수정"><div className="reference-heading"><span>{({source:"각주 상세정보",revision:"본문 수정안",memos:"검토 메모",library:"자료 목록",profile:"김민규 소개"} as Record<string,string>)[tab]}</span><div className="metadata-heading-actions"><button className="panel-navigation" onClick={showNavigation} aria-label="다른 검토 메뉴 열기">☰</button><button className="metadata-collapse" onClick={closeMetadata} aria-label="각주 상세정보 접기">각주 상세정보 접기</button></div></div>
+      <section id="reference-metadata" className="reference-pane metadata-pane" aria-label="참고문헌 정보와 논문 수정"><div className="reference-heading"><span>{metadataTitle}</span><div className="metadata-heading-actions"><button className="panel-navigation" onClick={showNavigation} aria-label="다른 검토 메뉴 열기">☰</button><button className="metadata-collapse" onClick={closeMetadata} aria-label={`${metadataTitle} 접기`}>{metadataTitle} 접기</button></div></div>
       {tab==='revision'&&<div className="revision-panel">
         {paragraph||proposal?<><div className="revision-summary"><button onClick={()=>{setParagraphId('');setProposalId('');}}>‹ 수정안 목록</button><span>PDF {paragraph?.page||proposal?.page}쪽</span>{proposal&&<span>{proposal.priority}</span>}</div>
           {!paragraph&&proposal&&<><RevisionComparison before={proposal.before} after={proposal.after} reason={proposal.reason}/>{proposal.applyUnsupportedReason&&<p className="revision-context-note">{proposal.applyUnsupportedReason}</p>}</>}
@@ -234,6 +249,7 @@ export default function ReviewWorkspace(){
 </>:<div className="empty-state">논문의 각주를 누르면 인용 내용과 수정안을 확인할 수 있습니다.</div>}</div>}
       {tab==='library'&&<div className="scroll-panel"><div className="panel-heading"><span className="section-eyebrow">CITATION INDEX</span><h2>각주와 참고자료</h2><p>각주 {notes.length}개 · 인용 연결자료 {sources.length-supplementalSources.length+translationEntries.filter(t=>t.kind==='text').length}개{supplementalSources.length?` · 추가 검토자료 ${supplementalSources.length}개`:""}</p></div><input className="search-input" placeholder="각주 번호, 저자, 사건번호, 본문 설명 검색" value={query} onChange={e=>setQuery(e.target.value)}/>{!!filteredSupplemental.length&&<section className="supplemental-library"><h3>관련 자료</h3>{filteredSupplemental.map(s=><button className="library-row" key={s.id} onClick={()=>openRelatedSource(s.id)}><span className="index-number">＋</span><span>{s.title}<small>{s.reviewSummary}</small></span><span>↗</span></button>)}</section>}{filteredNotes.map(n=><button className="library-row" key={n.id} onClick={()=>openNote(n.id,true)}><span className="index-number">{n.number}</span><span>{n.text}<small>PDF {n.page}쪽 · {citedSourceRefs({id:n.id,sourceRefs:n.sourceRefs},citationPageMap,sources.map(s=>({id:s.id}))).length+translationEntries.filter(t=>t.kind==='text'&&t.noteIds?.includes(n.id)).length}개 자료{n.humanCorrection?' · 수정 제안 있음':''}{n.missingSources?.length?' · 미확보 포함':''}</small></span><span>↗</span></button>)}</div>}
       {tab==='memos'&&<div className="scroll-panel"><div className="panel-heading"><span className="section-eyebrow">REVIEW NOTES</span><h2>검토 메모</h2></div><div className="memo-identity-note"><b>{reviewer.name}</b><p>개인 메모는 현재 브라우저에서만 열립니다. 브라우저 데이터를 지우기 전에 내보내기로 보관해 주세요.</p></div>{memoError&&<div className="memo-error" role="status">{memoError}<button onClick={connectSession} disabled={sessionConnecting}>{sessionConnecting?'연결 중…':'다시 연결'}</button></div>}<div className="memo-actions"><button className="primary" onClick={()=>newMemo('general')}>＋ 새 메모</button><button disabled={exporting} onClick={()=>void downloadNotes('md')}>Markdown ↓</button><button disabled={exporting} onClick={()=>void downloadNotes('csv')}>Excel용 CSV ↓</button><button onClick={connectSession} disabled={sessionConnecting} aria-label="메모 다시 연결">↻</button></div><input className="search-input" placeholder="메모 내용·선택 구절·작성자 검색" value={query} onChange={e=>setQuery(e.target.value)}/><div className="filter-buttons">{[['all','전체'],['open','미해결'],['resolved','해결']].map(([id,label])=><button key={id} className={filter===id?'selected':''} onClick={()=>setFilter(id)}>{label}</button>)}</div>{filteredMemos.map(m=><button key={m.id} className={'memo-card '+m.status} onClick={()=>selectMemo(m)}><div className="section-eyebrow"><span>{m.noteId?`각주 ${Number(m.noteId.slice(3))}`:m.anchorType==='source'?'참고자료':m.anchorType==='general'?'전체 의견':'논문 원문'}{m.page?` · PDF ${m.page}쪽`:''}</span><span>{m.visibility==='private'?'나만 보기':'링크 방문자 공유'}</span></div>{m.quote&&<blockquote>{m.quote}</blockquote>}<p>{m.text}</p><small>{m.displayName} · {m.status==='resolved'?'해결':'미해결'}{m.editable?' · 수정 가능':''}</small></button>)}{!filteredMemos.length&&<div className="empty-state"><span>▧</span><h3>아직 메모가 없습니다.</h3></div>}</div>}
+      {tab==='faq'&&<ThesisFaq/>}
       {tab==='profile'&&<div className="scroll-panel profile-panel"><span className="section-eyebrow">김민규 소개</span><img className="profile-portrait" src="./kim-min-gyu-profile.jpg?v=92e0d14c5852" alt="김민규" width="112" height="140" decoding="async"/><h2>{profile?.name||'김민규'}</h2><p className="profile-headline">{profile?.headline}</p><p>{profile?.summary}</p><ProfileSections profile={profile}/></div>}
       </section>
     </div></div>}
