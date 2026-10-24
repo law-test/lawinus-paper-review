@@ -1,3 +1,4 @@
+import * as faqModel from '../src/thesis-faq-model.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -23,6 +24,7 @@ function harness(mode='pdf',memoRows=[]){
  const states=[],refs=[];let stateIndex=0,refIndex=0,oneCount=0,effects=[],tree;
  const module={exports:{}};
  const dependencies={
+  './thesis-faq-model':faqModel,
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
   './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},
@@ -35,7 +37,7 @@ function harness(mode='pdf',memoRows=[]){
   './citation-model':{citedSourceRefs:note=>note.sourceRefs||[],citedPages:()=>[],citationHighlights:()=>[],citationStartPage:()=>27},
   './text-size-control':{TextSizeControl:()=>null},'./document-alignment':{useDocumentAlignment:()=>{}},
  };
- vm.runInNewContext(compile('review-workspace.tsx'),{module,exports:module.exports,__workspaceFixture:fixture,window:{innerWidth:390,innerHeight:844,localStorage:{getItem:()=>null}},require:id=>{
+ vm.runInNewContext(compile('review-workspace.tsx'),{module,exports:module.exports,__workspaceFixture:fixture,window:{location:{search:''},innerWidth:390,innerHeight:844,localStorage:{getItem:()=>null}},require:id=>{
   if(id==='react')return {...React,useState:initial=>{
    const index=stateIndex++;if(!(index in states)){let value=typeof initial==='function'?initial():initial;if(Array.isArray(initial)&&initial.length===0)value=memoRows;if(initial==='pdf')value=mode;if(initial===20)value=249;if(initial===1)value=++oneCount===1?1.6:29;states[index]=value;}
    return [states[index],next=>{states[index]=typeof next==='function'?next(states[index]):next;}];

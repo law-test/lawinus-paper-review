@@ -1,3 +1,4 @@
+import * as faqModel from '../src/thesis-faq-model.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -23,6 +24,7 @@ function harness(saved,width=390,height=844,layout){
  let states=[],refs=[],cursor=0,refIndex=0,effects=[],tree,resolveManifest;
  const pendingManifest=new Promise(resolve=>{resolveManifest=resolve;});
  const module={exports:{}},dependencies={
+  './thesis-faq-model':faqModel,
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
   './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},
@@ -35,7 +37,7 @@ function harness(saved,width=390,height=844,layout){
   './text-size-control':{TextSizeControl:()=>null},'./document-alignment':{useDocumentAlignment:()=>{}},
   './review-api':{api:path=>path==='/api/manifest'?pendingManifest:Promise.resolve(path==='/api/profile'?{}:{notes:[]}),loadReviewConfig:()=>Promise.resolve({datasetId:'human-a'}),initializeReviewSession:()=>Promise.resolve({user:{}}),assetUrl:()=>''},
  };
- vm.runInNewContext(compiled,{module,exports:module.exports,window:{innerWidth:width,innerHeight:height,localStorage:local},require:id=>{
+ vm.runInNewContext(compiled,{module,exports:module.exports,window:{location:{search:''},innerWidth:width,innerHeight:height,localStorage:local},require:id=>{
   if(id==='react')return {...React,useState:initial=>{const i=cursor++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return [states[i],next=>{states[i]=typeof next==='function'?next(states[i]):next;}];},useRef:initial=>refs[refIndex++]??=( {current:initial}),useMemo:fn=>fn(),useEffect:(fn,deps)=>effects.push({fn,deps})};
   if(id in dependencies)return dependencies[id];if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:empty;return require(id);
  }});

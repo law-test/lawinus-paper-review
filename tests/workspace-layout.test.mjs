@@ -1,3 +1,4 @@
+import * as faqModel from '../src/thesis-faq-model.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -20,6 +21,7 @@ const compiled=ts.transpileModule(fixtureSource,{compilerOptions:{module:ts.Modu
 function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
  const module={exports:{}};
  const dependencies={
+  './thesis-faq-model':faqModel,
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
   './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},
@@ -37,7 +39,7 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
   './text-size-control':{TextSizeControl:()=>null},
   './document-alignment':{useDocumentAlignment:()=>{}},
  };
- vm.runInNewContext(compiled,{module,exports:module.exports,__workspaceFixture:fixture,window:{innerWidth:width,innerHeight:height,localStorage:{getItem:()=>null}},require:id=>{
+ vm.runInNewContext(compiled,{module,exports:module.exports,__workspaceFixture:fixture,window:{location:{search:''},innerWidth:width,innerHeight:height,localStorage:{getItem:()=>null}},require:id=>{
   if(id==='react')return {...React,useState:initial=>React.useState(initial==='pdf'?mode:initial===readingView.DEFAULT_READING_VIEW?{...initial,focus}:initial)};
   if(id in dependencies)return dependencies[id];
   if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:emptyComponent;
