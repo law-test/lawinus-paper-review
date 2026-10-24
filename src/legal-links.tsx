@@ -1,5 +1,6 @@
 import React,{createContext,useContext,useEffect,useMemo,useRef,useState} from 'react';
 import {getLegalMentions,getLegalMentionDetails} from './legal-link-model';
+import {usePopupDrag} from './use-popup-drag';
 import './legal-links.css';
 
 export type LegalMention=ReturnType<typeof getLegalMentions>[number];
@@ -10,14 +11,15 @@ const statusLabels={current:'현행 조문',proposal:'논문의 개정·신설�
 
 function LegalDialog({mention,onClose,opener}:{mention:LegalMention;onClose:()=>void;opener:HTMLElement|null}){
  const dialog=useRef<HTMLDialogElement>(null);
+ const drag=usePopupDrag({elementRef:dialog});
  const detail=getLegalMentionDetails(mention);
  const articleText=mention.status==='current'?(mention.articleText||detail.article?.text):undefined;
  useEffect(()=>{
   const element=dialog.current!;element.showModal();
   return()=>{element.close();if(opener?.isConnected)opener.focus({preventScroll:true});};
  },[]);
- return <dialog ref={dialog} className="legal-dialog" aria-labelledby="legal-dialog-title" onKeyDown={event=>{if(event.key==='Escape'||event.key==='Tab')event.stopPropagation();}} onCancel={event=>{event.preventDefault();onClose();}} onClick={event=>{if(event.target===event.currentTarget)onClose();}}>
-  <div className="legal-dialog-heading"><div><span>{statusLabels[mention.status]}</span><h2 id="legal-dialog-title">{detail.title}</h2></div><button type="button" onClick={onClose} aria-label="조문 확인 닫기">닫기 ×</button></div>
+ return <dialog ref={dialog} className={`legal-dialog${articleText?' legal-dialog-article':''}`} data-dragging={drag.dragging||undefined} style={{transform:`translate(${drag.offset.x}px,${drag.offset.y}px)`}} aria-labelledby="legal-dialog-title" onKeyDown={event=>{if(event.key==='Escape'||event.key==='Tab')event.stopPropagation();}} onCancel={event=>{event.preventDefault();onClose();}} onClick={event=>{if(event.target===event.currentTarget){const r=event.currentTarget.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)onClose();}}}>
+  <div className="legal-dialog-heading" {...drag.handleProps} aria-label="조문 확인창 이동"><div><span>{statusLabels[mention.status]}</span><h2 id="legal-dialog-title">{detail.title}</h2></div><button type="button" onClick={onClose} aria-label="조문 확인 닫기">닫기 ×</button></div>
   <div className="legal-dialog-body">
    {mention.reason&&<p className="legal-context-note">{mention.reason}</p>}
    <a className="legal-primary-source" href={mention.href} target="_blank" rel="noopener noreferrer">{mention.status==='current'?'해당 조문 공식 원문 열기':mention.status==='proposal'?'개정·신설안 관련 근거 확인':mention.status==='historical'?'법령 연혁·인용 조문 확인':mention.status==='foreign'?'외국 법령 원문 확인':'법령명과 조문 찾아보기'} ↗</a>

@@ -1,10 +1,14 @@
 .legal-inline-link{color:#7b1731;text-decoration:underline;text-decoration-color:#b38490;text-underline-offset:.16em;border-radius:2px;cursor:pointer;overflow-wrap:anywhere}
 .legal-inline-link:hover{background:#f3e8ec;text-decoration-color:currentColor}
 .legal-inline-link:focus-visible,.source-inline-link:focus-visible{outline:2px solid #8a1538;outline-offset:3px}
-.legal-dialog{padding:0;border:1px solid #bca9ae;border-radius:8px;max-width:760px;width:calc(100vw - 32px);max-height:calc(100dvh - 32px);color:#30272b;background:white;box-shadow:0 18px 70px #0004;overflow:hidden}
+.legal-dialog{box-sizing:border-box;padding:0;border:1px solid #bca9ae;border-radius:8px;width:min(760px,calc(100vw - 32px));max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);min-width:min(300px,calc(100vw - 16px));min-height:min(180px,calc(100dvh - 16px));color:#30272b;background:white;box-shadow:0 18px 70px #0004;overflow:hidden;resize:both}
+.legal-dialog-article{height:min(760px,calc(100dvh - 32px))}
 .legal-dialog[open]{display:flex;flex-direction:column}
 .legal-dialog::backdrop{background:#20131966}
-.legal-dialog-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid #ded5d8;flex-shrink:0}
+.legal-dialog-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid #ded5d8;flex-shrink:0;cursor:grab;touch-action:none;user-select:none}
+.legal-dialog-heading:focus-visible{outline:2px solid #8b0029;outline-offset:-3px}
+.legal-dialog[data-dragging="true"] .legal-dialog-heading{cursor:grabbing}
+.legal-dialog-heading>div{min-width:0}
 .legal-dialog-heading span{font-size:.8em;color:#805768}.legal-dialog-heading h2{font-size:1.2em;line-height:1.55;margin:5px 0 0;overflow-wrap:anywhere}
 .legal-dialog-heading button{flex-shrink:0;min-height:44px;padding:7px 12px;background:white;border:1px solid #cbbbc0;border-radius:4px;color:#6e1630;font:inherit;cursor:pointer}
 .legal-dialog-body{min-height:0;overflow:auto;overscroll-behavior:contain;padding:20px 24px;line-height:1.8}

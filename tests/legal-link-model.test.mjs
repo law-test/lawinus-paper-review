@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {getLegalMentions,getLegalLaw,legalArticleHref,getLegalMentionDetails} from '../src/legal-link-model.ts';
 import corpus from './fixtures/legal-model-cases263.json' with {type:'json'};
+import explanations from '../src/citation-explanations.json' with {type:'json'};
 
 test('unnamed articles require an evidenced context, not a global DRBA default',()=>{
  assert.equal(getLegalMentions('제615조')[0].status,'unresolved');
@@ -102,4 +103,32 @@ test('German-law neighbor and revision explanation keep their foreign jurisdicti
  const note=corpus.find(x=>x.contextId==='fn-063');
  const relative=getLegalMentions(note.text,note.contextId).find(x=>x.label==='같은 조 제5항');
  assert.deepEqual([relative.lawId,relative.article,relative.paragraph],['housing','3-3','5']);
+});
+
+test('Ponoroff and Bork source explanations use US and German statutes, independently of the surrounding Korean footnote default',()=>{
+ const examples=[['fn-225','s-afdd9b909aa984fb','us-bankruptcy',['1306','1327','1306','1327']],['fn-226','s-92ee28b9ae50b4f6','de-insolvency',['165']]];
+ for(const [note,source,law,articles] of examples){
+  const mentions=getLegalMentions(explanations[note][source],`citation-explanation:${note}:${source}`);
+  assert.deepEqual(mentions.map(x=>x.article),articles);assert.ok(mentions.every(x=>x.lawId===law&&x.status==='foreign'&&x.articleText===undefined));
+  for(const mention of mentions){assert.ok(!mention.href.includes('law.go.kr'));if(law==='us-bankruptcy'){assert.match(mention.href,new RegExp('section'+mention.article));assert.ok(mention.related.some(x=>x.href.includes('USCODE-2024-title11')&&x.href.endsWith('-sec'+mention.article+'.htm')));}else assert.equal(mention.href,'https://www.gesetze-im-internet.de/inso/__165.html');}
+ }
+});
+
+test('source explanation scope does not leak into manuscript text or survive replacement text',()=>{
+ assert.equal(getLegalMentions('제165조','fn-226')[0].lawId,'drba');
+ assert.equal(getLegalMentions('독일 도산법 제165조','fn-226')[0].lawId,'de-insolvency');
+ const context='citation-explanation:fn-225:s-afdd9b909aa984fb';
+ const unknown=getLegalMentions('제1306조에 관한 새 설명',context)[0];assert.equal(unknown.status,'unresolved');assert.equal(unknown.lawId,undefined);
+ assert.equal(getLegalMentions('민법 제165조',context)[0].lawId,'civil');
+ assert.notEqual(getLegalMentions(explanations['fn-225']['s-afdd9b909aa984fb'],'citation-explanation:fn-225:other-source')[0].lawId,'us-bankruptcy');
+});
+
+test('all 374 existing source explanations retain their article targets except the five reviewed foreign targets',()=>{
+ let rows=0,mentions=0;const changed=[];
+ for(const [note,refs] of Object.entries(explanations))for(const [source,text] of Object.entries(refs)){
+  rows++;const before=getLegalMentions(text,note),after=getLegalMentions(text,`citation-explanation:${note}:${source}`);mentions+=after.length;
+  if(note==='fn-225'&&source==='s-afdd9b909aa984fb'||note==='fn-226'&&source==='s-92ee28b9ae50b4f6'){changed.push([note,after.length]);continue;}
+  assert.deepEqual(after,before,note+':'+source);
+ }
+ assert.equal(rows,374);assert.equal(mentions,80);assert.deepEqual(changed,[['fn-225',4],['fn-226',1]]);
 });

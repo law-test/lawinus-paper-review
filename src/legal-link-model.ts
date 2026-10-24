@@ -29,9 +29,18 @@ export function legalArticleHref(law:LegalLaw,article:string):string {
  const [n,b='0']=article.split('-');
  return `https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=${b.padStart(2,'0')}&joNo=${n.padStart(4,'0')}&lsiSeq=${law.lsiSeq}&urlMode=lsScJoRltInfoR`;
 }
-function contextRecord(context?:string|LegalContext):ContextRecord {
+// A source explanation has its own subject; the footnote's surrounding
+// manuscript default must not assign its unnamed foreign articles to Korean law.
+const citationExplanationScopes:Record<string,{lawId:string;textHash:string}>={
+ 'fn-225:s-afdd9b909aa984fb':{lawId:'us-bankruptcy',textHash:'bcb44ca6'},
+ 'fn-226:s-92ee28b9ae50b4f6':{lawId:'de-insolvency',textHash:'84717a56'},
+};
+function contextRecord(context:string|LegalContext|undefined,text:string):ContextRecord {
  const o=typeof context==='string'?{contextId:context}:context||{};let id=o.contextId||'';
- const plain=id.replace(/^(paragraph|note|faq):/,'');
+ const explanation=id.match(/^citation-explanation:(fn-\d+):([^:]+)$/);
+ const scope=explanation?citationExplanationScopes[explanation[1]+':'+explanation[2]]:undefined;
+ if(scope)return {defaultLawId:o.defaultLawId||(scope.textHash===legalTextFingerprint(text)?scope.lawId:undefined)};
+ const plain=explanation?.[1]||id.replace(/^(paragraph|note|faq):/,'');
  const base=legalCatalog.contexts[id]||legalCatalog.contexts[plain]||{};
  const extra=legalCatalog.contextOverrides[id]||legalCatalog.contextOverrides[plain]||{};
  return {...base,...extra,...(o.defaultLawId?{defaultLawId:o.defaultLawId}:{})};
@@ -73,7 +82,7 @@ const sentenceStart=(t:string,pos:number)=>Math.max(t.lastIndexOf('\n',pos-1),t.
 
 /** No global statute default. Context defaults must come from the reviewed manuscript map. */
 export function getLegalMentions(text:string,context?:string|LegalContext):LegalMention[]{
- const ctx=contextRecord(context),hits=lawHits(text),out:LegalMention[]=[];
+ const ctx=contextRecord(context,text),hits=lawHits(text),out:LegalMention[]=[];
  const proposedSupplementDocument=/^\s*(?:<\s*신설\s*>\s*\|?\s*)?부칙\s+제\s*1\s*조\s*\(시행일\)/.test(text);
  const contextId=typeof context==='string'?context:context?.contextId||'';
  // Contract terms and local practice directions are linked by the source-document layer.

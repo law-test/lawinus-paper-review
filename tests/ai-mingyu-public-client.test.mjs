@@ -43,6 +43,11 @@ test('public responses cannot substitute another request, level, or a private re
   const h=setup({...valid(),...patch});await assert.rejects(()=>h.askPublicMingyu('질문','doctoral',requestId));
  }
 });
+test('a device-scoped cached answer keeps its original source, model and generation time',async()=>{
+ const data={...valid(),source:'cache',cacheHit:true,generated:false},h=setup(data);
+ const result=await h.askPublicMingyu('같은 질문','doctoral',requestId);
+ assert.equal(result.source,'cache');assert.equal(result.model,data.model);assert.equal(result.generatedAt,data.generatedAt);assert.equal(result.level,'doctoral');assert.equal(result.answer.sections[0].text,data.answer.sections[0].text);
+});
 test('server usage counts and raw error text are not exposed to visitors',async()=>{
  const h=setup({code:'temporarily_limited',error:'quota 123 secret value',limit:123},429);
  await assert.rejects(()=>h.askPublicMingyu('질문','doctoral',requestId),error=>!error.message.includes('123')&&!error.message.includes('secret')&&error.message.includes('잠시 후'));
