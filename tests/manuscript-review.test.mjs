@@ -9,7 +9,7 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 const require=createRequire(import.meta.url);
 function load(file){const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext(output,{module,exports:module.exports,require:n=>n.endsWith('.css')?{}:n.endsWith('.json')?{}:n==='./proposal-indicators'?load('proposal-indicators.ts'):require(n)});return module.exports;}
-const {default:WebManuscript,InlineNoteText,manuscriptModeAfterRefresh,citationContextWasEdited}=load('web-manuscript.tsx');
+const {default:WebManuscript,InlineNoteText,manuscriptModeAfterRefresh,citationContextWasEdited,effectiveManuscriptEdits}=load('web-manuscript.tsx');
 const {default:ProfileRow}=load('profile-row.tsx');
 const catalog=JSON.parse(readFileSync(new URL('../src/paragraph-catalog.json',import.meta.url),'utf8'));
 const guide=JSON.parse(readFileSync(new URL('../src/revision-proposals.json',import.meta.url),'utf8'));
@@ -94,4 +94,36 @@ test('housing support manual appears once in books and patent is under research'
  assert.ok(groups.find(g=>g.title==='저서').items.some(i=>i.title.includes('전세피해 법률지원 매뉴얼')));
  assert.ok(groups.find(g=>g.title==='저서').items.some(i=>i.title.includes('표준판례')));
  const s=readFileSync(new URL('../src/research-achievements.tsx',import.meta.url),'utf8');assert.ok(s.includes('10-2026-0191635'));
+});
+
+test('restored server heads retain optimistic revisions while only real text differences select the current body',()=>{
+ const paragraphs=[{id:'P0283',text:'원문[^1]'}],notes=[{id:'fn-001',text:'각주 원문'}];
+ const heads={P0283:{revision:2,text:'원문[^1]'},'fn-001':{revision:7,text:'각주 원문'}};
+ const effective=effectiveManuscriptEdits(paragraphs,notes,heads);
+ assert.equal(Object.keys(effective).length,0);
+ assert.equal(manuscriptModeAfterRefresh('pdf',false,Object.keys(effective).length),'pdf');
+ assert.equal(heads.P0283.revision,2);assert.equal(heads['fn-001'].revision,7);
+ assert.equal(citationContextWasEdited('fn-001',paragraphs,effective),false);
+ const changed={...heads,P0283:{revision:3,text:'실제 수정'}};
+ const changes=effectiveManuscriptEdits(paragraphs,notes,changed);
+ assert.equal(Object.keys(changes).length,1);assert.equal(changes.P0283,changed.P0283);
+ assert.equal(manuscriptModeAfterRefresh('pdf',false,Object.keys(changes).length),'body');
+ assert.equal(manuscriptModeAfterRefresh('pdf',true,Object.keys(changes).length),'pdf');
+});
+test('empty deletions and exact whitespace changes remain real changes; unknown originals are never silently omitted',()=>{
+ const paragraphs=[{id:'P0283',text:'원문'}],notes=[{id:'fn-001',text:'각주 원문'}];
+ for(const text of ['',' ','원문 ']){
+  const heads={P0283:{text,revision:3}};
+  assert.equal(effectiveManuscriptEdits(paragraphs,notes,heads).P0283,heads.P0283);
+ }
+ const deletion=effectiveManuscriptEdits(paragraphs,notes,{'fn-001':{text:'',revision:8}});
+ assert.equal(deletion['fn-001'].text,'');
+ assert.equal(effectiveManuscriptEdits(paragraphs,[],{'fn-001':{text:'미확인'}})['fn-001'].text,'미확인');
+});
+test('workspace waits for original notes before automatic view selection and passes all heads to editors',()=>{
+ const source=readFileSync(new URL('../src/review-workspace.tsx',import.meta.url),'utf8');
+ assert.match(source,/if\(data\)setManuscriptMode\(current=>manuscriptModeAfterRefresh\(current,manuscriptViewChosen.current,Object.keys\(effectiveShared\).length\)\)/);
+ assert.doesNotMatch(source,/manuscriptModeAfterRefresh\([^;]*result.overrides.length/);
+ assert.match(source,/overrides=\{effectiveShared\}/);
+ assert.match(source,/current=\{shared\[paragraph.id\]\}/);assert.match(source,/current=\{shared\[active\]\}/);
 });

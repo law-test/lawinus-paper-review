@@ -25,7 +25,7 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
   './revision-proposals.json':{default:{items:[]}},
   './proposal-indicators':{buildProposalIndicators:()=>({})},
   './pdf-viewer-model':{footnoteTargets:()=>[]},
-  './web-manuscript':{...emptyComponent,default:()=>React.createElement('div',{'data-testid':'current-web-body'}),citationContextWasEdited:()=>false},
+  './web-manuscript':{...emptyComponent,default:()=>React.createElement('div',{'data-testid':'current-web-body'}),citationContextWasEdited:()=>false,effectiveManuscriptEdits:(_paragraphs,_notes,heads)=>heads},
   './pdf-viewer':{...emptyComponent,default:()=>React.createElement('div',{'data-testid':'original-pdf'})},
   './parallel-source-reader':{...emptyComponent,translationEntries:[]},
   './citation-model':{citedSourceRefs:()=>[],citedPages:()=>[],citationHighlights:()=>[]},
