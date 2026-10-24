@@ -20,6 +20,25 @@ test('reload restores both documents with independent page and zoom plus active 
  assert.equal(saveReadingSession(local,session),true);const result=readReadingSession(local,'human-a',catalog);
  assert.equal(result.restored,true);assert.deepEqual(result.session,session);
 });
+test('an unavailable citation remains unselected after reload without losing either saved document position',()=>{
+ const local=storage(),session={...defaultReadingSession('human-a',catalog),thesis:{page:249,zoom:.38,fitMode:'page'},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'',activeNote:'fn-210',mobilePane:'metadata',tab:'source'};
+ saveReadingSession(local,session);
+ const restored=readReadingSession(local,'human-a',catalog);
+ assert.equal(restored.restored,true);assert.deepEqual(restored.session,session);
+ saveReadingSession(local,restored.session);
+ assert.deepEqual(readReadingSession(local,'human-a',catalog).session,session);
+ assert.deepEqual(sourceReadingPosition(restored.session.sources,'a',220),{page:199,zoom:1.3});
+});
+test('a missing or unknown source identity still uses the existing default while a valid old session is unchanged',()=>{
+ const base={...defaultReadingSession('human-a',catalog),activeNote:'fn-210',sourceId:'b',sources:{a:{page:27,zoom:1},b:{page:21,zoom:1.6}}};
+ assert.deepEqual(validateReadingSession(base,'human-a',catalog),base);
+ for(const sourceId of ['removed',null,undefined]){
+  const old={...base,sourceId};if(sourceId===undefined)delete old.sourceId;
+  const restored=validateReadingSession(old,'human-a',catalog);
+  assert.equal(restored.sourceId,'a');assert.equal(restored.activeNote,'fn-210');
+  assert.deepEqual(restored.sources,base.sources);
+ }
+});
 test('datasets do not share reading positions and a mismatched stored dataset is rejected',()=>{
  const local=storage(),session={...defaultReadingSession('human-a',catalog),thesis:{page:249,zoom:1.15}};saveReadingSession(local,session);
  assert.equal(readReadingSession(local,'human-b',catalog).session.thesis.page,20);

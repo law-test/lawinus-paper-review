@@ -8,7 +8,10 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 const require=createRequire(import.meta.url);
-function load(file){const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext(output,{module,exports:module.exports,require:n=>n.endsWith('.css')?{}:n.endsWith('.json')?{}:n==='./proposal-indicators'?load('proposal-indicators.ts'):n==='./body-reading-hook'?load('body-reading-hook.ts'):n==='./body-reading-position'?load('body-reading-position.ts'):require(n)});return module.exports;}
+// These reader tests isolate the new link layer while retaining its original text and note callback.
+function LegalTextLeaf({text,onNote}){return React.createElement(React.Fragment,null,...text.split(/(\[\^\d+\])/g).map((part,i)=>onNote&&/^\[\^\d+\]$/.test(part)?React.createElement('button',{key:i,onClick:()=>onNote('fn-'+part.slice(2,-1).padStart(3,'0'))},part.slice(2,-1)+')'):part));}
+function SourceTextLeaf({text}){return React.createElement(React.Fragment,null,text);}
+function load(file){const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext(output,{module,exports:module.exports,require:n=>n.endsWith('.css')?{}:n.endsWith('.json')?{}:n==='./legal-links'?{LegalText:LegalTextLeaf}:n==='./source-text'?{__esModule:true,default:SourceTextLeaf}:n==='./proposal-indicators'?load('proposal-indicators.ts'):n==='./body-reading-hook'?load('body-reading-hook.ts'):n==='./body-reading-position'?load('body-reading-position.ts'):require(n)});return module.exports;}
 const {default:WebManuscript,InlineNoteText,manuscriptModeAfterRefresh,citationContextWasEdited,effectiveManuscriptEdits}=load('web-manuscript.tsx');
 const {default:ProfileRow}=load('profile-row.tsx');
 const catalog=JSON.parse(readFileSync(new URL('../src/paragraph-catalog.json',import.meta.url),'utf8'));
@@ -49,7 +52,7 @@ test('deleted passages and footnotes disappear without inserting deletion instru
  const props={paragraphs:sample,notes:[{id:'fn-001',number:1,page:20,text:'원래 각주'}],page:20,zoom:1,selected:'',onPageChange(){},onParagraph(){},onNote(){}};
  const html=renderToStaticMarkup(React.createElement(WebManuscript,{...props,overrides:{P0283:{text:''},'fn-001':{text:''}}}));
  assert.match(html,/<div hidden="" data-paragraph="P0283"/);
- assert.match(html,/<button hidden="" class="manuscript-footnote"/);
+ assert.match(html,/<div hidden="" class="manuscript-footnote-row"/);
  assert.doesNotMatch(html,/임차인 보호|원래 각주|\(삭제\)/);
  const restored=renderToStaticMarkup(React.createElement(WebManuscript,{...props,overrides:{P0283:{text:'임차인 보호[^1]'},'fn-001':{text:'원래 각주'}}}));
  assert.doesNotMatch(restored,/hidden=""/);assert.match(restored,/임차인 보호/);assert.match(restored,/원래 각주/);

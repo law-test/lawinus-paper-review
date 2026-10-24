@@ -23,6 +23,9 @@ function harness(saved,width=390,height=844,layout){
  let states=[],refs=[],cursor=0,refIndex=0,effects=[],tree,resolveManifest;
  const pendingManifest=new Promise(resolve=>{resolveManifest=resolve;});
  const module={exports:{}},dependencies={
+  './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
+  './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
+  './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},
   './four-pane-size':paneLayout,'./workspace-layout':workspaceLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,'./reading-session':readingSession,
   './paragraph-catalog.json':{default:{paragraphs}},'./revision-proposals.json':{default:{items:[]}},
   './proposal-indicators':{buildProposalIndicators:()=>({})},'./pdf-viewer-model':{footnoteTargets:()=>[]},

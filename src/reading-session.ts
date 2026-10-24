@@ -24,7 +24,8 @@ export function validateReadingSession(value:unknown,datasetId:string,catalog:Re
  const v=record(value);if(v?.schema!==1||v.datasetId!==datasetId)return;
  const fallback=defaultReadingSession(datasetId,catalog),storedSources=record(v.sources),sources:Record<string,DocumentReading>={};
  for(const source of catalog.sources){if(storedSources&&Object.prototype.hasOwnProperty.call(storedSources,source.id)&&record(storedSources[source.id]))sources[source.id]=readingDocument(storedSources[source.id],source.pages||1);}
- const sourceId=typeof v.sourceId==='string'&&catalog.sources.some(s=>s.id===v.sourceId)?v.sourceId:fallback.sourceId;
+ // An unavailable citation intentionally clears the source; keep that choice on reload.
+ const sourceId=typeof v.sourceId==='string'&&(v.sourceId===''||catalog.sources.some(s=>s.id===v.sourceId))?v.sourceId:fallback.sourceId;
  if(sourceId&&!sources[sourceId])sources[sourceId]=fallback.sources[sourceId]||readingDocument(undefined,catalog.sources.find(s=>s.id===sourceId)?.pages||1);
  const pane=['contents','thesis','source','metadata'].includes(String(v.mobilePane))?v.mobilePane as ReadingSession['mobilePane']:'thesis';
  const activeNote=typeof v.activeNote==='string'&&catalog.noteIds.includes(v.activeNote)?v.activeNote:fallback.activeNote;

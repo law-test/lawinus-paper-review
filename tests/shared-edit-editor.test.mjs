@@ -10,7 +10,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 const require=createRequire(import.meta.url);
 const copySource=readFileSync(new URL('../src/revision-copy.tsx',import.meta.url),'utf8');
 const copyModule={exports:{}};
-vm.runInNewContext(ts.transpileModule(copySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,{module:copyModule,exports:copyModule.exports,require:id=>id.endsWith('.css')?{}:require(id)});
+vm.runInNewContext(ts.transpileModule(copySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,{module:copyModule,exports:copyModule.exports,require:id=>id.endsWith('.css')?{}:id==='./legal-links'?{LegalText:({text})=>React.createElement(React.Fragment,null,text)}:require(id)});
 const compositeModule={exports:{}};
 vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../src/revision-composite.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:compositeModule,exports:compositeModule.exports});
 const {formatRevisionComparison:formatComparison,parseRevisionComparison:parseComparison}=compositeModule.exports;

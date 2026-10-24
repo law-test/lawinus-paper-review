@@ -4,11 +4,11 @@ import {
  type SharedEdit, type SharedEditKind, type SharedHistory,
 } from './shared-edits';
 import './shared-edit-editor.css';
-import {RevisionCopyButton} from './revision-copy';
+import {RevisionCopyButton,RevisionComparison} from './revision-copy';
 import {formatRevisionComparison,parseRevisionComparison} from './revision-composite';
 
 export type SharedEditEditorProps = {
- kind:SharedEditKind; targetId:string; originalText:string; proposalBeforeText?:string; proposalDisplayText?:string; proposalReason?:string; proposalApplyText?:string; proposalUnsupportedReason?:string;
+ kind:SharedEditKind; targetId:string; proposalId?:string; originalText:string; proposalBeforeText?:string; proposalDisplayText?:string; proposalReason?:string; proposalApplyText?:string; proposalUnsupportedReason?:string;
  current:SharedEdit|undefined; onSaved:(edit:SharedEdit)=>void; onMemo?:(draft:string)=>void;
 };
 
@@ -120,7 +120,7 @@ export function SharedEditEditor(props:SharedEditEditorProps){
  return <SharedEditEditorSession key={`${props.kind}:${props.targetId}`} {...props}/>;
 }
 
-function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,proposalDisplayText,proposalReason,proposalApplyText,proposalUnsupportedReason,current,onSaved,onMemo}:SharedEditEditorProps){
+function SharedEditEditorSession({kind,targetId,proposalId,originalText,proposalBeforeText,proposalDisplayText,proposalReason,proposalApplyText,proposalUnsupportedReason,current,onSaved,onMemo}:SharedEditEditorProps){
  const validCurrent=current?.kind===kind&&current.targetId===targetId?current:undefined;
  const [boot]=useState(()=>{
   let restored:{state:EditorState;recovered:boolean;failed:boolean};
@@ -328,6 +328,7 @@ function SharedEditEditorSession({kind,targetId,originalText,proposalBeforeText,
   </div>
   {proposalApplyText===undefined&&proposalUnsupportedReason&&<p className="shared-edit-proposal-note">{proposalUnsupportedReason}</p>}
   {state.manualLocked&&<div className="shared-edit-proposal-note"><p>이 수정안은 여러 문단·각주 또는 조판을 함께 다뤄야 하므로 그대로 반영할 수 없습니다.</p><button type="button" disabled={busy||historyBusy} onClick={()=>putText(state.baseText)}>원문으로 직접 편집 시작</button></div>}
+  <details className="linked-reading-preview"><summary>조문 링크로 문안 읽기</summary><RevisionComparison before={parsedComparison.ok?parsedComparison.parts.before:proposalBeforeText??originalText} after={parsedComparison.ok?parsedComparison.parts.after:state.draft} reason={parsedComparison.ok?parsedComparison.parts.reason:proposalReason} contextId={proposalId??targetId}/></details>
   <label className="shared-edit-label" htmlFor={bodyId}>수정할 문안</label>
   <p className="shared-edit-proposal-note">After 부분만 본문에 반영됩니다. Before와 상세이유는 함께 확인할 내용입니다.</p>
   <textarea ref={comparisonInput} id={bodyId} className="shared-edit-body shared-edit-comparison" value={state.comparison??''} disabled={busy} onFocus={expandEditor} onChange={event=>{setResetUndo(null);dispatch({type:'comparison',value:event.target.value});}} spellCheck={false}/>

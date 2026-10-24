@@ -11,7 +11,7 @@ import * as readingView from '../src/reading-view.ts';
 import * as mobileMenu from '../src/mobile-menu-swipe.ts';
 import * as readingSession from '../src/reading-session.ts';
 const require=createRequire(import.meta.url);
-const compile=file=>ts.transpileModule(readFileSync(new URL('../src/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+const compile=file=>{const source=readFileSync(new URL('../src/'+file,import.meta.url),'utf8');const input=file==='review-workspace.tsx'?source.replace(/(\[data,\s*setData\]\s*=\s*useState<[^>]+>\()null(?=\))/,'$1__workspaceFixture'):source;if(file==='review-workspace.tsx')assert.notEqual(input,source,'The named manifest state must receive the fixture');return ts.transpileModule(input,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;};
 function loadReadingModel(){const module={exports:{}};vm.runInNewContext(compile('web-manuscript.tsx'),{module,exports:module.exports,require:id=>id.startsWith('.')?{}:require(id)});return module.exports;}
 const readingModel=loadReadingModel();
 const paragraphs=[{id:'P0283',text:'원문[^1]',page:20,printed:1,heading:false,kind:'paragraph',rects:[],order:283}];
@@ -20,9 +20,12 @@ const fixture={meta:{pageCount:279},pages:[],sources:[{id:'source-1',kind:'pdf',
 function PdfPane(){return null;}function WebManuscript(){return null;}function SharedEditEditor(){return null;}function MemoDialog(){return null;}
 const empty={__esModule:true,default:()=>null};
 function harness(mode='pdf',memoRows=[]){
- const states=[],refs=[];let stateIndex=0,refIndex=0,nullCount=0,oneCount=0,effects=[],tree;
+ const states=[],refs=[];let stateIndex=0,refIndex=0,oneCount=0,effects=[],tree;
  const module={exports:{}};
  const dependencies={
+  './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
+  './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
+  './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},
   './four-pane-size':paneLayout,'./workspace-layout':workspaceLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,'./reading-session':readingSession,
   './review-api':{assetUrl:id=>'https://example.invalid/'+id},
   './paragraph-catalog.json':{default:{paragraphs}},'./revision-proposals.json':{default:{items:[proposal]}},
@@ -32,9 +35,9 @@ function harness(mode='pdf',memoRows=[]){
   './citation-model':{citedSourceRefs:note=>note.sourceRefs||[],citedPages:()=>[],citationHighlights:()=>[],citationStartPage:()=>27},
   './text-size-control':{TextSizeControl:()=>null},'./document-alignment':{useDocumentAlignment:()=>{}},
  };
- vm.runInNewContext(compile('review-workspace.tsx'),{module,exports:module.exports,window:{innerWidth:390,innerHeight:844,localStorage:{getItem:()=>null}},require:id=>{
+ vm.runInNewContext(compile('review-workspace.tsx'),{module,exports:module.exports,__workspaceFixture:fixture,window:{innerWidth:390,innerHeight:844,localStorage:{getItem:()=>null}},require:id=>{
   if(id==='react')return {...React,useState:initial=>{
-   const index=stateIndex++;if(!(index in states)){let value=typeof initial==='function'?initial():initial;if(Array.isArray(initial)&&initial.length===0)value=memoRows;if(initial===null&&++nullCount===1)value=fixture;if(initial==='pdf')value=mode;if(initial===20)value=249;if(initial===1)value=++oneCount===1?1.6:29;states[index]=value;}
+   const index=stateIndex++;if(!(index in states)){let value=typeof initial==='function'?initial():initial;if(Array.isArray(initial)&&initial.length===0)value=memoRows;if(initial==='pdf')value=mode;if(initial===20)value=249;if(initial===1)value=++oneCount===1?1.6:29;states[index]=value;}
    return [states[index],next=>{states[index]=typeof next==='function'?next(states[index]):next;}];
   },useRef:initial=>{const index=refIndex++;return refs[index]??=( {current:initial});},useMemo:fn=>fn(),useEffect:(fn,deps)=>effects.push({fn,deps})};
   if(id in dependencies)return dependencies[id];if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:empty;return require(id);

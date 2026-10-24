@@ -18,3 +18,5 @@
 .source-panel>.pdf-reader{height:min(76dvh,900px);min-height:420px;flex:none;margin:0;max-height:none}.source-panel>.pdf-reader>.continuous-pdf{min-height:0;max-height:none}
 @media(max-width:899px){.thesis-pane>.pdf-reader{flex:1;min-height:0}.source-panel>.pdf-reader{height:74dvh;min-height:360px}.pdf-reader>.continuous-pdf{padding-left:12px;padding-right:12px}.pdf-reading-tools{padding:5px 10px}}
 @media print{.pdf-reading-tools,.citation-keyboard-link,.citation-hover-tooltip,.citation-hover-region,.pdf-page-number{display:none!important}.pdf-reader{overflow:visible}}
+
+.pdf-reference-underline{position:absolute;box-sizing:border-box;border-bottom:1px solid #8a153875;pointer-events:none}.pdf-reference-underline.literature{border-bottom-style:dotted;border-color:#765b6770}.citation-hover-tooltip{max-width:90%;white-space:normal;overflow-wrap:anywhere}

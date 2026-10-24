@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import ReviewWorkspace from './review-workspace';
+import {LegalLinkProvider} from './legal-links';
 import {loadReviewConfig} from './review-api';
 import {applyTextSize, readTextSize} from './text-size';
 import './globals.css';
@@ -18,7 +19,7 @@ function App() {
     });
     return () => { active = false; };
   }, []);
-  if (state === 'ready') return <ReviewWorkspace/>;
+  if (state === 'ready') return <LegalLinkProvider><ReviewWorkspace/></LegalLinkProvider>;
   return <main className="review-app"><section className="loading-screen" role="status" aria-live="polite">
     <div className="law-logo"><img src="./korea-law-logo.svg" alt="고대법대 KU Law" width="244" height="100"/></div>
     <h1>LAWINUS · 논문 심사실</h1>

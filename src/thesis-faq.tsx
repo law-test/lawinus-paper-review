@@ -2,6 +2,7 @@ import React,{useMemo,useState} from 'react';
 import faqData from './thesis-faq.json';
 import {filterFaq,type FaqItem} from './thesis-faq-model';
 import './thesis-faq.css';
+import {LegalText} from './legal-links';
 
 const items=faqData.items as FaqItem[];
 
@@ -16,7 +17,7 @@ function FaqQuestion({item,index,searching}:{item:FaqItem;index:number;searching
   </button></h3>
   <div id={`${item.id}-answer`} className="faq-answer" hidden={!open}>
    <span className="faq-category">{item.category}</span>
-   {item.answer.map((paragraph,i)=><p key={i}>{paragraph}</p>)}
+   {item.answer.map((paragraph,i)=><p key={i}><LegalText text={paragraph} contextId={`faq:${item.id}`}/></p>)}
    <div className="faq-evidence"><h4>근거</h4><ul>{item.sources.map(source=><li key={source.href+source.label}>
     <a href={source.href} target="_blank" rel="noopener noreferrer" aria-label={`${source.label} (새 창에서 열기)`}>{source.label}<span aria-hidden="true"> ↗</span></a>
    </li>)}</ul></div>

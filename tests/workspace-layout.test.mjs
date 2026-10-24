@@ -14,11 +14,15 @@ const require=createRequire(import.meta.url);
 const fixture={meta:{pageCount:279},pages:[],sources:[],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[],clickTargets:[],noteHighlights:[]}]};
 const emptyComponent={__esModule:true,default:()=>null};
 const source=readFileSync(new URL('../src/review-workspace.tsx',import.meta.url),'utf8');
-const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+const fixtureSource=source.replace(/(\[data,\s*setData\]\s*=\s*useState<[^>]+>\()null(?=\))/,'$1__workspaceFixture');
+assert.notEqual(fixtureSource,source,'The named manifest state must receive the fixture');
+const compiled=ts.transpileModule(fixtureSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
- let nullState=0;
  const module={exports:{}};
  const dependencies={
+  './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
+  './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
+  './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},
   './four-pane-size':paneLayout,'./workspace-layout':workspaceLayout,
   './reading-view':readingView,
   './mobile-menu-swipe':mobileMenu,
@@ -33,8 +37,8 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
   './text-size-control':{TextSizeControl:()=>null},
   './document-alignment':{useDocumentAlignment:()=>{}},
  };
- vm.runInNewContext(compiled,{module,exports:module.exports,window:{innerWidth:width,innerHeight:height,localStorage:{getItem:()=>null}},require:id=>{
-  if(id==='react')return {...React,useState:initial=>React.useState(initial==='pdf'?mode:initial===readingView.DEFAULT_READING_VIEW?{...initial,focus}:initial===null&&++nullState===1?fixture:initial)};
+ vm.runInNewContext(compiled,{module,exports:module.exports,__workspaceFixture:fixture,window:{innerWidth:width,innerHeight:height,localStorage:{getItem:()=>null}},require:id=>{
+  if(id==='react')return {...React,useState:initial=>React.useState(initial==='pdf'?mode:initial===readingView.DEFAULT_READING_VIEW?{...initial,focus}:initial)};
   if(id in dependencies)return dependencies[id];
   if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:emptyComponent;
   return require(id);

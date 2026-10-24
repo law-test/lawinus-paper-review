@@ -1,12 +1,13 @@
 import {useEffect,useId,useRef,useState} from 'react';
 import './revision-copy.css';
-export function RevisionComparison({before,after,reason}:{before:string;after?:string;reason?:string}){
+import {LegalText} from './legal-links';
+export function RevisionComparison({before,after,reason,contextId}:{before:string;after?:string;reason?:string;contextId?:string}){
  return <section className="revision-comparison" aria-label="Before·After·상세이유 비교">
-  <div className="revision-comparison-part"><h3 className="revision-section-heading">Before<RevisionCopyButton text={before} label="Before 복사"/></h3><div className="revision-comparison-text">{before}</div></div>
+  <div className="revision-comparison-part"><h3 className="revision-section-heading">Before<RevisionCopyButton text={before} label="Before 복사"/></h3><div className="revision-comparison-text"><LegalText text={before} contextId={contextId?`proposal:${contextId}:before`:undefined}/></div></div>
   <hr/>
-  <div className="revision-comparison-part"><h3 className="revision-section-heading">After{after!==undefined&&<RevisionCopyButton text={after} label="After 복사"/>}</h3><div className="revision-comparison-text">{after??'등록된 수정안이 없습니다.'}</div></div>
+  <div className="revision-comparison-part"><h3 className="revision-section-heading">After{after!==undefined&&<RevisionCopyButton text={after} label="After 복사"/>}</h3><div className="revision-comparison-text"><LegalText text={after??'등록된 수정안이 없습니다.'} contextId={contextId?`proposal:${contextId}:after`:undefined}/></div></div>
   <hr/>
-  <div className="revision-comparison-part"><h3>상세이유</h3><div className="revision-comparison-text">{reason??'등록된 상세이유가 없습니다.'}</div></div>
+  <div className="revision-comparison-part"><h3>상세이유</h3><div className="revision-comparison-text"><LegalText text={reason??'등록된 상세이유가 없습니다.'} contextId={contextId?`proposal:${contextId}:reason`:undefined}/></div></div>
  </section>;
 }
 
