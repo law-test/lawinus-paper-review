@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {evidenceHref,MINGYU_ENDPOINT} from '../src/ai-mingyu-client.ts';
+import {evidenceHref,MINGYU_ENDPOINT,mingyuRequest} from '../src/ai-mingyu-client.ts';
 import {reviewDeepLink,proposalAnnotation} from '../src/thesis-faq-model.ts';
 import {defaultReadingSession,validateReadingSession} from '../src/reading-session.ts';
 
@@ -31,4 +31,23 @@ test('revision footnote links cannot silently point to a same-number footnote in
  assert.equal(proposalAnnotation('?proposal=P0942&annotation=209',proposal),null);
  assert.equal(proposalAnnotation('?proposal=P0939&annotation=208',proposal),null);
  assert.equal(proposalAnnotation('?proposal=P0939&annotation=209%7C210',proposal),null);
+});
+
+test('a blocked local connection stops waiting and explains the browser connection check',async(t)=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ t.mock.method(globalThis,'fetch',async(_url,options)=>new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true})));
+ const request=mingyuRequest('/pair','',{code:'test-only'});
+ const check=assert.rejects(request,/연결 도우미.*로컬 네트워크/);
+ t.mock.timers.tick(15000);await check;
+});
+
+test('answer requests allow model latency but remain bounded and respect explicit cancellation',async(t)=>{
+ t.mock.timers.enable({apis:['setTimeout']});let requestSignal,cancelledRequest;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{if(url.endsWith('/cancel')){cancelledRequest=JSON.parse(options.body);return {ok:true,json:async()=>({ok:true})};}requestSignal=options.signal;return new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));});
+ const request=mingyuRequest('/ask','test-only',{question:'test',requestId:'request-owned-by-this-session'});
+ const check=assert.rejects(request,/답변 시간이 길어/);
+ t.mock.timers.tick(15000);assert.equal(requestSignal.aborted,false);
+ t.mock.timers.tick(105000);await check;assert.deepEqual(cancelledRequest,{requestId:'request-owned-by-this-session'});
+ const controller=new AbortController();const cancelled=mingyuRequest('/ask','test-only',{question:'test'},controller.signal);
+ const cancelCheck=assert.rejects(cancelled,{name:'AbortError'});controller.abort();await cancelCheck;
 });
