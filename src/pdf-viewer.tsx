@@ -112,7 +112,7 @@ export default function PdfPane({id,page,total,zoom:requestedZoom=1,fitMode=null
   const layout=useMemo(()=>pageLayout(doc?.numPages||total,viewport.width,zoom,sizes),[doc,total,viewport.width,zoom,sizes]);
   const previousLayout=useRef<{id:string;layout:typeof layout}|null>(null);
   const previousFit=useRef({id,mode:fitMode});
-  const renderedWidth=useRef(viewport.width);renderedWidth.current=viewport.width;
+  const renderedViewport=useRef(viewport);renderedViewport.current=viewport;
   const layoutRef=useRef(layout);layoutRef.current=layout;
   const readingInfo=useRef({zoom,sizes,docReady:!!doc});readingInfo.current={zoom,sizes,docReady:!!doc};
   const viewportSize=(el:HTMLElement)=>{const style=getComputedStyle(el);return measurableViewport(el.clientWidth,el.clientHeight,parseFloat(style.paddingLeft)+parseFloat(style.paddingRight));};
@@ -122,28 +122,36 @@ export default function PdfPane({id,page,total,zoom:requestedZoom=1,fitMode=null
     session.last=capturePdfReadingPosition(session.key,layoutRef.current,el.scrollTop,el.scrollLeft,current,readingInfo.current.zoom,readingInfo.current.sizes);
     if(session.last&&session.timer===null)session.timer=setTimeout(()=>flushPosition(session),180);
   },[]);
-  const updateViewport=useCallback(()=>{const el=host.current,session=positionRef.current;if(!el||hidden.current||resumeScroll.current||!session.ready||!readingInfo.current.docReady)return;const size=viewportSize(el);if(!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedWidth.current,size.width))return;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>v.width===size.width&&v.height===size.height&&v.top===el.scrollTop?v:{...size,top:el.scrollTop});
+  const updateViewport=useCallback(()=>{const el=host.current,session=positionRef.current;if(!el||hidden.current||resumeScroll.current||!session.ready||!readingInfo.current.docReady)return;const size=viewportSize(el);if(!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedViewport.current.width,size.width,renderedViewport.current.height,size.height))return;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>v.width===size.width&&v.height===size.height&&v.top===el.scrollTop?v:{...size,top:el.scrollTop});
     const index=pageIndexAt(layoutRef.current.offsets,Math.max(0,el.scrollTop-18)+Math.min(el.clientHeight*.2,150));const current=index+1;
     if(current!==reported.current){reported.current=current;onPageRef.current(current);}
     rememberPosition(el);
   },[rememberPosition]);
   useEffect(()=>{const flush=()=>{updateViewport();flushPosition(position);};const onVisibility=()=>{if(document.hidden)flush();};window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',onVisibility);return()=>{window.removeEventListener('pagehide',flush);document.removeEventListener('visibilitychange',onVisibility);flushPosition(position);};},[position,updateViewport]);
-  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{const size=viewportSize(el);if(!size){flushPosition(positionRef.current);hidden.current=true;setRenderable(false);cancelDrag();cancelAnimationFrame(frame.current);return;}setRenderable(true);if(hidden.current){hidden.current=false;resumeScroll.current=true;setAppearance(value=>value+1);}if(Math.abs(size.width-renderedWidth.current)>.5)cancelAnimationFrame(frame.current);setViewport(v=>v.width===size.width&&v.height===size.height?v:{...v,...size});});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[cancelDrag]);
-  useLayoutEffect(()=>{if(previousFit.current.id===id&&previousFit.current.mode!==fitMode&&fitMode==='page'){position.pending=null;position.localPage=page;}previousFit.current={id,mode:fitMode};const el=host.current;if(!el)return;const size=viewportSize(el);if(!size){hidden.current=true;return;}if(hidden.current){hidden.current=false;resumeScroll.current=true;}const previous=previousLayout.current,returning=resumeScroll.current,reflowing=previous?.id===id&&previous.layout!==layout,readingTop=returning||reflowing?savedScroll.current.top:el.scrollTop;let top:number|undefined;
+  useEffect(()=>{const el=host.current!;const observer=new ResizeObserver(()=>{const size=viewportSize(el);if(!size){flushPosition(positionRef.current);hidden.current=true;setRenderable(false);cancelDrag();cancelAnimationFrame(frame.current);return;}setRenderable(true);if(hidden.current){hidden.current=false;resumeScroll.current=true;setAppearance(value=>value+1);}if(Math.abs(size.width-renderedViewport.current.width)>.5||Math.abs(size.height-renderedViewport.current.height)>.5)cancelAnimationFrame(frame.current);setViewport(v=>v.width===size.width&&v.height===size.height?v:{...v,...size});});observer.observe(el);return()=>{observer.disconnect();cancelAnimationFrame(frame.current);};},[cancelDrag]);
+  useLayoutEffect(()=>{if(previousFit.current.id===id&&previousFit.current.mode!==fitMode&&fitMode==='page'){position.pending=null;position.localPage=page;}previousFit.current={id,mode:fitMode};const el=host.current;if(!el)return;const size=viewportSize(el);if(!size){hidden.current=true;return;}
+    // Metadata can render before ResizeObserver reports a CSS size change.
+    // Leave the last committed geometry/anchor intact until both dimensions match.
+    if(Math.abs(viewport.width-size.width)>=.5||Math.abs(viewport.height-size.height)>=.5)return;
+    if(hidden.current){hidden.current=false;resumeScroll.current=true;}const previous=previousLayout.current,returning=resumeScroll.current,reflowing=previous?.id===id&&previous.layout!==layout,readingTop=returning||reflowing?savedScroll.current.top:el.scrollTop;let top:number|undefined;
     const externalNavigation=navigationToken>0&&navigationToken!==position.handledToken,explicit=externalNavigation||position.localPage!==null;
     const targetPage=externalNavigation?page:position.localPage??page;
     if(explicit)position.pending=null;
-    const canRestore=!!doc&&Math.abs(viewport.width-size.width)<.5;
+    const canRestore=!!doc&&Math.abs(viewport.width-size.width)<.5&&Math.abs(viewport.height-size.height)<.5;
     const restored=!position.ready&&canRestore&&position.pending?restorePdfReadingPosition(position.pending,layout,explicit):null;
     if(restored){top=restored.top-18;reported.current=restored.page;if(page!==restored.page)onPageRef.current(restored.page);}
     else if(explicit||!previous||previous.id!==id||page!==reported.current){const index=Math.min(layout.heights.length-1,Math.max(0,targetPage-1));top=layout.offsets[index];reported.current=index+1;}
-    else if(previous.layout!==layout){top=reflowScrollPosition(previous.layout,layout,readingTop-18);}
+    else if(previous.layout!==layout){top=reflowScrollPosition(previous.layout,layout,readingTop-18)+Math.min(18,readingTop)-18;}
     else if(returning){top=readingTop-18;}
     const documentChanged=!previous||previous.id!==id;
     const left=restored?restored.left:documentChanged?0:reflowing?reflowHorizontalPosition(previous!.layout.width,layout.width,savedScroll.current.left):savedScroll.current.left;
     previousLayout.current={id,layout};resumeScroll.current=false;if(top!==undefined){el.scrollTop=top+18;if(restored||returning||reflowing||documentChanged)el.scrollLeft=left;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>({...v,top:el.scrollTop}));cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}
-    if(canRestore){position.ready=true;position.pending=null;if(explicit){position.localPage=null;if(externalNavigation){position.handledToken=navigationToken;onNavigationRef.current?.(navigationToken);}}if(top===undefined){cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
-  },[page,id,layout,appearance,updateViewport,position,doc,viewport.width,navigationToken,fitMode]);
+    if(canRestore){position.ready=true;position.pending=null;if(explicit){position.localPage=null;if(externalNavigation){position.handledToken=navigationToken;onNavigationRef.current?.(navigationToken);}}
+      // Keep the committed anchor before a hide/reload can cancel the next frame.
+      // pagehide/visibilitychange can then flush it even during another resize.
+      rememberPosition(el);
+      if(top===undefined){cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
+  },[page,id,layout,appearance,updateViewport,rememberPosition,position,doc,viewport.width,viewport.height,navigationToken,fitMode]);
   const onSize=useCallback((p:number,size:PageSize)=>setMeasured(previous=>{const values=previous.id===id?previous.values:{};const old=values[p];return old&&Math.abs(old.width-size.width)<.01&&Math.abs(old.height-size.height)<.01?previous:{id,values:{...values,[p]:size}};}),[id]);
   const visible=renderable?visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1):[];
   const requestPage=(next:number)=>{position.pending=null;position.localPage=next;setAppearance(value=>value+1);onPageRef.current(next);};
@@ -155,7 +163,7 @@ export default function PdfPane({id,page,total,zoom:requestedZoom=1,fitMode=null
     <div className="pdf-reading-tools"><span>연속 보기</span><div><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그하여 선택·복사">Ⅰ 글자 선택</button>{highlights.length>0&&<button aria-pressed={showHighlights} onClick={()=>setShowHighlights(!showHighlights)}>{showHighlights?'강조 숨기기':'강조 보기'}</button>}</div><span className="pdf-reading-page">{page} / {doc?.numPages||total}</span></div>
     {Object.keys(proposalIndicators).length>0&&<div className="pdf-proposal-legend"><b>수정제안 있음</b><span className="proposal-required">필수 · 반드시 수정</span><span className="proposal-recommended">권고 · 강하게 권고</span><span className="proposal-optional">선택 · 선택적</span>{currentProposals.length>0&&<button onClick={()=>{const first=currentProposals[0];if(onProposal)onProposal(first.indicator.primaryProposalId);else onTarget?.(first.target.noteId);}}>현재 쪽 {currentProposals.length}건 보기</button>}</div>}
     <div className={'pdf-stage continuous-pdf'+(hand?' hand-mode':' selection-mode')+(dragging?' is-dragging':'')+(placing?' placing':'')} ref={host} tabIndex={0} aria-label={`${label} 연속 스크롤`}
-      onScroll={e=>{const size=viewportSize(e.currentTarget);if(hidden.current||resumeScroll.current||!position.ready||!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedWidth.current,size.width))return;savedScroll.current={top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft};rememberPosition(e.currentTarget);cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
+      onScroll={e=>{const size=viewportSize(e.currentTarget);if(hidden.current||resumeScroll.current||!position.ready||!size||pendingPdfReflow(previousLayout.current?.layout,layoutRef.current,renderedViewport.current.width,size.width,renderedViewport.current.height,size.height))return;savedScroll.current={top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft};rememberPosition(e.currentTarget);cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
       onPointerDown={e=>{if(!hand||placing||e.pointerType!=='mouse'||e.button!==0||(e.target as HTMLElement).closest('button,a,input,textarea'))return;e.preventDefault();drag.current={pointerId:e.pointerId,x:e.clientX,y:e.clientY,top:e.currentTarget.scrollTop,left:e.currentTarget.scrollLeft,moved:false};}}
       onPointerMove={e=>{const d=drag.current;if(!d||d.pointerId!==e.pointerId)return;if(!d.moved&&movedPointer(d,e.clientX,e.clientY)){d.moved=true;e.currentTarget.setPointerCapture(e.pointerId);setDragging(true);}if(d.moved){e.currentTarget.scrollTop=d.top-(e.clientY-d.y);e.currentTarget.scrollLeft=d.left-(e.clientX-d.x);}}}
       onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}

@@ -67,16 +67,19 @@ export function visiblePageRange(offsets:number[],scrollTop:number,viewportHeigh
   return Array.from({length:end-start+1},(_,i)=>start+i+1);
 }
 export function reflowScrollPosition(previous:ReturnType<typeof pageLayout>,next:ReturnType<typeof pageLayout>,position:number){
-  const oldTop=Math.max(0,position),index=pageIndexAt(previous.offsets,oldTop),fraction=(oldTop-previous.offsets[index])/previous.heights[index];
+  const oldTop=Math.max(0,position),index=pageIndexAt(previous.offsets,oldTop),offset=oldTop-previous.offsets[index],fraction=offset/previous.heights[index];
+  // Page gaps are fixed CSS pixels, not part of the scaled paper. This also
+  // preserves a rounded page-start coordinate just below the next offset.
+  const gapOffset=Math.max(0,Math.min(previous.gap,offset-previous.heights[index]));
   const target=Math.min(index,next.heights.length-1);
-  return next.offsets[target]+Math.max(0,Math.min(1,fraction))*next.heights[target];
+  return next.offsets[target]+Math.max(0,Math.min(1,fraction))*next.heights[target]+Math.min(next.gap,gapOffset);
 }
 export function reflowHorizontalPosition(previousWidth:number,nextWidth:number,position:number){
   if(!Number.isFinite(previousWidth)||previousWidth<=0||!Number.isFinite(nextWidth)||nextWidth<=0)return Math.max(0,Number.isFinite(position)?position:0);
   return Math.max(0,Number.isFinite(position)?position:0)*nextWidth/previousWidth;
 }
-export function pendingPdfReflow(committed:ReturnType<typeof pageLayout>|undefined,rendered:ReturnType<typeof pageLayout>,renderedWidth:number,measuredWidth:number){
-  return committed!==rendered||Math.abs(renderedWidth-measuredWidth)>.5;
+export function pendingPdfReflow(committed:ReturnType<typeof pageLayout>|undefined,rendered:ReturnType<typeof pageLayout>,renderedWidth:number,measuredWidth:number,renderedHeight=0,measuredHeight=renderedHeight){
+  return committed!==rendered||Math.abs(renderedWidth-measuredWidth)>.5||Math.abs(renderedHeight-measuredHeight)>.5;
 }
 export function movedPointer(start:{x:number;y:number}|null,x:number,y:number){return !!start&&Math.hypot(x-start.x,y-start.y)>5;}
 export function measurableViewport(width:number,height:number,paddingX=0):{width:number;height:number}|null{

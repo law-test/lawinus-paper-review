@@ -11,11 +11,12 @@ const require=createRequire(import.meta.url);
 const code=ts.transpileModule(readFileSync(new URL('../src/pdf-viewer.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function QuickTools(){return null;}
 function memory(initial=[]){const map=new Map(initial);return {map,getItem:key=>map.get(key)??null,setItem:(key,value)=>map.set(key,value)};}
-function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=null,id='thesis',navigationToken=0}={}){
+function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=null,id='thesis',navigationToken=0,scrollQuantum=0}={}){
  const hooks=[],layouts=[],effects=[],observers=new Set(),frames=new Map(),timers=new Map(),reports=[],acks=[];
  let index=0,dirty=true,tree,top=0,left=0,contentHeight=1,contentWidth=1,serial=0,resolveDoc;
  const win=Object.assign(new EventTarget(),{localStorage:storage}),document=Object.assign(new EventTarget(),{hidden:false,baseURI:'https://example.invalid/'});
- const host={clientWidth:width,clientHeight:height,hasPointerCapture:()=>false,releasePointerCapture(){},get scrollTop(){return top;},set scrollTop(v){top=Math.max(0,Math.min(v,Math.max(0,contentHeight+36-host.clientHeight)));},get scrollLeft(){return left;},set scrollLeft(v){left=Math.max(0,Math.min(v,Math.max(0,contentWidth+44-host.clientWidth)));}};
+ const rounded=value=>scrollQuantum?Math.round(value/scrollQuantum)*scrollQuantum:value;
+ const host={clientWidth:width,clientHeight:height,hasPointerCapture:()=>false,releasePointerCapture(){},get scrollTop(){return top;},set scrollTop(v){top=Math.max(0,Math.min(rounded(v),Math.max(0,contentHeight+36-host.clientHeight)));},get scrollLeft(){return left;},set scrollLeft(v){left=Math.max(0,Math.min(rounded(v),Math.max(0,contentWidth+44-host.clientWidth)));}};
  let docPromise=new Promise(resolve=>{resolveDoc=resolve;});
  const props={id,page,total:279,zoom,fitMode,quickTools:true,persistenceKey:'d:'+id,navigationToken,onZoomResolved:value=>{props.zoom=value;dirty=true;},onZoomChange:value=>{props.zoom=value;props.fitMode=null;dirty=true;},onFitModeChange:value=>{props.fitMode=value;dirty=true;},onPageChange:value=>{reports.push(value);props.page=value;dirty=true;},onNavigationHandled:value=>{acks.push(value);if(props.navigationToken===value){props.navigationToken=0;dirty=true;}}};
  const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
@@ -35,12 +36,12 @@ function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=n
  function render(){dirty=false;index=0;tree=module.exports.default(props);const ns=nodes();const root=ns.find(n=>n.props?.className?.includes('continuous-pdf')&&n.props?.onScroll);root.props.ref.current=host;const pages=ns.find(n=>n.props?.className==='pdf-continuous-pages');contentHeight=pages.props.style.height;contentWidth=pages.props.style.width;host.scrollTop=top;host.scrollLeft=left;while(layouts.length)layouts.shift()();while(effects.length)effects.shift()();}
  function settle(withFrames=true){let loops=0;while(dirty||(withFrames&&frames.size)){assert.ok(++loops<60,'render/frame loop must settle');if(dirty)render();else{const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn());}}}
  async function load(){resolveDoc({numPages:279});for(let i=0;i<3;i++){await new Promise(resolve=>setImmediate(resolve));settle();}}
- function resize(w,h){host.clientWidth=w;host.clientHeight=h;for(const fn of observers)fn();settle();}
+ function resize(w,h,{frames=true,observe=true}={}){host.clientWidth=w;host.clientHeight=h;host.scrollTop=top;host.scrollLeft=left;if(observe)for(const fn of observers)fn();settle(frames);}
  function scroll(nextTop,nextLeft=left,{frames=true}={}){host.scrollTop=nextTop;host.scrollLeft=nextLeft;nodes().find(n=>n.props?.onScroll).props.onScroll({currentTarget:host});settle(frames);}
- function flush(){win.dispatchEvent(new Event('pagehide'));settle();}
- function change(next){Object.assign(props,next);dirty=true;settle();}
+ function flush({frames=true}={}){win.dispatchEvent(new Event('pagehide'));settle(frames);}
+ function change(next,{frames=true}={}){Object.assign(props,next);dirty=true;settle(frames);}
  function quick(next){nodes().find(n=>n.type===QuickTools).props.onPageChange(next);settle();}
- function fit(next){nodes().find(n=>n.type===QuickTools).props.onFitModeChange(next);settle();}
+ function fit(next,{frames=true}={}){nodes().find(n=>n.type===QuickTools).props.onFitModeChange(next);settle(frames);}
  function numeric(next){nodes().find(n=>n.type===QuickTools).props.onZoomChange(next);settle();}
  function dimensions(){return nodes().find(n=>n.props?.className==='pdf-continuous-pages').props.style;}
  function dispose(){for(const h of hooks)h?.cleanup?.();frames.clear();timers.clear();}
@@ -104,4 +105,52 @@ test('width fit follows even a narrow reference pane and numeric zoom explicitly
 test('external toolbar page-fit selection aligns the current page while a hidden initial fit waits for real dimensions',async()=>{
  const h=harness({width:0,height:0,page:20,fitMode:'page',zoom:.4});await h.load();assert.equal(h.props.zoom,.4);h.resize(700,500);near(h.dimensions().width*728/515,460);
  h.numeric(1.3);h.scroll(model.pageLayout(279,656,1.3,{}).offsets[19]+300);h.change({fitMode:'page'});const fitted=model.pageLayout(279,656,h.props.zoom,{});near(h.host.scrollTop,fitted.offsets[19]+18);assert.equal(h.props.page,20);h.dispose();
+});
+
+test('fit commit survives immediate hidden-pane reload without any animation frame or save timer',async()=>{
+ for(const {width,height,page,id} of [{width:700,height:600,page:20,id:'thesis'},{width:390,height:700,page:27,id:'source'}])for(const fitMode of ['page','width']){
+  const key='d:'+id,storage=memory(),h=harness({storage,width,height,page,id,zoom:1.3});await h.load();
+  h.scroll(model.pageLayout(279,width-44,1.3,{}).offsets[page-1]+300,50);h.flush();
+  h.fit(fitMode,{frames:false});const expected={top:h.host.scrollTop,left:h.host.scrollLeft,zoom:h.props.zoom};
+  h.resize(0,0,{frames:false});h.flush({frames:false});
+  const saved=model.readPdfReadingPosition(storage,key,279);near(saved.top,expected.top);near(saved.left,expected.left);near(saved.zoom,expected.zoom);h.dispose();
+  const restored=harness({storage,width,height,page,id,zoom:expected.zoom,fitMode});await restored.load();near(restored.host.scrollTop,expected.top);near(restored.host.scrollLeft,expected.left);restored.dispose();
+ }
+});
+
+test('a height-only resize before ResizeObserver cannot replace a committed page-fit anchor with clamped scroll',async()=>{
+ const storage=memory(),h=harness({storage,width:700,height:600,page:279,fitMode:'page'});await h.load();h.flush();
+ const saved=model.readPdfReadingPosition(storage,'d:thesis',279),raw=storage.getItem(model.pdfReadingStorageKey('d:thesis'));assert.ok(saved);
+ h.resize(700,1800,{observe:false,frames:false});assert.ok(h.host.scrollTop<saved.top,'the taller viewport must clamp the old scroll range');h.flush({frames:false});
+ assert.equal(storage.getItem(model.pdfReadingStorageKey('d:thesis')),raw,'do not capture a new-height scroll value against the old-height fit layout');h.dispose();
+ const restored=harness({storage,width:700,height:1800,page:279,fitMode:'page',zoom:saved.zoom});await restored.load();
+ const layout=model.pageLayout(279,656,restored.props.zoom,{}),expected=model.restorePdfReadingPosition(saved,layout);near(restored.host.scrollTop,Math.min(expected.top,layout.totalHeight+36-1800));restored.dispose();
+});
+
+test('page/width-fit resize preserves a gap anchor and immediate reload retains the committed resized position',async()=>{
+ for(const [fitMode,width,height,nextWidth,nextHeight] of [['page',700,600,700,519],['page',390,700,844,390],['width',700,600,390,700],['width',390,700,844,390]]){
+  const storage=memory(),h=harness({storage,width,height,page:20,fitMode});await h.load();
+  const before=model.pageLayout(279,width-44,h.props.zoom,{}),top=before.offsets[19]-1e-10+18;h.scroll(top);h.flush();
+  h.resize(nextWidth,nextHeight,{frames:false});const next=model.pageLayout(279,nextWidth-44,h.props.zoom,{}),expected=next.offsets[19]-1e-10+18;near(h.host.scrollTop,expected);
+  h.resize(0,0,{frames:false});h.flush({frames:false});near(model.readPdfReadingPosition(storage,'d:thesis',279).top,expected);h.dispose();
+  const restored=harness({storage,width:nextWidth,height:nextHeight,page:20,fitMode});await restored.load();near(restored.host.scrollTop,expected);restored.dispose();
+ }
+});
+
+test('reflow retains the top-of-document padding inset instead of adding 18px',async()=>{
+ for(const top of [0,7,18]){const h=harness({width:390,height:700,page:1});await h.load();h.scroll(top);h.resize(844,390);near(h.host.scrollTop,top);h.dispose();}
+});
+
+test('rounded page-fit start survives metadata-only layout recreation and immediate reload',async()=>{
+ for(const scrollQuantum of [1,1/64]){
+  const storage=memory(),h=harness({storage,width:700,height:519,page:20,fitMode:'page',scrollQuantum});await h.load();near(h.host.scrollTop,9575);
+  h.change({pageSizes:[{page:20,width:515,height:728}]},{frames:false});near(h.host.scrollTop,9575);h.flush({frames:false});h.dispose();
+  const restored=harness({storage,width:700,height:519,page:20,fitMode:'page',scrollQuantum});await restored.load();near(restored.host.scrollTop,9575);restored.dispose();
+ }
+});
+
+test('metadata rendered before a pending height resize cannot commit the clamped intermediate anchor',async()=>{
+ const h=harness({width:700,height:600,page:279,fitMode:'page'});await h.load();h.flush();const saved=model.readPdfReadingPosition(h.storage,'d:thesis',279);
+ h.resize(700,1800,{observe:false,frames:false});h.change({pageSizes:[{page:1,width:600,height:400}]},{frames:false});h.resize(700,1800,{frames:false});
+ const layout=model.pageLayout(279,656,h.props.zoom,{1:{width:600,height:400}}),expected=model.restorePdfReadingPosition(saved,layout);near(h.host.scrollTop,Math.min(expected.top,layout.totalHeight+36-1800));h.dispose();
 });

@@ -39,6 +39,16 @@ test('zoom/column resize keeps the same page and relative reading position',()=>
   assert.equal(pageIndexAt(after.offsets,newPosition),49);
   assert.ok(Math.abs((newPosition-after.offsets[49])/after.heights[49]-.4)<1e-9);
 });
+test('reflow preserves the inter-page gap and a rounded page-start coordinate through repeated resizes',()=>{
+  const before=pageLayout(279,338.8523351648352,1,{}),same=pageLayout(279,338.8523351648352,1,{}),after=pageLayout(279,656,1.3,{});
+  for(const position of [before.offsets[18]+before.heights[18]+9,before.offsets[19]-1e-10]){
+    assert.ok(Math.abs(reflowScrollPosition(before,same,position)-position)<1e-8,'a geometry-only layout change must not remove the 24px gap');
+    const resized=reflowScrollPosition(before,after,position);
+    const gap=position-before.offsets[18]-before.heights[18];
+    assert.ok(Math.abs(resized-(after.offsets[18]+after.heights[18]+gap))<1e-8);
+    assert.ok(Math.abs(reflowScrollPosition(after,before,resized)-position)<1e-8);
+  }
+});
 test('late-page panel resize restores the saved position after the DOM clamps its scroll range',()=>{
   for(const [count,page] of [[279,249],[220,200]]){
     const wide=pageLayout(count,800,1,{}),narrow=pageLayout(count,570,1,{}),fraction=.1;
@@ -62,6 +72,8 @@ test('transitional resize and stale frames cannot report a clamped page before l
   assert.equal(pendingPdfReflow(old,next,570,570),true,'new DOM rendered but saved position not committed yet');
   assert.equal(pendingPdfReflow(next,next,570,570),false,'restoration has committed and genuine scrolling can report again');
   assert.equal(pendingPdfReflow(undefined,next,570,570),true,'first layout must establish a position before reporting');
+  assert.equal(pendingPdfReflow(next,next,570,570,700,500),true,'page fit depends on height even when width is unchanged');
+  assert.equal(pendingPdfReflow(next,next,570,570,500,500),false);
 });
 test('a zoomed document preserves horizontal reading position through orientation and pane hiding',()=>{
   const wide=pageLayout(279,820,2,{}),narrow=pageLayout(279,366,2,{}),savedLeft=700;
