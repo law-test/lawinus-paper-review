@@ -1,3 +1,4 @@
+import ReaderControls from './reader-controls';
 import React,{useEffect,useRef,useState} from 'react';
 import type {SharedEdit} from './shared-edits';
 import './web-manuscript.css';
@@ -25,14 +26,14 @@ export function InlineNoteText({text,onNote,contextId}:{text:string;onNote:(id:s
   return <LegalText text={text} onNote={onNote} contextId={contextId}/>;
 }
 
-export default function WebManuscript({paragraphs,overrides,notes,page,zoom,selected,onPageChange,onParagraph,onNote,onReference,proposalIndicators={},onProposal,persistenceKey,navigationToken,onNavigationHandled}:{paragraphs:ManuscriptParagraph[];overrides:Record<string,SharedEdit>;notes:Note[];page:number;zoom:number;selected:string;onPageChange:(page:number)=>void;onParagraph:(id:string)=>void;onNote:(id:string)=>void;onReference:(noteId:string,segment:SourceSegment)=>void;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void;persistenceKey?:string;navigationToken?:number;onNavigationHandled?:(token:number)=>void}){
+export default function WebManuscript({controlsHost,paragraphs,overrides,notes,page,zoom,selected,onPageChange,onParagraph,onNote,onReference,proposalIndicators={},onProposal,persistenceKey,navigationToken,onNavigationHandled}:{controlsHost?:HTMLElement|null;paragraphs:ManuscriptParagraph[];overrides:Record<string,SharedEdit>;notes:Note[];page:number;zoom:number;selected:string;onPageChange:(page:number)=>void;onParagraph:(id:string)=>void;onNote:(id:string)=>void;onReference:(noteId:string,segment:SourceSegment)=>void;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void;persistenceKey?:string;navigationToken?:number;onNavigationHandled?:(token:number)=>void}){
   const host=useRef<HTMLDivElement>(null),drag=useRef<{x:number;y:number;top:number;moved:boolean}|null>(null),suppressClick=useRef(false);
   const reportPage=useBodyReadingPosition(host,page,zoom,persistenceKey,onPageChange,navigationToken,onNavigationHandled,overrides);
   const [hand,setHand]=useState(true);
   const groups=new Map<number,ManuscriptParagraph[]>();
   for(const p of paragraphs){const group=groups.get(p.page)||[];group.push(p);groups.set(p.page,group);}
   useEffect(()=>{const cancel=()=>{drag.current=null;suppressClick.current=false;};window.addEventListener('blur',cancel);document.addEventListener('visibilitychange',cancel);return()=>{window.removeEventListener('blur',cancel);document.removeEventListener('visibilitychange',cancel);};},[]);
-  return <div className="web-manuscript-reader"><div className="manuscript-tools"><span>본문</span><button className={hand?'selected':''} onClick={()=>setHand(true)}>✋ 이동</button><button className={!hand?'selected':''} onClick={()=>setHand(false)}>글자 선택</button></div>
+  return <div className="web-manuscript-reader"><ReaderControls host={controlsHost}><div className="manuscript-tools"><span>본문</span><button className={hand?'selected':''} onClick={()=>setHand(true)}>✋ 이동</button><button className={!hand?'selected':''} onClick={()=>setHand(false)}>글자 선택</button></div></ReaderControls>
     <div className={'web-manuscript'+(hand?' hand-mode':'')} ref={host} onScroll={reportPage} style={{'--manuscript-zoom':zoom} as React.CSSProperties}
       onPointerDown={e=>{suppressClick.current=false;if(!hand||e.pointerType==='touch'||e.button!==0||(e.target as HTMLElement).closest('button,a'))return;drag.current={x:e.clientX,y:e.clientY,top:e.currentTarget.scrollTop,moved:false};}}
       onPointerMove={e=>{const d=drag.current;if(!d)return;if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)>5){d.moved=true;e.currentTarget.setPointerCapture(e.pointerId);}if(d.moved){e.currentTarget.scrollTop=d.top-(e.clientY-d.y);e.preventDefault();}}}

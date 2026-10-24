@@ -1,5 +1,5 @@
 export type FaqSource={label:string;href:string};
-export type FaqItem={id:string;category:string;question:string;answer:string[];sources:FaqSource[]};
+export type FaqItem={id:string;category:string;question:string;answer:string[];sources:FaqSource[];defaultLawId?:string};
 
 export function proposalAnnotation(search:string,proposal:{id:string;after:string}|undefined):{number:string;text:string}|null{
  const params=new URLSearchParams(search),number=params.get('annotation');
@@ -16,10 +16,10 @@ export function filterFaq(items:FaqItem[],query:string):FaqItem[]{
  });
 }
 
-export function reviewDeepLink(search:string,proposalIds:readonly string[],noteIds:readonly string[]=[],paragraphIds:readonly string[]=[]):{view:'faq'|'ai-mingyu'}|{view:'proposal'|'note'|'paragraph';id:string}|null{
+export function reviewDeepLink(search:string,proposalIds:readonly string[],noteIds:readonly string[]=[],paragraphIds:readonly string[]=[]):{view:'faq'|'ai-mingyu'|'glossary'}|{view:'proposal'|'note'|'paragraph';id:string}|null{
  const params=new URLSearchParams(search),id=params.get('proposal');
  if(id&&proposalIds.includes(id))return {view:'proposal',id};
  const note=params.get('note');if(note&&noteIds.includes(note))return {view:'note',id:note};
  const paragraph=params.get('paragraph');if(paragraph&&paragraphIds.includes(paragraph))return {view:'paragraph',id:paragraph};
- const view=params.get('view');return view==='faq'||view==='ai-mingyu'?{view}:null;
+ const view=params.get('view');return view==='faq'||view==='ai-mingyu'||view==='glossary'?{view}:null;
 }

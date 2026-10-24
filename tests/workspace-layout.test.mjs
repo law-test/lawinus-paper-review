@@ -22,6 +22,7 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
  const module={exports:{}};
  const dependencies={
   './thesis-faq-model':faqModel,
+  './reader-tool-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,children)},
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
   './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},

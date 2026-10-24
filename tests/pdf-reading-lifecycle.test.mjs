@@ -29,6 +29,7 @@ function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=n
   if(name==='./pdf-viewer-model')return {...model,createPdfRuntimeCache:()=>({get:async()=>({getDocument:()=>({promise:docPromise,destroy:async()=>{}})}),retry(){}})};
   if(name==='./review-api')return {assetUrl:key=>'https://example.invalid/'+key};
   if(name==='./pdf-quick-controls')return {__esModule:true,default:QuickTools};
+  if(name==='./reader-controls')return {__esModule:true,default:({children})=>children};
   if(name==='./proposal-indicators')return {pageProposalMarkers:()=>[]};
   if(name.endsWith('.css'))return {};return require(name);
  }});
@@ -49,6 +50,18 @@ function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=n
 }
 function bookmark(storage,{width=346,zoom=1.6,page=249,fraction=.37,left=121.25,key='d:thesis'}={}){const layout=model.pageLayout(279,width,zoom,{}),position=model.capturePdfReadingPosition(key,layout,layout.offsets[page-1]+layout.heights[page-1]*fraction+18,left,page,zoom,{});model.writePdfReadingPosition(storage,position);return position;}
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
+
+test('moving tools to a separate host and collapsing/restoring their height keeps the document anchor across reload',async()=>{
+ for(const fitMode of [null,'page','width']){
+  const storage=memory(),h=harness({storage,width:700,height:500,page:29,zoom:1.25,fitMode});await h.load();
+  const initial=model.pageLayout(279,656,h.props.zoom,{}),top=initial.offsets[28]+initial.heights[28]*.38+18;
+  h.scroll(top,0);h.flush();const before=model.readPdfReadingPosition(storage,'d:thesis',279);
+  h.change({controlsHost:{nodeType:1}});h.resize(700,750);h.flush();
+  const expanded=model.readPdfReadingPosition(storage,'d:thesis',279);assert.equal(expanded.page,before.page);near(expanded.fraction,before.fraction);
+  h.resize(700,500);h.flush({frames:false});const final=model.readPdfReadingPosition(storage,'d:thesis',279);near(final.fraction,before.fraction);
+  h.dispose();const fresh=harness({storage,width:700,height:500,page:final.page,zoom:final.zoom,fitMode});await fresh.load();near(fresh.host.scrollTop,final.top);fresh.dispose();
+ }
+});
 test('the real PdfPane hooks do not overwrite saved positions with initial 550px placeholders or a hidden viewport',async()=>{
  const storage=memory(),p=bookmark(storage);const raw=storage.getItem(model.pdfReadingStorageKey(p.key));
  const h=harness({storage,width:0,height:0,page:249,zoom:1.6});h.flush();assert.equal(storage.getItem(model.pdfReadingStorageKey(p.key)),raw);

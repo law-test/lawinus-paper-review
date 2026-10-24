@@ -10,9 +10,10 @@ const faq=read('thesis-faq').items;
 const ids=proposals.map(item=>item.id);
 
 test('every published FAQ has an answer, unique stable ID and usable evidence links',()=>{
- assert.ok(faq.length>0);assert.equal(new Set(faq.map(item=>item.id)).size,faq.length);
+ assert.equal(faq.length,300);assert.equal(new Set(faq.map(item=>item.id)).size,faq.length);
+ assert.equal(faq.filter(item=>item.id.startsWith('committee-')).length,100);
  for(const item of faq){
-  assert.match(item.id,/^faq-[a-z0-9-]+$/);
+  assert.match(item.id,/^(?:faq-[a-z0-9-]+|committee-(?:kim|lee|choi|cheon|hwang)-\d{2})$/);
   assert.ok(item.question.trim()&&item.category.trim()&&item.answer.length&&item.answer.every(p=>p.trim()));
   assert.ok(item.sources.length,`No evidence: ${item.id}`);
   for(const source of item.sources){
@@ -21,7 +22,7 @@ test('every published FAQ has an answer, unique stable ID and usable evidence li
    assert.equal(url.protocol,'https:');assert.equal(url.username,'');assert.equal(url.password,'');
    if(url.origin==='https://paper.lawinus.org'&&url.searchParams.has('proposal')){
     assert.ok(ids.includes(url.searchParams.get('proposal')),`${item.id}: unknown proposal`);
-    assert.match(source.label,/수정안/);
+    assert.match(source.label,/수정안|논문 v104 문안/);
    }
    assert.ok(!source.href.includes('C:/')&&!source.href.includes('file:'));
   }

@@ -46,7 +46,7 @@ function harness(saved,width=390,height=844,layout){
  function persist(){effects.find(e=>e.fn.toString().includes('readingSnapshot.current')&&e.deps?.length>1)?.fn();}
  async function boot(){effects.find(e=>e.fn.toString().includes('loadReviewConfig'))?.fn();resolveManifest(fixture);await new Promise(resolve=>setTimeout(resolve,0));render();}
  const label=node=>React.Children.toArray(node.props?.children).map(c=>typeof c==='object'?label(c):String(c)).join('');
- render();return {render,nodes,persist,boot,writes,values,label,pdf:id=>nodes().find(n=>n.type===PdfPane&&n.props.id===id),body:()=>nodes().find(n=>n.type===WebManuscript)};
+ render();return {render,nodes,persist,persistLayout:()=>effects.find(e=>e.fn.toString().includes("saveWorkspaceLayout"))?.fn(),boot,writes,values,label,pdf:id=>nodes().find(n=>n.type===PdfPane&&n.props.id===id),body:()=>nodes().find(n=>n.type===WebManuscript)};
 }
 const saved={schema:1,datasetId:'human-a',thesis:{page:249,zoom:1.15},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'a',textTranslation:'',activeNote:'fn-001',manuscriptMode:'pdf',mobilePane:'source',tab:'source',paragraphId:'',proposalId:'',readingView:{focus:false,header:true,tools:true,footnotes:true},sidebarOpen:false,metadataOpen:true};
 test('workspace does not save initial defaults while loading and renders the restored values together',async()=>{
@@ -119,12 +119,33 @@ test('saved desktop stacking leaves the mobile single-document tabs intact witho
 });
 
 
-test('the sidebar menu keeps natural height until explicitly resized and reset removes that height',async()=>{
+test('the sidebar heading and menu keep their natural combined height until explicitly resized, and reset restores it',async()=>{
  const h=harness({...saved,sidebarOpen:true},1701,900);await h.boot();
- const menu=()=>h.nodes().find(n=>n.type==='nav'&&n.props.className==='sidebar-menu');assert.equal(menu().props.style,undefined);
+ const menu=()=>h.nodes().find(n=>n.type==='div'&&n.props.className==='sidebar-controls');assert.equal(menu().props.style,undefined);
  const resize=h.nodes().find(n=>n.type===PaneResizer&&n.props.className==='sidebar-toc-divider');assert.ok(resize);resize.props.onChange(180);h.render();assert.equal(menu().props.style.height,180);
  h.nodes().find(n=>n.type===ReadingControls).props.onResetSizes();h.render();assert.equal(menu().props.style,undefined);
- const css=readFileSync(new URL('../src/workspace-layout.css',import.meta.url),'utf8');assert.match(css,/workspace-sidebar>\.sidebar-menu[^}]*flex-shrink:0/);assert.doesNotMatch(css,/workspace-sidebar>\.sidebar-menu[^}]*flex-shrink:1/);
+ const css=readFileSync(new URL('../src/workspace-layout.css',import.meta.url),'utf8');assert.match(css,/workspace-sidebar>\.sidebar-controls[^}]*flex-shrink:0/);assert.doesNotMatch(css,/workspace-sidebar>\.sidebar-controls[^}]*flex-shrink:1/);
+});
+
+test('all four upper regions collapse independently without changing either document or its reading session',async()=>{
+ const h=harness({...saved,sidebarOpen:true},1701,900);await h.boot();
+ for(const className of ['chrome-divider','sidebar-toc-divider','thesis-controls','source-controls']){
+  const control=h.nodes().find(n=>n.props.className===className);assert.ok(control,className);control.props.onChange(0);h.render();
+ }
+ assert.equal(h.nodes().find(n=>n.props.className==='workspace-chrome').props.style.height,0);
+ assert.equal(h.nodes().find(n=>n.props.className==='sidebar-controls').props.style.height,0);
+ assert.equal(h.nodes().find(n=>n.props.className==='thesis-controls').props.height,0);
+ assert.equal(h.nodes().find(n=>n.props.className==='source-controls').props.height,0);
+ assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('a').props.page,199);
+ assert.equal(h.pdf('thesis').props.navigationToken,0);assert.equal(h.pdf('a').props.navigationToken,0);
+ h.persistLayout();const persisted=JSON.parse(h.values.get(workspaceLayout.WORKSPACE_LAYOUT_KEY));
+ for(const key of ['headerHeight','sidebarMenuHeight','thesisToolsHeight','sourceToolsHeight'])assert.equal(persisted[key],0);
+ const fresh=harness({...saved,sidebarOpen:true},1701,900,persisted);await fresh.boot();
+ assert.equal(fresh.nodes().find(n=>n.props.className==='thesis-controls').props.height,0);
+ assert.equal(fresh.nodes().find(n=>n.props.className==='source-controls').props.height,0);
+ const restored=fresh.nodes().find(n=>n.props.className==='thesis-controls');restored.props.onChange(120);fresh.render();
+ assert.equal(fresh.nodes().find(n=>n.props.className==='thesis-controls').props.height,120);
+ assert.equal(fresh.pdf('thesis').props.page,249);assert.equal(fresh.pdf('a').props.page,199);
 });
 
 

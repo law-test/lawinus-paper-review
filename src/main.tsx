@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import ReviewWorkspace from './review-workspace';
+import AiMingyu from './ai-mingyu';
 import {LegalLinkProvider} from './legal-links';
 import {loadReviewConfig} from './review-api';
 import {applyTextSize, readTextSize} from './text-size';
@@ -8,6 +9,7 @@ import './globals.css';
 import './text-size-control.css';
 import './mobile-layout.css';
 import './workspace-layout.css';
+import './ai-mingyu-window.css';
 
 function App() {
   const [state, setState] = useState<'loading'|'ready'|'setup'>('loading');
@@ -19,7 +21,7 @@ function App() {
     });
     return () => { active = false; };
   }, []);
-  if (state === 'ready') return <LegalLinkProvider><ReviewWorkspace/></LegalLinkProvider>;
+  if (state === 'ready') return <LegalLinkProvider>{new URLSearchParams(window.location.search).get('chat')==='1'?<main className="mingyu-standalone"><nav className="mingyu-window-tools" aria-label="대화창 이동"><span>AI민규 · 논문 질문</span><a href="./?view=ai-mingyu">사이트 안에서 보기</a><a href="./" target="lawinus-paper" rel="noopener">논문 열기 ↗</a></nav><AiMingyu/></main>:<ReviewWorkspace/>}</LegalLinkProvider>;
   return <main className="review-app"><section className="loading-screen" role="status" aria-live="polite">
     <div className="law-logo"><img src="./korea-law-logo.svg" alt="고대법대 KU Law" width="244" height="100"/></div>
     <h1>LAWINUS · 논문 심사실</h1>

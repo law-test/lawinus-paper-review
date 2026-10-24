@@ -1,5 +1,6 @@
 import React,{useEffect,useLayoutEffect,useRef,useState,type RefObject} from 'react';
 import PaneResizer from './pane-resizer';
+import ReaderControls from './reader-controls';
 import registry from './source-translations.json';
 import {validateTranslation,translationNoteText,type TranslationDocument,type TranslationEntry} from './translation-model';
 import {readTranslationView,writeTranslationView,translationPositionKey,parseTranslationPosition,restoredTranslationPosition,type TranslationPosition,type TranslationMode,type TranslationView} from './translation-reading';
@@ -59,13 +60,13 @@ export function useTranslationPosition(host:RefObject<HTMLDivElement|null>,key:s
   return {page:shownPage,alignPage:(target:number)=>{if(snapshot.current?.page!==target)pending.current=target;restore();},flush:()=>{capture(false);write();},onScroll:()=>{const el=host.current,ours=ownTop.current!==null&&el&&Math.abs(el.scrollTop-ownTop.current)<.5;ownTop.current=null;capture(!ours);if(timer.current===null)timer.current=setTimeout(write,120);}};
 }
 
-type Props={sourceId:string;page:number;onPageChange:(page:number)=>void;onComparePage?:(page:number)=>void;children?:React.ReactNode;persistenceKey?:string;navigationToken?:number};
+type Props={controlsHost?:HTMLElement|null;sourceId:string;page:number;onPageChange:(page:number)=>void;onComparePage?:(page:number)=>void;children?:React.ReactNode;persistenceKey?:string;navigationToken?:number};
 export default function ParallelSourceReader(props:Props){
   const entry=translationEntries.find(row=>row.sourceId===props.sourceId);
   if(!entry)return <div className="source-reader-single">{props.children}</div>;
   return <TranslationReader key={(props.persistenceKey||entry.sourceId)+entry.sourceSha256} {...props} entry={entry}/>;
 }
-export function TranslationReader({entry,page,onPageChange,onComparePage,children,persistenceKey,navigationToken=0}:Props&{entry:TranslationEntry}){
+export function TranslationReader({controlsHost,entry,page,onPageChange,onComparePage,children,persistenceKey,navigationToken=0}:Props&{entry:TranslationEntry}){
   const key=(persistenceKey||entry.sourceId)+':'+entry.sourceSha256;
   const [doc,setDoc]=useState<TranslationDocument|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   const [view,setView]=useState(()=>readTranslationView(storage(),key,typeof window!=='undefined'&&window.innerWidth<900));
@@ -81,10 +82,11 @@ export function TranslationReader({entry,page,onPageChange,onComparePage,childre
   const parallel=view.mode==='parallel',vertical=view.layout==='vertical';
   return <div className="foreign-source-reader" data-translation-mode={view.mode} data-document-alignment={view.mode==='translation'||(parallel&&vertical)?'off':undefined}>
     {error&&<div className="translation-unavailable" role="alert"><p>{error}</p><button onClick={()=>setRetry(x=>x+1)}>다시 불러오기</button></div>}
-    <div className="translation-controls"><div className="translation-document"><b>{entry.title}</b><span>{entry.language==='de'?'독일어':'영문'} 원문 · 한국어 번역 · {entry.scope}</span></div></div>
+    <ReaderControls host={controlsHost}><div className="translation-controls"><div className="translation-document"><b>{entry.title}</b><span>{entry.language==='de'?'독일어':'영문'} 원문 · 한국어 번역 · {entry.scope}</span></div></div>
     <div className="translation-switchbar"><div className="translation-mode" role="group" aria-label="외국어 자료 보기">{(['original','translation','parallel'] as TranslationMode[]).map((mode,i)=><button key={mode} aria-pressed={view.mode===mode} onClick={()=>changeView({mode})}>{['원문','번역','병기'][i]}</button>)}</div>
       {parallel&&<div className="translation-layout" role="group" aria-label="병기 배치"><button aria-pressed={!vertical} onClick={()=>changeView({layout:'horizontal'})}>좌우</button><button aria-pressed={vertical} onClick={()=>changeView({layout:'vertical'})}>상하</button></div>}
     </div>
+    </ReaderControls>
     <div className={`parallel-source ${parallel?'is-parallel':view.mode+'-only'} layout-${view.layout}`} ref={pair} style={{'--original-share':(vertical?view.splitY:view.splitX)+'%'} as React.CSSProperties}>
       <div className="parallel-original" hidden={view.mode==='translation'} aria-label="외국 문헌 원문">{original}</div>
       <PaneResizer className={'translation-divider'+(!parallel?' is-hidden':'')} label={vertical?'원문과 번역 높이 조절':'원문과 번역 너비 조절'} axis={vertical?'y':'x'} value={vertical?view.splitY:view.splitX} min={25} max={75} onChange={value=>changeView(vertical?{splitY:value}:{splitX:value})} onReset={()=>changeView(vertical?{splitY:50}:{splitX:50})} unitsPerPixel={()=>100/((vertical?pair.current?.getBoundingClientRect().height:pair.current?.getBoundingClientRect().width)||1)}/>

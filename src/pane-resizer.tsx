@@ -17,7 +17,7 @@ export default function PaneResizer({label,className='',value,min,max,step=2,uni
     setActive(false);
   },[]);
   useEffect(()=>{window.addEventListener('blur',finish);return()=>{window.removeEventListener('blur',finish);finish();};},[finish]);
-  return <div className={`pane-resizer ${axis==='y'?'horizontal-resizer ':''}${className}${active?' resizing':''}`} role="separator" aria-label={label} title={`드래그하여 ${axis==='y'?'높이':'너비'} 조절${onReset?' · 두 번 누르면 초기화':''}`} aria-orientation={axis==='y'?'horizontal':'vertical'} aria-valuenow={Math.round(value)} aria-valuetext={`${Math.round(value)}${unit}`} aria-valuemin={min} aria-valuemax={max} tabIndex={0} onDoubleClick={onReset}
+  return <div className={`pane-resizer ${axis==='y'?'horizontal-resizer ':''}${className}${active?' resizing':''}`} role="separator" aria-label={label} title={`드래그하여 ${axis==='y'?'높이':'너비'} 조절${axis==='y'&&min===0?' · Home 접기 · End 펼치기':''}${onReset?' · 두 번 누르면 초기화':''}`} aria-orientation={axis==='y'?'horizontal':'vertical'} aria-valuenow={Math.round(value)} aria-valuetext={`${Math.round(value)}${unit}`} aria-valuemin={min} aria-valuemax={max} tabIndex={0} onDoubleClick={onReset}
     onPointerDown={e=>{
       if(e.button!==0||!e.isPrimary)return;
       e.preventDefault();
