@@ -25,6 +25,9 @@ import ProfileSections from './profile-sections';
 import ThesisFaq from './thesis-faq';
 import AiMingyu from './ai-mingyu';
 import LegalGlossary from './legal-glossary';
+import WorkspaceLaunchers from './workspace-launchers';
+import {ordinaryWorkspaceEntry} from './workspace-tools';
+import {useWorkspaceToolPopups} from './workspace-tool-popups';
 import {openMingyuChatWindow} from './ai-mingyu-window';
 import {reviewDeepLink,proposalAnnotation} from './thesis-faq-model';
 import citationExplanations from './citation-explanations.json';
@@ -64,6 +67,7 @@ function ZoomSelect({label,zoom,fitMode,onZoom,onFit}:{label:string;zoom:number;
 }
 
 export default function ReviewWorkspace(){
+  const toolPopups=useWorkspaceToolPopups();
   const openLegal=useLegalLinks();
   const [aiWide,setAiWide]=useState(true);
   const [missingCitation,setMissingCitation]=useState<SourceSegment|null>(null);
@@ -130,6 +134,7 @@ export default function ReviewWorkspace(){
     if(link.view==='proposal')selectProposal(link.id);
     else if(link.view==='note'){openNote(link.id,true);setTab('source');setMetadataVisibility(true);}
     else if(link.view==='paragraph'){openParagraph(link.id);setManuscriptMode('body');manuscriptViewChosen.current=true;}
+    else if(link.view==='ai-mingyu'||link.view==='glossary'){toolPopups.openTool(link.view);return;}
     else{setTab(link.view);setMetadataVisibility(true);setMobilePane('metadata');}
     if(window.innerWidth<1200)setSidebarVisibility(false);
     setMobilePane('metadata');
@@ -154,7 +159,7 @@ export default function ReviewWorkspace(){
     let restored:{session:ReadingSession;restored:boolean};try{restored=readReadingSession(window.localStorage,config.datasetId,catalog);}catch{restored={session:defaultReadingSession(config.datasetId,catalog),restored:false};}
     const state=restored.session,currentSource=state.sources[state.sourceId]||{page:1,zoom:1};sourceReadings.current=state.sources;
     setPage(state.thesis.page);setZoom(state.thesis.zoom);setFitMode(state.thesis.fitMode||null);setActive(state.activeNote);setTextTranslation(state.textTranslation);setSourceId(state.sourceId);setSourcePage(currentSource.page);setSourceZoom(currentSource.zoom);setSourceFitMode(currentSource.fitMode||null);
-    setManuscriptMode(state.manuscriptMode);manuscriptViewChosen.current=restored.restored;setMobilePane(state.mobilePane);setTab(state.tab);setParagraphId(state.paragraphId);setProposalId(state.proposalId);setRegularReadingView(state.readingView);setSidebarOpen(state.sidebarOpen);setMetadataOpen(state.metadataOpen);
+    setManuscriptMode(state.manuscriptMode);manuscriptViewChosen.current=restored.restored;setMobilePane(state.mobilePane);setTab(state.tab==='ai-mingyu'||state.tab==='glossary'?'source':state.tab);setParagraphId(state.paragraphId);setProposalId(state.proposalId);setRegularReadingView(state.readingView);setSidebarOpen(state.sidebarOpen);setMetadataOpen(state.metadataOpen);
     setReadingDataset(config.datasetId);setData(manifest);
   }).catch(e=>{if(!stopped)setLoadError(e?.message||'심사 자료를 불러오지 못했습니다.');});api('/api/profile').then(setProfile).catch(e=>setError(e.message));void connectSession();return()=>{stopped=true;};},[]);
   if(readingDataset&&data){if(sourceId)sourceReadings.current[sourceId]={page:sourcePage,zoom:sourceZoom,...(sourceFitMode?{fitMode:sourceFitMode}:{})};readingSnapshot.current={schema:1,datasetId:readingDataset,thesis:{page,zoom,...(fitMode?{fitMode}:{})},sources:{...sourceReadings.current},sourceId,textTranslation,activeNote:active,manuscriptMode,mobilePane,tab,paragraphId,proposalId,readingView:regularReadingView,sidebarOpen,metadataOpen};}
@@ -216,22 +221,23 @@ export default function ReviewWorkspace(){
   const supplementalSources=sources.filter(s=>s.supplemental),filteredSupplemental=supplementalSources.filter(s=>!query||[s.title,s.reviewSummary].join(' ').toLowerCase().includes(query.toLowerCase()));
   const filteredMemos=memos.filter(m=>(filter==='all'||m.status===filter)&&(!query||[m.text,m.quote,m.displayName].join(' ').includes(query)));
   const selectMemo=(m:Memo,jump=true)=>{setComposerError('');if(jump){if(m.noteId)openNote(m.noteId,m.anchorType!=='source');if(m.anchorType==='source'&&m.sourceId){setTab('source');switchSource(m.sourceId,m.page||1,m.page||1);}else if(m.page)navigateThesis(m.page);}setComposer({...m});};
-  const metadataTitle=({source:'각주 상세정보',revision:'본문 수정안',memos:'검토 메모',library:'자료 목록',profile:'김민규 소개',faq:'논문 FAQ','ai-mingyu':'AI민규 · 비공개',glossary:'법학어학사전'} as Record<string,string>)[tab]||'상세정보';
+  const metadataTitle=({source:'각주 상세정보',revision:'본문 수정안',memos:'검토 메모',library:'자료 목록',profile:'김민규 소개',faq:'논문 FAQ','ai-mingyu':'AI민규',glossary:'법학어학사전'} as Record<string,string>)[tab]||'상세정보';
   const rows=!compact&&workspaceLayout.orientation==='rows';
   const headerHeight=workspaceLayout.headerHeight===null?undefined:boundedPanelHeight(workspaceLayout.headerHeight,viewportHeight,0,.4,132);
   const footerHeight=workspaceLayout.footerHeight===null?undefined:boundedPanelHeight(workspaceLayout.footerHeight,thesisPaneRef.current?.clientHeight||viewportHeight,0,.35,48);
   const menuHeight=workspaceLayout.sidebarMenuHeight===null?undefined:boundedPanelHeight(workspaceLayout.sidebarMenuHeight,sidebarRef.current?.clientHeight||viewportHeight,0,.7,250);
   return <div className={"review-app four-pane-app"+(tab==='ai-mingyu'&&aiWide&&visibleSurfaces.metadata?' mingyu-wide':'')+(rows?' documents-stacked':'')+" mobile-show-"+shownPane+(visibleSurfaces.metadata?" metadata-open":" metadata-collapsed")+(readingView.focus?" reading-focus":"")+(!visibleSurfaces.header?" view-hide-header":"")+(!visibleSurfaces.tools?" view-hide-tools":"")+(!visibleSurfaces.footnotes?" view-hide-footnotes":"")}>
+    <ReadingControls onTool={toolPopups.openTool} mobile={compact} pane={shownPane} view={readingView} onChange={next=>{if(next.focus&&!readingView.focus)setPlacing(false);setReadingView(next);}} sidebar={sidebarOpen} metadata={metadataOpen} onSidebar={setSidebarVisibility} onMetadata={setMetadataVisibility} document={shownPane==='source'?'source':'thesis'} onDocument={setMobilePane} onEqualWidth={equalizeDocuments} layout={workspaceLayout.orientation} onLayout={orientation=>changeLayout({orientation})} onResetSizes={resetWorkspaceSizes}/>
     <div className="workspace-chrome" ref={chromeRef} data-collapsed={headerHeight===0?'true':undefined} inert={headerHeight===0} aria-hidden={headerHeight===0?true:undefined} style={headerHeight===undefined?undefined:{height:headerHeight,flexBasis:headerHeight}}><header id="workspace-header" className="app-header"><button className="sidebar-toggle" aria-label={(compact?shownPane==='contents':visibleSurfaces.sidebar)?"탐색 메뉴 닫기":"탐색 메뉴 열기"} aria-expanded={compact?shownPane==='contents':visibleSurfaces.sidebar} aria-controls="workspace-navigation" onClick={toggleNavigation}>☰</button><a className="law-logo" href="https://lawschool.korea.ac.kr/" target="_blank" rel="noreferrer" aria-label="고려대학교 법학전문대학원 홈페이지"><img src="./korea-law-logo.svg" alt="고대법대 KU Law" width="244" height="100"/></a><div className="brand"><b>김민규</b><span>박사논문 심사실</span></div><div className="header-title"><span>고려대학교 일반대학원 · 법학과</span><h1>주택임차보증금반환채권의 행사 및 반환보장상의 법적 쟁점</h1></div><span className="access-badge">논문 심사·교정</span><span className="visitor-label" >LAWINUS</span></header>
     <div id="workspace-basis" className="basis-bar"><span><b>심사본</b> 2026. 10. 21. <i/> 김민규 · 민법 · 지도교수 김제완</span><TextSizeControl/></div></div>
     {visibleSurfaces.header&&<PaneResizer axis="y" className="chrome-divider" label="상단 메뉴와 문서 영역 높이 조절" getValue={()=>chromeRef.current?.clientHeight??headerHeight??132} value={headerHeight??chromeRef.current?.clientHeight??132} min={0} max={boundedPanelHeight(400,viewportHeight,0,.4,132)} unit="픽셀" step={16} onChange={value=>changeLayout({headerHeight:value})} onReset={()=>changeLayout({headerHeight:null})}/>}
-    <ReadingControls mobile={compact} pane={shownPane} view={readingView} onChange={next=>{if(next.focus&&!readingView.focus)setPlacing(false);setReadingView(next);}} sidebar={sidebarOpen} metadata={metadataOpen} onSidebar={setSidebarVisibility} onMetadata={setMetadataVisibility} document={shownPane==='source'?'source':'thesis'} onDocument={setMobilePane} onEqualWidth={equalizeDocuments} layout={workspaceLayout.orientation} onLayout={orientation=>changeLayout({orientation})} onResetSizes={resetWorkspaceSizes}/>
+    {ordinaryWorkspaceEntry(window.location.search,window.location.hash)&&<WorkspaceLaunchers compactHeader={headerHeight===0||!visibleSurfaces.header} onOpen={toolPopups.openTool}/>}
     {error&&<div className="app-error" role="alert">{error}<button onClick={()=>setError('')} aria-label="오류 안내 닫기">×</button></div>}
     {!data?<div className="loading-screen"><div className="law-logo"><img src="./korea-law-logo.svg" alt="고대법대 KU Law" width="244" height="100"/></div><h2>{loadError?'심사 자료를 불러오지 못했습니다.':'심사 자료를 준비하고 있습니다.'}</h2><p>{loadError}</p><button onClick={()=>location.reload()}>다시 불러오기</button></div>:<div className={'review-body'+(visibleSurfaces.sidebar?' sidebar-open':' sidebar-collapsed')} style={{'--sidebar-width':sidebarWidth+'px'} as React.CSSProperties}>
       {visibleSurfaces.sidebar&&<button className="sidebar-backdrop" aria-label="탐색 메뉴 닫기" onClick={hideNavigation}/>}
       <aside ref={sidebarRef} className="workspace-sidebar" id="workspace-navigation" aria-label="논문 탐색">
         <div ref={sidebarMenuRef} className="sidebar-controls" data-collapsed={menuHeight===0?'true':undefined} inert={menuHeight===0} aria-hidden={menuHeight===0?true:undefined} style={menuHeight===undefined?undefined:{height:menuHeight,flexBasis:menuHeight}}><div className="sidebar-heading"><b>논문 심사실</b><button aria-label="탐색 메뉴 접기" onClick={hideNavigation}>‹</button></div>
-        <nav className="sidebar-menu" aria-label="검토 메뉴">{[['source','↔','원전 대조'],['revision','✎','수정안'],['memos','▧','검토 메모'],['library','≡','자료 목록'],['profile','○','김민규 소개'],['faq','?','논문 FAQ'],['ai-mingyu','◇','AI민규 · 비공개'],['glossary','A','법학어학사전']].map(([id,icon,label])=><button key={id} className={tab===id?'active':''} aria-current={tab===id?'page':undefined} onClick={()=>{if(id==='ai-mingyu'&&openMingyuChatWindow())return;setTab(id);if(id!=='source')setMetadataVisibility(true);setMobilePane(id==='source'?'source':'metadata');setQuery('');if(window.innerWidth<1200)setSidebarOpen(false);}}><span aria-hidden="true">{icon}</span>{label}{id==='memos'&&<small>{memos.length}</small>}</button>)}</nav></div>
+        <nav className="sidebar-menu" aria-label="검토 메뉴">{[['source','↔','원전 대조'],['revision','✎','수정안'],['memos','▧','검토 메모'],['library','≡','자료 목록'],['profile','○','김민규 소개'],['faq','?','논문 FAQ'],['ai-mingyu','◇','AI민규'],['glossary','A','법학어학사전']].map(([id,icon,label])=><button key={id} className={tab===id?'active':''} aria-current={tab===id?'page':undefined} onClick={()=>{if(id==='ai-mingyu'||id==='glossary'){toolPopups.openTool(id);return;}setTab(id);if(id!=='source')setMetadataVisibility(true);setMobilePane(id==='source'?'source':'metadata');setQuery('');if(window.innerWidth<1200)setSidebarOpen(false);}}><span aria-hidden="true">{icon}</span>{label}{id==='memos'&&<small>{memos.length}</small>}</button>)}</nav></div>
         <PaneResizer axis="y" className="sidebar-toc-divider" label="검토 메뉴와 목차 높이 조절" getValue={()=>sidebarMenuRef.current?.clientHeight??menuHeight??250} value={menuHeight??sidebarMenuRef.current?.clientHeight??250} min={0} max={boundedPanelHeight(650,sidebarRef.current?.clientHeight||viewportHeight,0,.7,250)} unit="픽셀" step={16} onChange={value=>changeLayout({sidebarMenuHeight:value})} onReset={()=>changeLayout({sidebarMenuHeight:null})}/>
         <button className="sidebar-outline-toggle" aria-expanded={outline} onClick={()=>setOutline(!outline)}>논문 목차 <span aria-hidden="true">{outline?'−':'＋'}</span></button>
         {outline&&<ThesisContents page={page} pdfSha256={data.meta.pdfSha256} onNavigate={goToThesis}/>}
@@ -292,6 +298,7 @@ export default function ReviewWorkspace(){
       <button className={mobilePane==='source'?'active':''} aria-current={mobilePane==='source'?'page':undefined} onClick={()=>setMobilePane('source')}><span aria-hidden="true">↔</span>원전</button>
       <button className={mobilePane==='metadata'?'active':''} aria-current={mobilePane==='metadata'?'page':undefined} onClick={openMetadata}><span aria-hidden="true">✎</span>정보·수정</button>
     </nav>}
+    {toolPopups.layer}
     {composer&&<MemoDialog draft={composer} saving={saving} sessionReady={sessionReady} sessionConnecting={sessionConnecting} error={composerError} onChange={setComposer} onClose={()=>setComposer(null)} onSave={saveMemo} onDelete={()=>void removeMemo(composer)} onReconnect={()=>void connectSession()}/> }
   </div>;
 }

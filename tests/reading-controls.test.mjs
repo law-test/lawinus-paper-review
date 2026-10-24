@@ -8,16 +8,17 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import * as readingView from '../src/reading-view.ts';
 import * as menuSwipe from '../src/mobile-menu-swipe.ts';
+import * as workspaceTools from '../src/workspace-tools.ts';
 const require=createRequire(import.meta.url);
 const source=readFileSync(new URL('../src/reading-controls.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function renderControl(view,menuOpen=false,mobile=false,pane='source'){
- const changed=[],panelChanges=[],widthChanges=[];
+ const changed=[],panelChanges=[],widthChanges=[],toolClicks=[];
  const module={exports:{}};
- vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:initial=>[menuOpen||initial,()=>{}],useEffect:()=>{},useRef:initial=>({current:initial})}:id==='./reading-view'?readingView:id==='./mobile-menu-swipe'?menuSwipe:require(id)});
- const tree=module.exports.default({view,onChange:v=>changed.push(v),sidebar:true,metadata:true,mobile,pane,onSidebar:v=>panelChanges.push(v),onMetadata:v=>panelChanges.push(v),document:'source',onEqualWidth:()=>widthChanges.push('equal'),onDocument:()=>{throw Error('Reading view must not switch documents');}});
- const all=[],labels=[];function walk(node){if(!node||typeof node!=='object')return;if(node.type==='button')all.push(node);if(node.type==='label')labels.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
- return {html:renderToStaticMarkup(tree),buttons:all,labels,changed,panelChanges,widthChanges};
+ vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:initial=>[menuOpen||initial,()=>{}],useEffect:()=>{},useRef:initial=>({current:initial})}:id==='./reading-view'?readingView:id==='./mobile-menu-swipe'?menuSwipe:id==='./workspace-tools'?workspaceTools:require(id)});
+ const tree=module.exports.default({onTool:tool=>toolClicks.push(tool),view,onChange:v=>changed.push(v),sidebar:true,metadata:true,mobile,pane,onSidebar:v=>panelChanges.push(v),onMetadata:v=>panelChanges.push(v),document:'source',onEqualWidth:()=>widthChanges.push('equal'),onDocument:()=>{throw Error('Reading view must not switch documents');}});
+ const all=[],labels=[],links=[];function walk(node){if(!node||typeof node!=='object')return;if(node.type==='button')all.push(node);if(node.type==='a')links.push(node);if(node.type==='label')labels.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
+ return {html:renderToStaticMarkup(tree),buttons:all,labels,changed,panelChanges,widthChanges,toolClicks,links};
 }
 test('direct collapse is reachable without opening the view options',()=>{
  const normal={...readingView.DEFAULT_READING_VIEW,tools:false,footnotes:false};
@@ -110,4 +111,26 @@ test('mobile tab changes override stale focus panel flags without altering deskt
  assert.equal(surfaceInput(desktop,'목차').props.checked,true);
  assert.equal(surfaceInput(desktop,'각주 상세정보').props.checked,true);
  assert.deepEqual(desktop.panelChanges,[]);
+});
+
+
+test('both popup shortcuts remain outside the closed menu on desktop and mobile, including focus mode',()=>{
+ for(const mobile of [false,true]){
+  const result=renderControl({...readingView.DEFAULT_READING_VIEW,focus:true},false,mobile);
+  assert.deepEqual(result.toolClicks,[],'rendering never opens a window');
+  assert.equal(result.links.length,2);assert.ok(!result.html.includes('id="reading-view-options"'));
+  for(const [index,tool] of ['ai-mingyu','glossary'].entries()){
+   const link=result.links[index];assert.equal(link.props.href,workspaceTools.workspaceToolHref[tool]);assert.equal(link.props.target,'_blank');
+   let prevented=false;link.props.onClick({button:0,metaKey:false,ctrlKey:false,shiftKey:false,altKey:false,preventDefault(){prevented=true;}});assert.equal(prevented,true);
+  }
+  assert.deepEqual(result.toolClicks,['ai-mingyu','glossary']);assert.deepEqual(result.changed,[]);assert.deepEqual(result.panelChanges,[]);
+ }
+});
+
+test('modified shortcut clicks retain native new-tab behavior without opening or rearranging an in-page popup',()=>{
+ for(const change of [{button:1},{ctrlKey:true},{metaKey:true},{shiftKey:true},{altKey:true}]){
+  const h=renderControl(readingView.DEFAULT_READING_VIEW);let prevented=false;
+  h.links[0].props.onClick({button:0,metaKey:false,ctrlKey:false,shiftKey:false,altKey:false,...change,preventDefault(){prevented=true;}});
+  assert.equal(prevented,false);assert.deepEqual(h.toolClicks,[]);assert.deepEqual(h.changed,[]);assert.deepEqual(h.panelChanges,[]);
+ }
 });

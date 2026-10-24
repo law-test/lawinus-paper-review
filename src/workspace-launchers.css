@@ -1,0 +1,19 @@
+.workspace-launchers{flex:0 0 auto;min-width:0;padding:8px 16px 12px;background:#f8f5ee;border-bottom:1px solid #d9d1c4;color:#303c38}
+.workspace-launchers.compact-header{padding-top:8px}
+.workspace-launcher-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;font-size:.78rem;color:#617069}
+.workspace-launcher-heading button{flex:0 0 auto;min-height:30px;padding:3px 8px;border:0;background:transparent;color:#617069;font:inherit;cursor:pointer}
+.workspace-launcher-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1100px;margin:0 auto}
+.workspace-launcher-card{display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;min-height:70px;padding:10px 16px;border:1px solid #bacbd5;border-radius:10px;background:#eef5f9;color:#23475e;text-decoration:none;box-shadow:0 2px 5px #2035270a;font:inherit;text-align:left;cursor:pointer}
+.workspace-launcher-card strong{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;font-size:1.05rem}
+.workspace-launcher-card strong span{font-size:.72rem;font-weight:500;white-space:nowrap}
+.workspace-launcher-card>span{font-size:.8rem;line-height:1.5}
+.workspace-launcher-card.glossary-launcher{border-color:#b4cbb8;background:#edf5ec;color:#305c3e}
+.workspace-launcher-card:hover{filter:brightness(.97)}
+.workspace-launchers :is(a,button):focus-visible{outline:3px solid #8b0029;outline-offset:2px}
+.glossary-standalone{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#fffef9;color:#24372e}
+.glossary-window-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:20px clamp(12px,3vw,36px)}
+.glossary-window-tools{flex:0 0 auto;display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;padding:12px 18px;border-bottom:1px solid #c9d8cc;background:#edf5ec;font-size:.86rem}
+.glossary-window-tools strong{margin-right:auto;font-size:1rem}
+.glossary-window-tools a{color:#305c3e;min-height:32px;display:inline-flex;align-items:center;text-underline-offset:3px}
+@media(max-width:480px){.workspace-launchers{padding-left:10px;padding-right:10px}.workspace-launcher-cards{gap:8px}.workspace-launcher-card{min-height:64px;padding:9px 10px}.workspace-launcher-card strong{font-size:.95rem}.workspace-launcher-card>span{display:none}.workspace-launcher-heading{font-size:.72rem}}
+@media print{.workspace-launchers,.glossary-window-tools{display:none!important}}

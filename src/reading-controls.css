@@ -1,3 +1,4 @@
+.four-pane-app.review-app{min-height:0}
 .review-app.view-hide-header>.workspace-chrome,
 .review-app.view-hide-header>.chrome-divider{display:none}
 
@@ -25,13 +26,13 @@
 .review-app.reading-focus .source-viewer-pane{height:auto;border:0}
 .review-app.reading-focus .pdf-reader{flex:1;min-height:0;max-height:none}
 
-.reading-view-menu{position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));z-index:95;max-width:calc(100vw - 16px);font-size:calc(11px * var(--review-font-scale,1.5));line-height:1.5}
-.review-app .reading-view-actions>button,
+.reading-view-menu{position:relative;flex:0 0 auto;width:100%;min-width:0;box-sizing:border-box;padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));padding-top:max(6px,env(safe-area-inset-top));border-bottom:1px solid #ded8d9;background:#fffdf9;z-index:95;font-size:calc(11px * var(--review-font-scale,1.5));line-height:1.5}
+.review-app .reading-view-actions>:is(button,a),
 .reading-view-menu>summary{display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;margin-left:0;padding:5px 10px;border:1px solid #bfaeb1;border-radius:6px;background:#fffdf7ed;color:#70000c;box-shadow:0 2px 9px #33222520;cursor:pointer;font:inherit;list-style:none}
 .reading-view-menu>summary::-webkit-details-marker{display:none}
-.reading-view-actions>button:focus-visible,
+.reading-view-actions>:is(button,a):focus-visible,
 .reading-view-menu>summary:focus-visible{outline:2px solid #8b0029;outline-offset:2px}
-.reading-view-options{position:absolute;right:0;top:calc(100% + 6px);width:290px;max-width:calc(100vw - 20px);max-height:calc(100dvh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:auto;padding:12px;border:1px solid #cfc2c4;border-radius:8px;background:#fffefb;box-shadow:0 8px 24px #2d192b26;overscroll-behavior:contain}
+.reading-view-options{box-sizing:border-box;position:absolute;right:8px;top:calc(100% + 6px);width:290px;max-width:calc(100vw - 20px);max-height:min(560px,var(--reading-options-space,60dvh));overflow:auto;padding:12px;border:1px solid #cfc2c4;border-radius:8px;background:#fffefb;box-shadow:0 8px 24px #2d192b26;overscroll-behavior:contain}
 .reading-view-options>p{margin:0 0 8px;color:#71656a;font-size:calc(10px * var(--review-font-scale,1.5))}
 .reading-view-options>strong,.reading-view-options>h3{display:block;margin:0 0 8px;color:#70000c;font-size:inherit}
 .reading-view-options label{display:flex;align-items:center;gap:9px;min-height:40px;padding:5px 2px;cursor:pointer;overflow-wrap:anywhere}
@@ -49,16 +50,19 @@
 @media screen and (max-width:1199px){
  .review-app.reading-focus .thesis-pane,
  .review-app.reading-focus .source-viewer-pane{flex:1;min-height:0}
- .reading-view-menu{top:calc(6px + env(safe-area-inset-top));right:calc(6px + env(safe-area-inset-right))}
- .review-app .reading-view-actions>button,.reading-view-menu>summary{min-height:44px;padding:5px 9px}
+ .review-app .reading-view-actions>:is(button,a),.reading-view-menu>summary{min-height:44px;padding:5px 9px}
 }
 @media print{.reading-view-menu{display:none!important}}
 
-.reading-view-actions{display:flex;justify-content:flex-end;gap:6px}
+.reading-view-actions{display:flex;justify-content:flex-end;align-items:stretch;flex-wrap:wrap;gap:6px;min-width:0}.reading-view-actions>:is(button,a){max-width:100%;box-sizing:border-box}
+.reading-view-actions .reading-tool-shortcut{flex:0 0 auto;white-space:nowrap;font-weight:700;background:#edf5ec;text-decoration:none}
+.reading-view-actions .reading-mingyu-shortcut{background:#eef5f9}
 .reading-view-actions .reading-collapse-toggle{white-space:nowrap}
 .reading-view-actions .reading-collapse-toggle>span:first-child{font-size:1.1em;line-height:1}
 .reading-collapse-short{display:none}
-.review-app:not(.view-hide-header) .app-header{padding-right:var(--reading-actions-clearance,220px)}
-@media screen and (max-width:480px){.reading-view-menu{font-size:calc(10px * var(--review-font-scale,1.5))}.reading-view-actions{gap:4px}.reading-collapse-label{display:none}.reading-collapse-short{display:inline}.review-app:not(.view-hide-header) .app-header{padding-right:var(--reading-actions-clearance,160px)}.review-app .header-title{display:none}}
+@media screen and (max-width:480px){.reading-view-menu{font-size:calc(10px * var(--review-font-scale,1.5))}.reading-view-actions{gap:4px}.reading-collapse-label{display:none}.reading-collapse-short{display:inline}.review-app .header-title{display:none}}
 
-.review-app.view-hide-header .metadata-pane>.reference-heading{padding-top:calc(var(--reading-actions-height,44px) + 16px + env(safe-area-inset-top))}
+
+
+/* Persistent controls occupy their own flex row; no panel needs compensating offsets. */
+@media screen and (max-width:380px){.reading-view-actions .reading-tool-shortcut{flex:1 1 auto;white-space:normal;text-align:center;overflow-wrap:anywhere}}

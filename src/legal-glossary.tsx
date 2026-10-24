@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {dictionaryHref,exampleKindLabel,favoriteStorageKey,filterGlossary,glossarySearchText,languageLabels,normalizeLanguage,parseFavoriteIds,parseGlossary,selectSpeechVoice,speechLanguages,type GlossaryData,type GlossaryEntry,type GlossaryExample,type GlossaryLanguage} from './legal-glossary-model';
+import {dictionaryHref,exampleKindLabel,favoriteStorageKey,filterGlossary,glossarySearchText,languageLabels,normalizeLanguage,parseFavoriteIds,parseGlossary,selectSpeechVoice,speechLanguages,type GlossaryData,type GlossaryEntry,type GlossaryExample,type GlossaryLanguage,type GlossaryOrder} from './legal-glossary-model';
 import './legal-glossary.css';
 
 function usePronunciation(){
@@ -77,20 +77,20 @@ function Entry({entry,examples,sourceNames,favorite,onFavorite,speakingId,onSpea
 
 export default function LegalGlossary(){
  const [data,setData]=useState<GlossaryData|null>(null);const [error,setError]=useState(false);const [reload,setReload]=useState(0);
- const [query,setQuery]=useState('');const [language,setLanguage]=useState('all');const [source,setSource]=useState('all');const [order,setOrder]=useState<'frequency'|'alphabet'>('frequency');const [onlyFavorites,setOnlyFavorites]=useState(false);const [favorites,setFavorites]=useState<Set<string>>(new Set());const [limit,setLimit]=useState(50);const [storageMessage,setStorageMessage]=useState('');
+ const [query,setQuery]=useState('');const [language,setLanguage]=useState('all');const [source,setSource]=useState('all');const [order,setOrder]=useState<GlossaryOrder>('importance');const [onlyImportant,setOnlyImportant]=useState(false);const [onlyFavorites,setOnlyFavorites]=useState(false);const [favorites,setFavorites]=useState<Set<string>>(new Set());const [limit,setLimit]=useState(50);const [storageMessage,setStorageMessage]=useState('');
  const pronunciation=usePronunciation();
  useEffect(()=>{const abort=new AbortController();setError(false);setData(null);
   fetch('./legal-glossary265.json',{signal:abort.signal}).then(response=>{if(!response.ok)throw new Error('fetch');return response.json();}).then(raw=>{const parsed=parseGlossary(raw);if(abort.signal.aborted)return;setData(parsed);try{setFavorites(parseFavoriteIds(localStorage.getItem(favoriteStorageKey(parsed.version)),parsed.entries));}catch{setFavorites(new Set());setStorageMessage('이 브라우저에서는 즐겨찾기를 저장할 수 없습니다. 현재 화면에서는 사용할 수 있습니다.');}}).catch(()=>{if(!abort.signal.aborted)setError(true);});
   return()=>abort.abort();
  },[reload]);
- useEffect(()=>setLimit(50),[query,language,source,order,onlyFavorites]);
+ useEffect(()=>setLimit(50),[query,language,source,order,onlyFavorites,onlyImportant]);
  const searchIndex=useMemo(()=>new Map(data?.entries.map(e=>[e.id,glossarySearchText(e)])??[]),[data]);
  const sourceNames=useMemo(()=>new Map(data?.sources.map(s=>[s.id,s.title])??[]),[data]);
  const exampleMap=useMemo(()=>new Map(data?.examples.map(e=>[e.id,e])??[]),[data]);
- const filtered=useMemo(()=>data?filterGlossary(data.entries,{query,language,source,order,onlyFavorites,favorites},searchIndex):[],[data,query,language,source,order,onlyFavorites,favorites,searchIndex]);
+ const filtered=useMemo(()=>data?filterGlossary(data.entries,{query,language,source,order,onlyFavorites,onlyImportant,favorites},searchIndex):[],[data,query,language,source,order,onlyFavorites,onlyImportant,favorites,searchIndex]);
  const sourceOptions=data?.sources.filter(s=>language==='all'||normalizeLanguage(s.language)===language||data.entries.some(e=>e.language===language&&(e.sourceIds??e.occurrences.map(o=>o.sourceId)).includes(s.id)))??[];
  function toggleFavorite(id:string){if(!data)return;const next=new Set(favorites);next.has(id)?next.delete(id):next.add(id);setFavorites(next);try{localStorage.setItem(favoriteStorageKey(data.version),JSON.stringify([...next]));setStorageMessage('');}catch{setStorageMessage('즐겨찾기를 저장하지 못했습니다. 현재 화면에서는 사용할 수 있습니다.');}}
- function clearFilters(){setQuery('');setLanguage('all');setSource('all');setOnlyFavorites(false);}
+ function clearFilters(){setQuery('');setLanguage('all');setSource('all');setOnlyFavorites(false);setOnlyImportant(false);}
  return <section className="scroll-panel legal-glossary-panel" aria-labelledby="legal-glossary-title">
   <div className="panel-heading"><span className="section-eyebrow">법학 어학사전</span><h2 id="legal-glossary-title">원문을 읽는 데 필요한 단어</h2><p>논문에서 인용한 외국 문헌의 단어를 찾아보고, 원문에서 쓰인 자리로 이동할 수 있습니다.</p></div>
   <p className="glossary-note">한글 발음은 읽기를 돕는 약식 표기입니다. 스피커는 브라우저 합성음성으로 읽으며, 단어를 누르면 외부 사전이 열립니다.</p>
@@ -101,9 +101,10 @@ export default function LegalGlossary(){
     <label className="glossary-search">단어·발음·뜻 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="예: discharge, 인졸벤츠, 보증금"/></label>
     <label>언어<select value={language} onChange={e=>{setLanguage(e.target.value);setSource('all');}}><option value="all">전체 언어</option>{(Object.keys(languageLabels) as GlossaryLanguage[]).map(l=><option value={l} key={l}>{languageLabels[l]}</option>)}</select></label>
     <label>문헌<select value={source} onChange={e=>setSource(e.target.value)}><option value="all">전체 문헌</option>{sourceOptions.map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select></label>
-    <label>정렬<select value={order} onChange={e=>setOrder(e.target.value as typeof order)}><option value="frequency">자주 나온 순</option><option value="alphabet">가나다·ABC 순</option></select></label>
+    <label>정렬<select value={order} onChange={e=>setOrder(e.target.value as GlossaryOrder)}><option value="importance">중요 법률 명사순</option><option value="frequency">자주 나온 순</option><option value="alphabet">가나다·ABC 순</option></select></label>
    </div>
-   <div className="glossary-options"><label><input type="checkbox" checked={onlyFavorites} onChange={e=>setOnlyFavorites(e.target.checked)}/> 즐겨찾기만 보기</label><button type="button" onClick={clearFilters}>검색 초기화</button></div>
+   <div className="glossary-options"><label><input type="checkbox" checked={onlyImportant} onChange={e=>setOnlyImportant(e.target.checked)}/> 중요 법률 명사만 보기</label><label><input type="checkbox" checked={onlyFavorites} onChange={e=>setOnlyFavorites(e.target.checked)}/> 즐겨찾기만 보기</label><button type="button" onClick={clearFilters}>검색 초기화</button></div>
+   {order==='importance'&&<details className="glossary-voice-info"><summary>중요도 정렬 기준</summary><p>문헌에 실제 나온 도산·채권·집행의 핵심 명사, 법학 뜻이 있는 명사와 법률복합어, 그 밖의 명사를 먼저 보여 줍니다. 같은 중요도에서는 영어·독일어·일본어를 번갈아 배치하며, 각 언어 안에서는 자주 나온 순으로 정렬합니다. 관사·전치사·조사 등은 뒤에 둡니다.</p></details>}
    <p className="glossary-count" role="status">전체 {data.entries.length.toLocaleString('ko-KR')}개 중 {filtered.length.toLocaleString('ko-KR')}개</p>
    {storageMessage&&<p className="glossary-note" role="status">{storageMessage}</p>}
    {pronunciation.message&&<p className="glossary-audio-message" role="status">{pronunciation.message}</p>}

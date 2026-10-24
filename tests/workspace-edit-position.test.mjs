@@ -1,3 +1,4 @@
+import * as workspaceTools from '../src/workspace-tools.ts';
 import * as faqModel from '../src/thesis-faq-model.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,6 +26,7 @@ function harness(mode='pdf',memoRows=[]){
  const module={exports:{}};
  const dependencies={
   './thesis-faq-model':faqModel,
+  './workspace-tools':workspaceTools,'./workspace-tool-popups':{useWorkspaceToolPopups:()=>({openTool:()=>{},layer:null})},
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
   './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},

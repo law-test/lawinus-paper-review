@@ -11,20 +11,22 @@ import * as workspaceLayout from '../src/workspace-layout.ts';
 import * as readingView from '../src/reading-view.ts';
 import * as mobileMenu from '../src/mobile-menu-swipe.ts';
 import * as readingSession from '../src/reading-session.ts';
+import * as workspaceTools from '../src/workspace-tools.ts';
 const require=createRequire(import.meta.url),source=readFileSync(new URL('../src/review-workspace.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 const paragraphs=[{id:'P0283',text:'원문',page:20,printed:1,heading:false,kind:'paragraph',rects:[],order:283}];
 const fixture={meta:{pageCount:279},pages:[],sources:[{id:'a',kind:'pdf',title:'원전 A',pages:220},{id:'b',kind:'pdf',title:'원전 B',pages:48}],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[{sourceId:'a'},{sourceId:'b'}],clickTargets:[],noteHighlights:[]}]};
-function PdfPane(){return null;}function WebManuscript(){return null;}function ParallelSourceReader(){return null;}function ReadingControls(){return null;}function PaneResizer(){return null;}
+function PdfPane(){return null;}function WebManuscript(){return null;}function ParallelSourceReader(){return null;}function ReadingControls(){return null;}function PaneResizer(){return null;}function WorkspaceLaunchers(){return null;}
 const translations=[{sourceId:'t-german',kind:'text',noteIds:['fn-001'],title:'독일어 원문'}];
 const empty={__esModule:true,default:()=>null};
-function harness(saved,width=390,height=844,layout){
- const values=new Map(),writes=[];if(layout)values.set(workspaceLayout.WORKSPACE_LAYOUT_KEY,JSON.stringify(layout));if(saved)values.set(readingSession.readingSessionKey('human-a'),JSON.stringify(saved));
+function harness(saved,width=390,height=844,layout,entry={search:'',hash:''}){
+ const popupCalls=[],values=new Map(),writes=[];if(layout)values.set(workspaceLayout.WORKSPACE_LAYOUT_KEY,JSON.stringify(layout));if(saved)values.set(readingSession.readingSessionKey('human-a'),JSON.stringify(saved));
  const local={getItem:key=>values.get(key)||null,setItem:(key,value)=>{writes.push({key,value});values.set(key,value);}};
  let states=[],refs=[],cursor=0,refIndex=0,effects=[],tree,resolveManifest;
  const pendingManifest=new Promise(resolve=>{resolveManifest=resolve;});
  const module={exports:{}},dependencies={
   './thesis-faq-model':faqModel,
+  './workspace-tools':workspaceTools,'./workspace-tool-popups':{useWorkspaceToolPopups:()=>({openTool:tool=>popupCalls.push(tool),layer:null})},'./workspace-launchers':{...empty,default:WorkspaceLaunchers},
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
   './citation-link-model':{citationPdfTargets:()=>[]},'./legal-pdf-targets.json':{default:{targets:[],mentions:{}}},
@@ -37,7 +39,7 @@ function harness(saved,width=390,height=844,layout){
   './text-size-control':{TextSizeControl:()=>null},'./document-alignment':{useDocumentAlignment:()=>{}},
   './review-api':{api:path=>path==='/api/manifest'?pendingManifest:Promise.resolve(path==='/api/profile'?{}:{notes:[]}),loadReviewConfig:()=>Promise.resolve({datasetId:'human-a'}),initializeReviewSession:()=>Promise.resolve({user:{}}),assetUrl:()=>''},
  };
- vm.runInNewContext(compiled,{module,exports:module.exports,window:{location:{search:''},innerWidth:width,innerHeight:height,localStorage:local},require:id=>{
+ vm.runInNewContext(compiled,{module,exports:module.exports,window:{location:{search:entry.search||'',hash:entry.hash||''},innerWidth:width,innerHeight:height,localStorage:local},require:id=>{
   if(id==='react')return {...React,useState:initial=>{const i=cursor++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return [states[i],next=>{states[i]=typeof next==='function'?next(states[i]):next;}];},useRef:initial=>refs[refIndex++]??=( {current:initial}),useMemo:fn=>fn(),useEffect:(fn,deps)=>effects.push({fn,deps})};
   if(id in dependencies)return dependencies[id];if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:empty;return require(id);
  }});
@@ -46,7 +48,7 @@ function harness(saved,width=390,height=844,layout){
  function persist(){effects.find(e=>e.fn.toString().includes('readingSnapshot.current')&&e.deps?.length>1)?.fn();}
  async function boot(){effects.find(e=>e.fn.toString().includes('loadReviewConfig'))?.fn();resolveManifest(fixture);await new Promise(resolve=>setTimeout(resolve,0));render();}
  const label=node=>React.Children.toArray(node.props?.children).map(c=>typeof c==='object'?label(c):String(c)).join('');
- render();return {render,nodes,persist,persistLayout:()=>effects.find(e=>e.fn.toString().includes("saveWorkspaceLayout"))?.fn(),boot,writes,values,label,pdf:id=>nodes().find(n=>n.type===PdfPane&&n.props.id===id),body:()=>nodes().find(n=>n.type===WebManuscript)};
+ render();return {popupCalls,render,nodes,persist,persistLayout:()=>effects.find(e=>e.fn.toString().includes("saveWorkspaceLayout"))?.fn(),applyDeepLink:()=>effects.find(e=>e.fn.toString().includes('reviewDeepLink'))?.fn(),boot,writes,values,label,pdf:id=>nodes().find(n=>n.type===PdfPane&&n.props.id===id),body:()=>nodes().find(n=>n.type===WebManuscript)};
 }
 const saved={schema:1,datasetId:'human-a',thesis:{page:249,zoom:1.15},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'a',textTranslation:'',activeNote:'fn-001',manuscriptMode:'pdf',mobilePane:'source',tab:'source',paragraphId:'',proposalId:'',readingView:{focus:false,header:true,tools:true,footnotes:true},sidebarOpen:false,metadataOpen:true};
 test('workspace does not save initial defaults while loading and renders the restored values together',async()=>{
@@ -163,4 +165,34 @@ test('body mode retains a readable text scale while preserving the saved PDF fit
  const state=JSON.parse(h.values.get(readingSession.readingSessionKey('human-a')));assert.equal(state.thesis.zoom,.32);assert.equal(state.thesis.fitMode,'page');
  const zoom=h.nodes().find(n=>typeof n.type==='function'&&n.props.label==='본문 배율');assert.ok(zoom);assert.equal(zoom.props.onFit,undefined);zoom.props.onZoom(1.15);h.render();h.persist();
  assert.equal(h.body().props.zoom,1.15);assert.equal(JSON.parse(h.values.get(readingSession.readingSessionKey('human-a'))).thesis.fitMode,undefined);
+});
+
+
+test('ordinary entry presents both launch cards without changing the restored document or pane',async()=>{
+ const state={...saved,metadataOpen:false,thesis:{page:249,zoom:.45,fitMode:'page'},sources:{...saved.sources,a:{page:199,zoom:1.3,fitMode:'width'}}};
+ for(const width of [1701,390]){
+  const h=harness(state,width,844,undefined,{search:'?v=265c'});await h.boot();h.persist();
+  assert.ok(h.nodes().find(n=>n.type===WorkspaceLaunchers));
+  const stored=JSON.parse(h.values.get(readingSession.readingSessionKey('human-a')));
+  assert.deepEqual(stored,state);
+  assert.equal(h.pdf('thesis').props.navigationToken,0);assert.equal(h.pdf('a').props.navigationToken,0);
+ }
+});
+
+test('explicit FAQ opens its panel and glossary opens only its popup without moving the paper',async()=>{
+ for(const view of ['faq','glossary']){
+  const h=harness(saved,1701,900,undefined,{search:'?view='+view});await h.boot();h.applyDeepLink();h.render();h.persist();
+  assert.equal(JSON.parse(h.values.get(readingSession.readingSessionKey('human-a'))).tab,view==='glossary'?'source':view);
+  assert.deepEqual(h.popupCalls,view==='glossary'?['glossary']:[]);
+  assert.equal(h.nodes().find(n=>n.type===WorkspaceLaunchers),undefined);
+  assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('a').props.page,199);
+ }
+});
+
+test('start cards remain reachable with a collapsed header while preserving focus and hidden metadata',async()=>{
+ const state={...saved,metadataOpen:false,readingView:{...readingView.DEFAULT_READING_VIEW,focus:true}};
+ const h=harness(state,390,844,{...workspaceLayout.DEFAULT_WORKSPACE_LAYOUT,headerHeight:0});await h.boot();h.persist();
+ assert.equal(h.nodes().find(n=>n.type===WorkspaceLaunchers).props.compactHeader,true);
+ assert.deepEqual(JSON.parse(h.values.get(readingSession.readingSessionKey('human-a'))),state);
+ assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('a').props.page,199);
 });

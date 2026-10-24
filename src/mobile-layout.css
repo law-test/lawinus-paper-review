@@ -31,8 +31,8 @@
  .four-pane-app .metadata-heading-actions button{min-height:44px}
  .four-pane-app .app-error,.four-pane-app .shared-edit-status{flex:0 0 auto;max-height:30%;overflow:auto}
  .review-app .reading-view-options button,.reading-view-options label{min-height:44px}
- .reading-view-menu{max-width:calc(100vw - 12px)}
- .reading-view-options{max-height:calc(var(--visible-height,100dvh) - var(--reading-actions-height,44px) - 24px - env(safe-area-inset-top));max-width:calc(100vw - 16px)}
+ .reading-view-menu{max-width:100%;}
+ .reading-view-options{max-height:min(560px,var(--reading-options-space,60dvh));max-width:calc(100vw - 16px)}
  .review-app .reading-collapse-toggle[data-mobile-swipe="true"]{touch-action:pan-x pinch-zoom;user-select:none;-webkit-user-select:none}
  .mobile-swipe-hint{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
  .four-pane-app .modal-backdrop{top:var(--visible-top,0px);bottom:auto;height:var(--visible-height,100dvh);padding:8px;align-items:flex-end}

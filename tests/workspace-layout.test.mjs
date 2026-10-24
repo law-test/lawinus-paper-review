@@ -1,3 +1,4 @@
+import * as workspaceTools from '../src/workspace-tools.ts';
 import * as faqModel from '../src/thesis-faq-model.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,6 +23,7 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
  const module={exports:{}};
  const dependencies={
   './thesis-faq-model':faqModel,
+  './workspace-tools':workspaceTools,'./workspace-tool-popups':{useWorkspaceToolPopups:()=>({openTool:()=>{},layer:null})},
   './reader-tool-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,children)},
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
