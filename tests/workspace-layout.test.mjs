@@ -7,6 +7,7 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import * as paneLayout from '../src/four-pane-size.ts';
+import * as workspaceLayout from '../src/workspace-layout.ts';
 import * as readingView from '../src/reading-view.ts';
 import * as mobileMenu from '../src/mobile-menu-swipe.ts';
 const require=createRequire(import.meta.url);
@@ -18,7 +19,7 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
  let nullState=0;
  const module={exports:{}};
  const dependencies={
-  './four-pane-size':paneLayout,
+  './four-pane-size':paneLayout,'./workspace-layout':workspaceLayout,
   './reading-view':readingView,
   './mobile-menu-swipe':mobileMenu,
   './paragraph-catalog.json':{default:{paragraphs:[]}},

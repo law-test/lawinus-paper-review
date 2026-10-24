@@ -2,9 +2,9 @@ import React,{useEffect,useRef,useState} from 'react';
 import {type ReadingView,type ReadingPane,readingVisibility,withReadingFocus,withReadingSurface} from './reading-view';
 import {menuSwipeAction,type MenuSwipe} from './mobile-menu-swipe';
 
-type Props={view:ReadingView;onChange:(view:ReadingView)=>void;sidebar:boolean;metadata:boolean;onSidebar:(show:boolean)=>void;onMetadata:(show:boolean)=>void;document:'thesis'|'source';onDocument:(document:'thesis'|'source')=>void;onEqualWidth:()=>void;mobile?:boolean;pane?:ReadingPane};
+type Props={view:ReadingView;onChange:(view:ReadingView)=>void;sidebar:boolean;metadata:boolean;onSidebar:(show:boolean)=>void;onMetadata:(show:boolean)=>void;document:'thesis'|'source';onDocument:(document:'thesis'|'source')=>void;onEqualWidth:()=>void;mobile?:boolean;pane?:ReadingPane;layout?:'columns'|'rows';onLayout?:(layout:'columns'|'rows')=>void;onResetSizes?:()=>void};
 
-export default function ReadingControls({view,onChange,sidebar,metadata,onSidebar,onMetadata,document:currentDocument,onDocument,onEqualWidth,mobile=false,pane=currentDocument}:Props){
+export default function ReadingControls({view,onChange,sidebar,metadata,onSidebar,onMetadata,document:currentDocument,onDocument,onEqualWidth,mobile=false,pane=currentDocument,layout='columns',onLayout,onResetSizes}:Props){
   const [open,setOpen]=useState(false);
   const menu=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);
   const swipe=useRef<MenuSwipe|null>(null),swipeMoved=useRef(false),suppressClick=useRef(false);
@@ -42,7 +42,9 @@ export default function ReadingControls({view,onChange,sidebar,metadata,onSideba
     </div>
     {open&&<div className="reading-view-options" id="reading-view-options" role="dialog" aria-label="화면 보기 설정">
       <button className="reading-focus-toggle" aria-pressed={view.focus} onClick={()=>{onChange(withReadingFocus(view,!view.focus));close();}}>{view.focus?'일반 보기로 돌아가기':'원문만 보기'}</button>
-      <button className="reading-equal-width" onClick={()=>{onEqualWidth();close();}}>논문·원전 같은 폭</button>
+      <button className="reading-equal-width" onClick={()=>{onEqualWidth();close();}}>{layout==='rows'&&!mobile?'논문·원전 같은 높이':'논문·원전 같은 폭'}</button>
+      {onLayout&&!mobile&&<fieldset className="reading-layout-options"><legend>논문·원전 배치</legend><div>{[['columns','좌우'],['rows','상하']].map(([id,label])=><button key={id} aria-pressed={layout===id} onClick={()=>{onLayout(id as 'columns'|'rows');close();}}>{label}</button>)}</div></fieldset>}
+      {onResetSizes&&<button className="reading-reset-sizes" onClick={()=>{onResetSizes();close();}}>창 크기 초기화</button>}
       <fieldset className="reading-surface-options"><legend>화면에 표시</legend>{choices.map(([label,checked,change])=><label key={label}><input type="checkbox" checked={checked} onChange={event=>change(event.target.checked)}/>{label}</label>)}</fieldset>
       <div className="reading-document-switch" aria-label="열람할 문서">{[['thesis','논문'],['source','참고문헌']].map(([id,label])=><button key={id} aria-pressed={(mobile?pane:currentDocument)===id} onClick={()=>{onDocument(id as 'thesis'|'source');close();}}>{label}</button>)}</div>
     </div>}

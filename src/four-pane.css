@@ -46,14 +46,6 @@
 .four-pane-app .metadata-pane .library-row{min-width:0;overflow-wrap:anywhere}
 .four-pane-app .workspace-sidebar .sidebar-menu{flex:0 0 auto}
 .four-pane-app .empty-state{overflow-wrap:anywhere}
-@container source-pane (max-width:680px){
- .four-pane-app .source-reader-body .translation-mobile-tabs{display:flex;gap:4px;padding:6px 10px;background:white}
- .four-pane-app .source-reader-body .translation-mobile-tabs button{flex:1;min-width:0;min-height:40px;white-space:normal;font-size:calc(11px * var(--review-font-scale,1.5))}
- .four-pane-app .source-reader-body .parallel-source.is-parallel{display:flex;flex-direction:column}
- .four-pane-app .source-reader-body .translation-divider{display:none}
- .four-pane-app .source-reader-body .parallel-source.is-parallel.mobile-original .translation-pane,
- .four-pane-app .source-reader-body .parallel-source.is-parallel.mobile-translation .parallel-original{display:none}
-}
 @media screen and (min-width:1200px){
  .four-pane-app .workspace-sidebar{position:relative;inset:auto;width:var(--sidebar-width,208px);height:auto;max-height:none;box-shadow:none}
  .four-pane-app .sidebar-divider{display:block}.four-pane-app .sidebar-backdrop{display:none}

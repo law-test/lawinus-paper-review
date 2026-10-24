@@ -36,7 +36,7 @@ test('the controller survives source replacement, font reflow and mobile hiding 
   const vars=new Map();return {ownerDocument:document,parentElement:null,children:[],shown:true,top,bottom,scrollTop:14903,scrollLeft:23,
    style:{setProperty:(key,value)=>vars.set(key,value),removeProperty:key=>vars.delete(key)},vars,
    get clientHeight(){return this.shown?this.bottom-this.top-(parseFloat(vars.get('--document-align-top'))||0)-(parseFloat(vars.get('--document-align-bottom'))||0):0;},
-   getClientRects(){return this.shown?[{}]:[];},
+   alignmentOff:false,closest(){return this.alignmentOff?{}:null;},getClientRects(){return this.shown?[{}]:[];},
    getBoundingClientRect(){return {top:this.top+(parseFloat(vars.get('--document-align-top'))||0),bottom:this.bottom-(parseFloat(vars.get('--document-align-bottom'))||0),width:this.shown?650:0};}
   };
  };
@@ -53,6 +53,7 @@ test('the controller survives source replacement, font reflow and mobile hiding 
   assert.equal(left.vars.size,0);assert.equal(right.vars.get('--document-align-top'),'30px');assert.equal(right.vars.get('--document-align-bottom'),'70px');
   source=replacement;container.children=[left,replacement];mutations[0].callback();flush();
   assert.equal(right.vars.size,0,'detached source must release its margin');assert.equal(left.vars.get('--document-align-top'),'10px');
+  source.alignmentOff=true;mutations[0].callback();flush();assert.equal(left.vars.size,0);assert.equal(source.vars.size,0,'translation-only and vertically parallel layouts do not squeeze the thesis');source.alignmentOff=false;mutations[0].callback();flush();
   source.shown=false;resizers[0].callback();flush();assert.equal(left.vars.size,0);assert.equal(replacement.vars.size,0);
   source.shown=true;resizers[0].callback();flush();assert.equal(left.vars.get('--document-align-top'),'10px');
   source=null;mutations[0].callback();flush();assert.equal(left.vars.size,0);assert.equal(replacement.vars.size,0);

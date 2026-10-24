@@ -6,10 +6,10 @@ export function draggedPaneSize(startValue:number,startX:number,currentX:number,
   return clampPaneSize(startValue+(currentX-startX)*unitsPerPixel,min,max);
 }
 
-export function keyboardPaneSize(key:string,value:number,min:number,max:number,step:number):number|null{
+export function keyboardPaneSize(key:string,value:number,min:number,max:number,step:number,axis:'x'|'y'='x'):number|null{
   if(key==='Home')return min;
   if(key==='End')return max;
-  if(key==='ArrowLeft')return clampPaneSize(value-step,min,max);
-  if(key==='ArrowRight')return clampPaneSize(value+step,min,max);
+  if(key===(axis==='y'?'ArrowUp':'ArrowLeft'))return clampPaneSize(value-step,min,max);
+  if(key===(axis==='y'?'ArrowDown':'ArrowRight'))return clampPaneSize(value+step,min,max);
   return null;
 }

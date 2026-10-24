@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import React from 'react';
 import * as paneLayout from '../src/four-pane-size.ts';
+import * as workspaceLayout from '../src/workspace-layout.ts';
 import * as readingView from '../src/reading-view.ts';
 import * as mobileMenu from '../src/mobile-menu-swipe.ts';
 import * as readingSession from '../src/reading-session.ts';
@@ -13,24 +14,25 @@ const require=createRequire(import.meta.url),source=readFileSync(new URL('../src
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 const paragraphs=[{id:'P0283',text:'원문',page:20,printed:1,heading:false,kind:'paragraph',rects:[],order:283}];
 const fixture={meta:{pageCount:279},pages:[],sources:[{id:'a',kind:'pdf',title:'원전 A',pages:220},{id:'b',kind:'pdf',title:'원전 B',pages:48}],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[{sourceId:'a'},{sourceId:'b'}],clickTargets:[],noteHighlights:[]}]};
-function PdfPane(){return null;}function WebManuscript(){return null;}
+function PdfPane(){return null;}function WebManuscript(){return null;}function ParallelSourceReader(){return null;}function ReadingControls(){return null;}function PaneResizer(){return null;}
+const translations=[{sourceId:'t-german',kind:'text',noteIds:['fn-001'],title:'독일어 원문'}];
 const empty={__esModule:true,default:()=>null};
-function harness(saved){
- const values=new Map(),writes=[];if(saved)values.set(readingSession.readingSessionKey('human-a'),JSON.stringify(saved));
+function harness(saved,width=390,height=844,layout){
+ const values=new Map(),writes=[];if(layout)values.set(workspaceLayout.WORKSPACE_LAYOUT_KEY,JSON.stringify(layout));if(saved)values.set(readingSession.readingSessionKey('human-a'),JSON.stringify(saved));
  const local={getItem:key=>values.get(key)||null,setItem:(key,value)=>{writes.push({key,value});values.set(key,value);}};
  let states=[],refs=[],cursor=0,refIndex=0,effects=[],tree,resolveManifest;
  const pendingManifest=new Promise(resolve=>{resolveManifest=resolve;});
  const module={exports:{}},dependencies={
-  './four-pane-size':paneLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,'./reading-session':readingSession,
+  './four-pane-size':paneLayout,'./workspace-layout':workspaceLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,'./reading-session':readingSession,
   './paragraph-catalog.json':{default:{paragraphs}},'./revision-proposals.json':{default:{items:[]}},
   './proposal-indicators':{buildProposalIndicators:()=>({})},'./pdf-viewer-model':{footnoteTargets:()=>[]},
   './web-manuscript':{...empty,default:WebManuscript,effectiveManuscriptEdits:()=>({}),citationContextWasEdited:()=>false,manuscriptModeAfterRefresh:(mode,chose,count)=>!chose&&count?'body':mode},
-  './pdf-viewer':{...empty,default:PdfPane},'./parallel-source-reader':{...empty,translationEntries:[]},
+  './pdf-viewer':{...empty,default:PdfPane},'./reading-controls':{...empty,default:ReadingControls},'./pane-resizer':{...empty,default:PaneResizer},'./parallel-source-reader':{...empty,default:ParallelSourceReader,translationEntries:translations},
   './citation-model':{citedSourceRefs:note=>note.sourceRefs||[],citedPages:()=>[],citationHighlights:()=>[],citationStartPage:()=>27},
   './text-size-control':{TextSizeControl:()=>null},'./document-alignment':{useDocumentAlignment:()=>{}},
   './review-api':{api:path=>path==='/api/manifest'?pendingManifest:Promise.resolve(path==='/api/profile'?{}:{notes:[]}),loadReviewConfig:()=>Promise.resolve({datasetId:'human-a'}),initializeReviewSession:()=>Promise.resolve({user:{}}),assetUrl:()=>''},
  };
- vm.runInNewContext(compiled,{module,exports:module.exports,window:{innerWidth:390,innerHeight:844,localStorage:local},require:id=>{
+ vm.runInNewContext(compiled,{module,exports:module.exports,window:{innerWidth:width,innerHeight:height,localStorage:local},require:id=>{
   if(id==='react')return {...React,useState:initial=>{const i=cursor++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return [states[i],next=>{states[i]=typeof next==='function'?next(states[i]):next;}];},useRef:initial=>refs[refIndex++]??=( {current:initial}),useMemo:fn=>fn(),useEffect:(fn,deps)=>effects.push({fn,deps})};
   if(id in dependencies)return dependencies[id];if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:empty;return require(id);
  }});
@@ -41,7 +43,7 @@ function harness(saved){
  const label=node=>React.Children.toArray(node.props?.children).map(c=>typeof c==='object'?label(c):String(c)).join('');
  render();return {render,nodes,persist,boot,writes,values,label,pdf:id=>nodes().find(n=>n.type===PdfPane&&n.props.id===id),body:()=>nodes().find(n=>n.type===WebManuscript)};
 }
-const saved={schema:1,datasetId:'human-a',thesis:{page:249,zoom:1.15},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'a',activeNote:'fn-001',manuscriptMode:'pdf',mobilePane:'source',tab:'source',paragraphId:'',proposalId:'',readingView:{focus:false,header:true,tools:true,footnotes:true},sidebarOpen:false,metadataOpen:true};
+const saved={schema:1,datasetId:'human-a',thesis:{page:249,zoom:1.15},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'a',textTranslation:'',activeNote:'fn-001',manuscriptMode:'pdf',mobilePane:'source',tab:'source',paragraphId:'',proposalId:'',readingView:{focus:false,header:true,tools:true,footnotes:true},sidebarOpen:false,metadataOpen:true};
 test('workspace does not save initial defaults while loading and renders the restored values together',async()=>{
  const h=harness(saved);h.persist();assert.equal(h.writes.length,0);await h.boot();
  assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('thesis').props.zoom,1.15);assert.equal(h.pdf('thesis').props.persistenceKey,'human-a:thesis');
@@ -77,4 +79,62 @@ test('reference switches retain per-document values while an explicit footnote c
  h.pdf('a').props.onNavigationHandled(token-1);h.render();assert.equal(h.pdf('a').props.navigationToken,token);h.pdf('a').props.onNavigationHandled(token);h.render();assert.equal(h.pdf('a').props.navigationToken,0);
  click('2. 원전 B');assert.equal(h.pdf('b').props.page,24);assert.equal(h.pdf('b').props.zoom,1.45);assert.equal(h.pdf('b').props.navigationToken,0);
  h.persist();const stored=JSON.parse(h.values.get(readingSession.readingSessionKey('human-a')));assert.deepEqual(stored.sources.b,{page:24,zoom:1.45});assert.equal(stored.thesis.page,249);
+});
+
+
+test('German supplemental original survives initial restore and menu round trips; explicit source changes clear it',async()=>{
+ const h=harness({...saved,textTranslation:'t-german'});await h.boot();
+ const reader=()=>h.nodes().find(n=>n.type===ParallelSourceReader&&n.props.sourceId==='t-german');
+ assert.ok(reader());assert.equal(reader().props.persistenceKey,'human-a:t-german');assert.equal(h.pdf('a'),undefined);
+ h.persist();assert.equal(JSON.parse(h.values.get(readingSession.readingSessionKey('human-a'))).textTranslation,'t-german');
+ const menu=h.nodes().find(n=>n.type==='button'&&h.label(n).startsWith('▧검토 메모'));menu.props.onClick();h.render();assert.ok(reader());
+ const sourceMenu=h.nodes().find(n=>n.type==='button'&&h.label(n)==='↔원전 대조');sourceMenu.props.onClick();h.render();assert.ok(reader());
+ const source=h.nodes().find(n=>n.type==='button'&&h.label(n)==='1. 원전 A');source.props.onClick();h.render();assert.equal(reader(),undefined);assert.equal(h.pdf('a').props.page,199);
+});
+
+
+test('switching document orientation and resizing panels preserve both readers and explicit navigation state',async()=>{
+ const h=harness(saved,1701,818);await h.boot();
+ const controls=()=>h.nodes().find(n=>n.type===ReadingControls);
+ controls().props.onLayout('rows');h.render();assert.match(h.render().props.className,/documents-stacked/);
+ const split=()=>h.nodes().find(n=>n.type===PaneResizer&&n.props.className==='split-divider thesis-source-divider');
+ assert.equal(split().props.axis,'y');split().props.onChange(63);h.render();
+ const grid=h.nodes().find(n=>n.type==='div'&&n.props.className==='split-workspace four-pane-workspace');assert.match(grid.props.style['--document-rows'],/63fr/);
+ for(const [label,value] of [['상단 메뉴와 문서 영역 높이 조절',95],['문서와 하단 각주 목록 높이 조절',100],['각주 설명과 편집 영역 높이 조절',40],['검토 메뉴와 목차 높이 조절',160]]){
+  const resize=h.nodes().find(n=>n.type===PaneResizer&&n.props.label===label);if(resize){resize.props.onChange(value);h.render();}
+ }
+ assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('thesis').props.zoom,1.15);assert.equal(h.pdf('a').props.page,199);assert.equal(h.pdf('a').props.zoom,1.3);assert.equal(h.pdf('thesis').props.navigationToken,0);assert.equal(h.pdf('a').props.navigationToken,0);
+ controls().props.onResetSizes();h.render();assert.ok(!h.render().props.className.includes('documents-stacked'));assert.equal(split().props.axis,'x');assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('a').props.page,199);
+});
+test('saved desktop stacking leaves the mobile single-document tabs intact without discarding layout preferences',async()=>{
+ const h=harness(saved,390,844,{...workspaceLayout.DEFAULT_WORKSPACE_LAYOUT,orientation:'rows',rowSplit:63});await h.boot();
+ assert.ok(!h.render().props.className.includes('documents-stacked'));assert.match(h.render().props.className,/mobile-show-source/);
+ const controls=h.nodes().find(n=>n.type===ReadingControls);assert.equal(controls.props.layout,'rows');assert.equal(controls.props.mobile,true);
+ assert.equal(h.pdf('a').props.page,199);assert.equal(h.pdf('thesis').props.page,249);
+});
+
+
+test('the sidebar menu keeps natural height until explicitly resized and reset removes that height',async()=>{
+ const h=harness({...saved,sidebarOpen:true},1701,900);await h.boot();
+ const menu=()=>h.nodes().find(n=>n.type==='nav'&&n.props.className==='sidebar-menu');assert.equal(menu().props.style,undefined);
+ const resize=h.nodes().find(n=>n.type===PaneResizer&&n.props.className==='sidebar-toc-divider');assert.ok(resize);resize.props.onChange(180);h.render();assert.equal(menu().props.style.height,180);
+ h.nodes().find(n=>n.type===ReadingControls).props.onResetSizes();h.render();assert.equal(menu().props.style,undefined);
+ const css=readFileSync(new URL('../src/workspace-layout.css',import.meta.url),'utf8');assert.match(css,/workspace-sidebar>\.sidebar-menu[^}]*flex-shrink:0/);assert.doesNotMatch(css,/workspace-sidebar>\.sidebar-menu[^}]*flex-shrink:1/);
+});
+
+
+test('PDF fit modes restore per document, survive computed zoom reports and clear only on numeric zoom',async()=>{
+ const h=harness({...saved,thesis:{page:249,zoom:.45,fitMode:'page'},sources:{a:{page:199,zoom:1,fitMode:'width'},b:{page:21,zoom:1.6,fitMode:'page'}}});await h.boot();
+ assert.equal(h.pdf('thesis').props.fitMode,'page');assert.equal(h.pdf('a').props.fitMode,'width');
+ h.pdf('thesis').props.onZoomResolved(.38);h.pdf('a').props.onZoomResolved(.96);h.render();h.persist();
+ let state=JSON.parse(h.values.get(readingSession.readingSessionKey('human-a')));assert.equal(state.thesis.zoom,.38);assert.equal(state.thesis.fitMode,'page');assert.equal(state.sources.a.fitMode,'width');
+ h.pdf('thesis').props.onZoomChange(1.3);h.render();h.persist();state=JSON.parse(h.values.get(readingSession.readingSessionKey('human-a')));assert.equal(state.thesis.zoom,1.3);assert.equal(state.thesis.fitMode,undefined);assert.equal(state.sources.a.fitMode,'width');
+ h.nodes().find(n=>n.type==='button'&&h.label(n)==='2. 원전 B').props.onClick();h.render();assert.equal(h.pdf('b').props.fitMode,'page');
+ h.nodes().find(n=>n.type==='button'&&h.label(n)==='1. 원전 A').props.onClick();h.render();assert.equal(h.pdf('a').props.fitMode,'width');assert.equal(h.pdf('a').props.zoom,.96);
+});
+test('body mode retains a readable text scale while preserving the saved PDF fitting choice',async()=>{
+ const h=harness({...saved,thesis:{page:249,zoom:.32,fitMode:'page'},manuscriptMode:'body'});await h.boot();assert.equal(h.body().props.zoom,.7);h.persist();
+ const state=JSON.parse(h.values.get(readingSession.readingSessionKey('human-a')));assert.equal(state.thesis.zoom,.32);assert.equal(state.thesis.fitMode,'page');
+ const zoom=h.nodes().find(n=>typeof n.type==='function'&&n.props.label==='본문 배율');assert.ok(zoom);assert.equal(zoom.props.onFit,undefined);zoom.props.onZoom(1.15);h.render();h.persist();
+ assert.equal(h.body().props.zoom,1.15);assert.equal(JSON.parse(h.values.get(readingSession.readingSessionKey('human-a'))).thesis.fitMode,undefined);
 });

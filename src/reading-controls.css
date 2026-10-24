@@ -1,5 +1,5 @@
-.review-app.view-hide-header>.app-header,
-.review-app.view-hide-header>.basis-bar{display:none}
+.review-app.view-hide-header>.workspace-chrome,
+.review-app.view-hide-header>.chrome-divider{display:none}
 
 .review-app.view-hide-tools .thesis-pane>.pane-toolbar,
 .review-app.view-hide-tools .source-reader-body>.pane-toolbar,
@@ -58,7 +58,7 @@
 .reading-view-actions .reading-collapse-toggle{white-space:nowrap}
 .reading-view-actions .reading-collapse-toggle>span:first-child{font-size:1.1em;line-height:1}
 .reading-collapse-short{display:none}
-.review-app:not(.view-hide-header)>.app-header{padding-right:var(--reading-actions-clearance,220px)}
-@media screen and (max-width:480px){.reading-view-menu{font-size:calc(10px * var(--review-font-scale,1.5))}.reading-view-actions{gap:4px}.reading-collapse-label{display:none}.reading-collapse-short{display:inline}.review-app:not(.view-hide-header)>.app-header{padding-right:var(--reading-actions-clearance,160px)}.review-app .header-title{display:none}}
+.review-app:not(.view-hide-header) .app-header{padding-right:var(--reading-actions-clearance,220px)}
+@media screen and (max-width:480px){.reading-view-menu{font-size:calc(10px * var(--review-font-scale,1.5))}.reading-view-actions{gap:4px}.reading-collapse-label{display:none}.reading-collapse-short{display:inline}.review-app:not(.view-hide-header) .app-header{padding-right:var(--reading-actions-clearance,160px)}.review-app .header-title{display:none}}
 
 .review-app.view-hide-header .metadata-pane>.reference-heading{padding-top:calc(var(--reading-actions-height,44px) + 16px + env(safe-area-inset-top))}

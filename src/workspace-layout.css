@@ -1,0 +1,41 @@
+/* Deliberate resize handles leave the PDF surface's native gestures untouched. */
+.four-pane-app .workspace-chrome{display:flex;flex-direction:column;flex:0 0 auto;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain}
+.four-pane-app .workspace-chrome>.app-header,.four-pane-app .workspace-chrome>.basis-bar{flex-shrink:0}
+.four-pane-app.view-hide-header>.workspace-chrome,.four-pane-app.view-hide-header>.chrome-divider{display:none}
+.four-pane-app .pane-resizer.horizontal-resizer{display:block;cursor:row-resize;flex:0 0 8px;width:auto;height:8px;min-height:8px;min-width:0;max-height:8px;align-self:stretch;touch-action:none;position:relative;overflow:hidden}
+.four-pane-app .pane-resizer.horizontal-resizer>span{width:44px;height:2px;left:calc(50% - 22px);top:3px}
+.four-pane-app .pane-resizer:focus-visible{outline:2px solid #8b0029;outline-offset:-2px}
+.four-pane-app .chrome-divider{z-index:12}
+.four-pane-app .workspace-sidebar>.sidebar-menu{min-height:0;max-height:70%;overflow:auto;overscroll-behavior:contain;flex-shrink:0}
+.four-pane-app .workspace-sidebar>.sidebar-outline-toggle{flex-shrink:0}
+.four-pane-app .page-footnotes{min-height:44px;max-height:35%;overflow:auto;align-content:flex-start;flex-shrink:0}
+.four-pane-app.view-hide-footnotes .footnotes-divider{display:none}
+.four-pane-app .metadata-pane .source-panel.resizable-metadata{display:grid;grid-template-rows:var(--metadata-rows);overflow:hidden;padding:0}
+.four-pane-app .citation-details-scroll,.four-pane-app .resizable-metadata>.footnote-edit-box{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.four-pane-app .resizable-metadata>.footnote-edit-box{padding:0 16px 18px}
+.four-pane-app .resizable-metadata .shared-edit-editor{border-top:0}
+.reading-layout-options{border:0;margin:8px 0;padding:0 0 8px;min-width:0;border-bottom:1px solid #e7dee0}
+.reading-layout-options legend{font-weight:600;color:#71656a;padding:0}
+.reading-layout-options>div{display:flex;gap:6px}
+.reading-layout-options button{flex:1;min-width:0;min-height:44px!important;border:1px solid #d7c8cc!important}
+@media screen and (min-width:1200px){
+ .four-pane-app.documents-stacked .four-pane-workspace{grid-template-rows:var(--document-rows)}
+ .four-pane-app.documents-stacked .thesis-pane{grid-column:1;grid-row:1;min-height:0}
+ .four-pane-app.documents-stacked .thesis-source-divider{grid-column:1;grid-row:2;width:auto}
+ .four-pane-app.documents-stacked .source-viewer-pane{grid-column:1;grid-row:3;min-height:0}
+ .four-pane-app.documents-stacked .source-metadata-divider{grid-column:2;grid-row:1 / 4}
+ .four-pane-app.documents-stacked .metadata-pane{grid-column:3;grid-row:1 / 4}
+ .four-pane-app.documents-stacked .thesis-pane,.four-pane-app.documents-stacked .source-viewer-pane{height:auto;min-height:0;overflow:hidden}
+}
+@media screen and (max-width:1199px){
+ .four-pane-app .pane-resizer.horizontal-resizer{flex-basis:12px;height:12px;min-height:12px;max-height:12px}
+ .four-pane-app .pane-resizer.horizontal-resizer>span{top:5px}
+ .four-pane-app .metadata-pane .source-panel.resizable-metadata{grid-template-rows:var(--metadata-rows)}
+ .four-pane-app .resizable-metadata>.metadata-edit-divider{height:8px;min-height:8px;max-height:8px}
+ .four-pane-app .resizable-metadata>.metadata-edit-divider>span{top:3px}
+ .four-pane-app .page-footnotes{max-height:35%;overflow:auto}
+ .four-pane-app .workspace-sidebar>.sidebar-menu{max-height:65%;flex-shrink:0}
+}
+@media print{.workspace-chrome,.chrome-divider{display:none!important}}
+
+.four-pane-app .document-zoom-select{flex:0 0 auto;min-height:44px;max-width:160px;min-width:80px;padding:4px 8px;font-size:calc(11px * var(--review-font-scale,1.5));color:var(--review-ink);background:white}

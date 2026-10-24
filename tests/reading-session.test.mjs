@@ -8,6 +8,13 @@ test('a new reader keeps existing defaults and does not write before a valid dat
  assert.equal(result.restored,false);assert.equal(result.session.thesis.page,20);assert.equal(result.session.thesis.zoom,1);
  assert.equal(result.session.sourceId,'a');assert.equal(result.session.sources.a.page,27);assert.equal(local.writes.length,0);
 });
+
+test('per-document fit modes survive reload and reference switches while old numeric-only sessions remain numeric',()=>{
+ const local=storage(),session={...defaultReadingSession('human-a',catalog),thesis:{page:249,zoom:.38,fitMode:'page'},sources:{a:{page:29,zoom:1,fitMode:'width'},b:{page:21,zoom:1.45}}};
+ saveReadingSession(local,session);const restored=readReadingSession(local,'human-a',catalog).session;assert.deepEqual(restored,session);
+ assert.deepEqual(sourceReadingPosition(restored.sources,'a',220,1,33),{page:33,zoom:1,fitMode:'width'});assert.equal(sourceReadingPosition(restored.sources,'b',48).fitMode,undefined);
+ const invalid=validateReadingSession({...session,thesis:{page:249,zoom:.2,fitMode:'unknown'}},'human-a',catalog);assert.deepEqual(invalid.thesis,{page:249,zoom:.7});
+});
 test('reload restores both documents with independent page and zoom plus active note and selected view',()=>{
  const local=storage(),session={...defaultReadingSession('human-a',catalog),thesis:{page:249,zoom:1.15},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'b',activeNote:'fn-210',manuscriptMode:'body',mobilePane:'source',tab:'revision',paragraphId:'P0283',proposalId:'P0283'};
  assert.equal(saveReadingSession(local,session),true);const result=readReadingSession(local,'human-a',catalog);
@@ -37,4 +44,15 @@ test('switching references resumes each document while an explicit citation page
  assert.deepEqual(sourceReadingPosition(saved,'a',220,27,27),{page:27,zoom:1.3});
  assert.deepEqual(sourceReadingPosition(saved,'new',30,12),{page:12,zoom:1});
  assert.deepEqual(saved,{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}});
+});
+
+
+test('a supplemental text original restores only for its verified active footnote and registry kind',()=>{
+ const enriched={...catalog,textTranslations:[{sourceId:'de',kind:'text',noteIds:['fn-210']},{sourceId:'en',kind:'pdf',noteIds:['fn-210']}]};
+ const base={...defaultReadingSession('human-a',enriched),activeNote:'fn-210',textTranslation:'de',mobilePane:'source'};
+ assert.equal(validateReadingSession(base,'human-a',enriched).textTranslation,'de');
+ assert.equal(validateReadingSession({...base,activeNote:'fn-001'},'human-a',enriched).textTranslation,'');
+ assert.equal(validateReadingSession({...base,textTranslation:'en'},'human-a',enriched).textTranslation,'');
+ assert.equal(validateReadingSession({...base,textTranslation:'missing'},'human-a',enriched).textTranslation,'');
+ const old={...base};delete old.textTranslation;assert.equal(validateReadingSession(old,'human-a',enriched).textTranslation,'');
 });

@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import React from 'react';
 import * as paneLayout from '../src/four-pane-size.ts';
+import * as workspaceLayout from '../src/workspace-layout.ts';
 import * as readingView from '../src/reading-view.ts';
 import * as mobileMenu from '../src/mobile-menu-swipe.ts';
 import * as readingSession from '../src/reading-session.ts';
@@ -22,7 +23,7 @@ function harness(mode='pdf',memoRows=[]){
  const states=[],refs=[];let stateIndex=0,refIndex=0,nullCount=0,oneCount=0,effects=[],tree;
  const module={exports:{}};
  const dependencies={
-  './four-pane-size':paneLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,'./reading-session':readingSession,
+  './four-pane-size':paneLayout,'./workspace-layout':workspaceLayout,'./reading-view':readingView,'./mobile-menu-swipe':mobileMenu,'./reading-session':readingSession,
   './review-api':{assetUrl:id=>'https://example.invalid/'+id},
   './paragraph-catalog.json':{default:{paragraphs}},'./revision-proposals.json':{default:{items:[proposal]}},
   './proposal-indicators':{buildProposalIndicators:()=>({})},'./pdf-viewer-model':{footnoteTargets:()=>[]},

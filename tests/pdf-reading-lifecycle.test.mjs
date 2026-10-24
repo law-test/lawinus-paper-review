@@ -11,13 +11,13 @@ const require=createRequire(import.meta.url);
 const code=ts.transpileModule(readFileSync(new URL('../src/pdf-viewer.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function QuickTools(){return null;}
 function memory(initial=[]){const map=new Map(initial);return {map,getItem:key=>map.get(key)??null,setItem:(key,value)=>map.set(key,value)};}
-function harness({storage=memory(),width=390,height=700,page=20,zoom=1,id='thesis',navigationToken=0}={}){
+function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=null,id='thesis',navigationToken=0}={}){
  const hooks=[],layouts=[],effects=[],observers=new Set(),frames=new Map(),timers=new Map(),reports=[],acks=[];
  let index=0,dirty=true,tree,top=0,left=0,contentHeight=1,contentWidth=1,serial=0,resolveDoc;
  const win=Object.assign(new EventTarget(),{localStorage:storage}),document=Object.assign(new EventTarget(),{hidden:false,baseURI:'https://example.invalid/'});
  const host={clientWidth:width,clientHeight:height,hasPointerCapture:()=>false,releasePointerCapture(){},get scrollTop(){return top;},set scrollTop(v){top=Math.max(0,Math.min(v,Math.max(0,contentHeight+36-host.clientHeight)));},get scrollLeft(){return left;},set scrollLeft(v){left=Math.max(0,Math.min(v,Math.max(0,contentWidth+44-host.clientWidth)));}};
  let docPromise=new Promise(resolve=>{resolveDoc=resolve;});
- const props={id,page,total:279,zoom,quickTools:true,persistenceKey:'d:'+id,navigationToken,onPageChange:value=>{reports.push(value);props.page=value;dirty=true;},onNavigationHandled:value=>{acks.push(value);if(props.navigationToken===value){props.navigationToken=0;dirty=true;}}};
+ const props={id,page,total:279,zoom,fitMode,quickTools:true,persistenceKey:'d:'+id,navigationToken,onZoomResolved:value=>{props.zoom=value;dirty=true;},onZoomChange:value=>{props.zoom=value;props.fitMode=null;dirty=true;},onFitModeChange:value=>{props.fitMode=value;dirty=true;},onPageChange:value=>{reports.push(value);props.page=value;dirty=true;},onNavigationHandled:value=>{acks.push(value);if(props.navigationToken===value){props.navigationToken=0;dirty=true;}}};
  const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
  const useMemo=(fn,deps)=>{const i=index++;if(!hooks[i]||!same(hooks[i].deps,deps))hooks[i]={value:fn(),deps};return hooks[i].value;};
  const useEffect=(queue)=>(fn,deps)=>{const i=index++,old=hooks[i];if(!old||!same(old.deps,deps)){hooks[i]={deps,cleanup:old?.cleanup};queue.push(()=>{hooks[i].cleanup?.();hooks[i].cleanup=fn();});}};
@@ -40,8 +40,11 @@ function harness({storage=memory(),width=390,height=700,page=20,zoom=1,id='thesi
  function flush(){win.dispatchEvent(new Event('pagehide'));settle();}
  function change(next){Object.assign(props,next);dirty=true;settle();}
  function quick(next){nodes().find(n=>n.type===QuickTools).props.onPageChange(next);settle();}
+ function fit(next){nodes().find(n=>n.type===QuickTools).props.onFitModeChange(next);settle();}
+ function numeric(next){nodes().find(n=>n.type===QuickTools).props.onZoomChange(next);settle();}
+ function dimensions(){return nodes().find(n=>n.props?.className==='pdf-continuous-pages').props.style;}
  function dispose(){for(const h of hooks)h?.cleanup?.();frames.clear();timers.clear();}
- settle();return {host,props,storage,reports,acks,load,resize,scroll,flush,change,quick,dispose,settle};
+ settle();return {host,props,storage,reports,acks,load,resize,scroll,flush,change,quick,fit,numeric,dimensions,dispose,settle};
 }
 function bookmark(storage,{width=346,zoom=1.6,page=249,fraction=.37,left=121.25,key='d:thesis'}={}){const layout=model.pageLayout(279,width,zoom,{}),position=model.capturePdfReadingPosition(key,layout,layout.offsets[page-1]+layout.heights[page-1]*fraction+18,left,page,zoom,{});model.writePdfReadingPosition(storage,position);return position;}
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
@@ -84,4 +87,21 @@ test('a first visit to a different reference does not inherit the preceding docu
  const storage=memory(),a=bookmark(storage);const h=harness({storage,page:249,zoom:1.6});await h.load();near(h.host.scrollLeft,a.left);
  h.change({id:'unread-source',persistenceKey:'d:unread-source',page:27});for(let i=0;i<3;i++){await new Promise(resolve=>setImmediate(resolve));h.settle();}
  assert.equal(h.host.scrollLeft,0);near(h.host.scrollTop,model.pageLayout(279,346,1.6,{}).offsets[26]+18);h.dispose();
+});
+
+test('page fit shows the current full page and keeps fitting after height/width changes without changing document',async()=>{
+ const h=harness({width:700,height:600,page:249,zoom:1.3});await h.load();h.scroll(model.pageLayout(279,656,1.3,{}).offsets[248]+300,50);h.fit('page');
+ assert.equal(h.props.fitMode,'page');assert.equal(h.props.page,249);near(h.dimensions().width*728/515,560);
+ h.resize(844,300);near(h.dimensions().width*728/515,260);assert.equal(h.props.page,249);h.flush();const saved=model.readPdfReadingPosition(h.storage,'d:thesis',279);assert.ok(saved);assert.ok(saved.zoom<.5);h.dispose();
+ const restored=harness({storage:h.storage,width:844,height:300,page:249,zoom:saved.zoom,fitMode:'page'});await restored.load();near(restored.host.scrollTop,saved.top);near(restored.dimensions().width*728/515,260);restored.dispose();
+});
+
+test('width fit follows even a narrow reference pane and numeric zoom explicitly leaves fitting',async()=>{
+ const h=harness({width:390,height:700,page:29,id:'source',zoom:1.45});await h.load();h.fit('width');near(h.dimensions().width,346);h.resize(170,500);near(h.dimensions().width,126);
+ h.numeric(1.3);assert.equal(h.props.fitMode,null);near(h.dimensions().width,163.8);h.resize(230,500);near(h.dimensions().width,241.8);assert.equal(h.props.page,29);h.dispose();
+});
+
+test('external toolbar page-fit selection aligns the current page while a hidden initial fit waits for real dimensions',async()=>{
+ const h=harness({width:0,height:0,page:20,fitMode:'page',zoom:.4});await h.load();assert.equal(h.props.zoom,.4);h.resize(700,500);near(h.dimensions().width*728/515,460);
+ h.numeric(1.3);h.scroll(model.pageLayout(279,656,1.3,{}).offsets[19]+300);h.change({fitMode:'page'});const fitted=model.pageLayout(279,656,h.props.zoom,{});near(h.host.scrollTop,fitted.offsets[19]+18);assert.equal(h.props.page,20);h.dispose();
 });

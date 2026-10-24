@@ -6,6 +6,7 @@ import {applyTextSize, readTextSize} from './text-size';
 import './globals.css';
 import './text-size-control.css';
 import './mobile-layout.css';
+import './workspace-layout.css';
 
 function App() {
   const [state, setState] = useState<'loading'|'ready'|'setup'>('loading');
