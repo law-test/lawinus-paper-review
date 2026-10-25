@@ -24,7 +24,7 @@ test('start cards show paused AI and the working glossary, and can be folded awa
 
 test('application entry renders a standalone dictionary, standalone chat, or the unchanged workspace as requested',()=>{
  const main=ts.transpileModule(readFileSync(new URL('../src/main.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- function Workspace(){return null;}function Glossary(){return null;}function Chat(){return null;}
+ function Workspace(){return null;}function Glossary(){return null;}function Chat(){return null;}function AutoOpenControl(){return null;}
  for(const [search,expected,className,embedded=false] of [['?view=glossary&dictionary=1',Glossary,'glossary-standalone'],['?view=ai-mingyu&chat=1',Chat,'mingyu-standalone'],['?view=glossary',Workspace,undefined],['?v=265c',Workspace,undefined],['?view=glossary&dictionary=1&embedded=1',Glossary,'glossary-standalone',true],['?view=ai-mingyu&chat=1&embedded=1',Chat,'mingyu-standalone',true]]){
   let captured;const module={exports:{}};
   vm.runInNewContext(main,{module,exports:module.exports,URLSearchParams,window:{location:{search},self:embedded?{}:null,top:null},document:{getElementById:()=>({})},require:id=>{
@@ -32,6 +32,7 @@ test('application entry renders a standalone dictionary, standalone chat, or the
    if(id==='react-dom/client')return {createRoot:()=>({render:element=>{captured=element;}})};
    if(id==='./review-workspace')return {__esModule:true,default:Workspace};
    if(id==='./legal-glossary')return {__esModule:true,default:Glossary};
+   if(id==='./glossary-auto-open-control')return {__esModule:true,default:AutoOpenControl};
    if(id==='./ai-mingyu')return {__esModule:true,default:Chat};
    if(id==='./workspace-tools')return tools;
    if(id==='./ai-mingyu-availability')return availability;
@@ -42,6 +43,7 @@ test('application entry renders a standalone dictionary, standalone chat, or the
   }});
   const tree=captured.type();const nodes=[];function walk(node){if(!node||typeof node!=='object')return;nodes.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
   assert.ok(nodes.some(n=>n.type===expected),search);assert.equal(nodes.filter(n=>[Workspace,Glossary,Chat].includes(n.type)).length,1);
+  assert.equal(nodes.filter(n=>n.type===AutoOpenControl).length,expected===Glossary&&!embedded?1:0,'week-pause control belongs to the separate glossary header');
   if(className){assert.ok(nodes.some(n=>n.type==='main'&&n.props.className===className));assert.equal(nodes.filter(n=>n.type==='nav').length,embedded?0:1);}
  }
 });

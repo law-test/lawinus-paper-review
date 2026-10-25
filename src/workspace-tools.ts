@@ -7,6 +7,21 @@ export const workspaceToolHref:Record<WorkspaceTool,string>={
 };
 export const workspaceToolLabels:Record<WorkspaceTool,string>={'ai-mingyu':AI_MINGYU_LABEL,glossary:'법학어학사전'};
 export const WORKSPACE_POPUPS_SEEN_KEY='lawinus.workspace-tool-popups.seen.v1';
+export const GLOSSARY_AUTOSTART_PAUSE_KEY='lawinus.glossary-autostart.pause-until.v1';
+export const GLOSSARY_AUTOSTART_CHANGED='lawinus:glossary-autostart-changed';
+export const GLOSSARY_PAUSE_MS=7*24*60*60*1000;
+type PopupStorage=Pick<Storage,'getItem'|'setItem'>;
+export function glossaryPopupStorage():PopupStorage|undefined{try{return window.localStorage;}catch{return undefined;}}
+export function glossaryPauseUntil(storage:Pick<Storage,'getItem'>|undefined,now=Date.now()):number{
+ try{const raw=storage?.getItem(GLOSSARY_AUTOSTART_PAUSE_KEY);if(!raw||!/^\d+$/.test(raw))return 0;const until=Number(raw);return Number.isSafeInteger(until)&&until>now&&until<=now+GLOSSARY_PAUSE_MS?until:0;}catch{return 0;}
+}
+export function pauseGlossaryForWeek(storage:PopupStorage|undefined,now=Date.now()):number{
+ const until=now+GLOSSARY_PAUSE_MS;if(!storage||!Number.isSafeInteger(until)||now<=0)return 0;
+ try{storage.setItem(GLOSSARY_AUTOSTART_PAUSE_KEY,String(until));return glossaryPauseUntil(storage,now)===until?until:0;}catch{return 0;}
+}
+export function shouldAutoOpenGlossary(search:string,hash:string,embedded:boolean,storage:Pick<Storage,'getItem'>|undefined,now=Date.now()){
+ return !embedded&&ordinaryWorkspaceEntry(search,hash)&&!glossaryPauseUntil(storage,now);
+}
 export function initialWorkspaceTools(search:string,hash:string,embedded:boolean,seen:boolean):WorkspaceTool[]{
  return [];
 }
