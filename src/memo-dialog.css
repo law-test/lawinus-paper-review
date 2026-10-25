@@ -1,6 +1,8 @@
 /* Reserve the action row inside the visible viewport, independently of long memo content. */
 .four-pane-app .memo-modal.memo-dialog{display:flex;flex-direction:column;min-height:0;max-height:calc(var(--visible-height,100dvh) - 48px);overflow:hidden;padding:0}
-.memo-dialog .modal-heading{flex:0 0 auto;margin:0;padding:14px 20px 8px;gap:8px}
+.memo-dialog .modal-heading{flex:0 0 auto;margin:0;padding:14px 20px 8px;gap:8px;cursor:grab;touch-action:none;user-select:none}
+.memo-dialog[data-dragging="true"] .modal-heading{cursor:grabbing}
+.memo-dialog .modal-heading:focus-visible{outline:3px solid #8b0029;outline-offset:-3px}
 .memo-dialog .modal-heading h2{min-width:0;overflow-wrap:anywhere}
 .memo-dialog .modal-heading button{flex:0 0 44px;min-width:44px;min-height:44px}
 .memo-dialog .memo-dialog-body{min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 20px 16px;scroll-padding-block:12px}

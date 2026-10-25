@@ -9,10 +9,10 @@ import * as tools from '../src/workspace-tools.ts';
 const require=createRequire(import.meta.url);
 const code=ts.transpileModule(readFileSync(new URL('../src/workspace-tool-popups.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function walk(root){const nodes=[];function visit(node){if(!node||typeof node!=='object')return;nodes.push(node);React.Children.forEach(node.props?.children,visit);}visit(root);return nodes;}
-function harness({width=1700,search='',embedded=false,seen=false}={}){
+function harness({width=1700,search='',embedded=false,seen=false,paused=false}={}){
  const values=new Map([['reading-position','6543']]);if(seen)values.set(tools.WORKSPACE_POPUPS_SEEN_KEY,'1');
  const store={getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)};
- const state=[],refs=[],dragCalls=[],dragControls=[0,1].map(()=>({offset:{x:0,y:0},dragging:false,handleProps:{tabIndex:0,onPointerDown(){},onKeyDown(){}},reset(){}}));let cursor=0,refCursor=0,dragCursor=0,effects=[],nativeOpens=0;
+ const state=[],refs=[],dragCalls=[],dragControls=[0,1,2].map(()=>({offset:{x:0,y:0},dragging:false,handleProps:{tabIndex:0,onPointerDown(){},onKeyDown(){}},reset(){}}));let cursor=0,refCursor=0,dragCursor=0,effects=[],nativeOpens=0;
  class Element{isConnected=true;focusCalls=0;closest(){return null;}focus(){this.focusCalls++;}}
  const trigger=new Element(),document={activeElement:trigger,body:new Element(),querySelector:()=>trigger,getElementById:()=>trigger};
  const window={innerWidth:width,location:{search,hash:''},localStorage:store,sessionStorage:store,addEventListener(){},removeEventListener(){},open(){nativeOpens++;}};window.self=window;window.top=embedded?{}:window;
@@ -20,7 +20,7 @@ function harness({width=1700,search='',embedded=false,seen=false}={}){
  vm.runInNewContext(code,{module,exports:module.exports,window,document,HTMLElement:Element,queueMicrotask:fn=>fn(),require:id=>{
   if(id==='react')return {...React,useState:initial=>{const i=cursor++;if(!(i in state))state[i]=typeof initial==='function'?initial():initial;return [state[i],next=>{state[i]=typeof next==='function'?next(state[i]):next;}];},useRef:initial=>refs[refCursor++]??=({current:initial}),useEffect:fn=>effects.push(fn)};
   if(id==='./use-popup-drag')return {usePopupDrag:options=>{const i=dragCursor++;dragCalls[i]=options;return dragControls[i];}};
-  if(id==='./workspace-tools')return tools;if(id.endsWith('.css'))return {};return require(id);
+  if(id==='./workspace-tools')return paused?tools:{...tools,workspaceToolAvailable:()=>true,initialWorkspaceTools:(...args)=>{const result=tools.initialWorkspaceTools(...args);return result.includes('glossary')?['ai-mingyu','glossary']:result;}};if(id.endsWith('.css'))return {};return require(id);
  }});
  return {values,trigger,document,window,dragCalls,dragControls,get nativeOpens(){return nativeOpens;},render(name,props){cursor=0;refCursor=0;dragCursor=0;effects=[];return module.exports[name](props);},effects:()=>effects};
 }
@@ -67,7 +67,7 @@ test('desktop tools bind separate draggable title bars and preserve their iframe
  const props={open:['ai-mingyu','glossary'],active:'glossary',focusSerial:0,onOpen(){},onClose(){},onActive:tool=>active.push(tool)};
  let nodes=walk(h.render('WorkspaceToolPopups',props)),panels=nodes.filter(n=>n.type==='section'),headers=nodes.filter(n=>n.type==='header');
  const sources=nodes.filter(n=>n.type==='iframe').map(n=>n.props.src),keys=panels.map(n=>n.key);
- assert.deepEqual(h.dragCalls.map(c=>c.enabled),[true,true]);assert.notEqual(h.dragCalls[0].elementRef,h.dragCalls[1].elementRef);
+ assert.deepEqual(h.dragCalls.map(c=>c.enabled),[true,true,false]);assert.notEqual(h.dragCalls[0].elementRef,h.dragCalls[1].elementRef);
  panels.forEach((panel,i)=>{const element={id:i};panel.props.ref(element);assert.equal(h.dragCalls[i].elementRef.current,element);});
  assert.ok(headers.every(n=>n.props.tabIndex===0&&n.props['aria-keyshortcuts'].includes('Home')));
  assert.equal(headers[0].props.onPointerDown,h.dragControls[0].handleProps.onPointerDown);
@@ -80,21 +80,39 @@ test('desktop tools bind separate draggable title bars and preserve their iframe
  assert.deepEqual(nodes.filter(n=>n.type==='iframe').map(n=>n.props.src),sources);assert.equal(h.values.get('reading-position'),'6543');
  h.document.querySelector=()=>({getBoundingClientRect:()=>({bottom:106})});assert.equal(h.dragCalls[0].topInset(),106);
 });
-test('compact tools stay full width without pointer or keyboard dragging; hidden tools disable the hook',()=>{
+test('compact tools move as one group with title handles; hidden desktop tools disable the hook',()=>{
  const props={open:['ai-mingyu','glossary'],active:'ai-mingyu',focusSerial:0,onOpen(){},onClose(){},onActive(){}};
  const small=harness({width:390}),nodes=walk(small.render('WorkspaceToolPopups',props));
- assert.deepEqual(small.dragCalls.map(c=>c.enabled),[false,false]);
- assert.ok(nodes.filter(n=>n.type==='header').every(n=>n.props.tabIndex===undefined&&n.props.onPointerDown===undefined&&n.props.onKeyDown===undefined));
+ assert.deepEqual(small.dragCalls.map(c=>c.enabled),[false,false,true]);
+ assert.ok(nodes.filter(n=>n.type==='header').every(n=>n.props.tabIndex===0&&n.props.onPointerDown===small.dragControls[2].handleProps.onPointerDown&&n.props.onKeyDown===small.dragControls[2].handleProps.onKeyDown));
  assert.ok(nodes.filter(n=>n.type==='section').every(n=>n.props.style===undefined));
- const large=harness();large.render('WorkspaceToolPopups',{...props,open:['glossary']});assert.deepEqual(large.dragCalls.map(c=>c.enabled),[false,true]);
+ const large=harness();large.render('WorkspaceToolPopups',{...props,open:['glossary']});assert.deepEqual(large.dragCalls.map(c=>c.enabled),[false,true,false]);
  assert.equal(large.dragCalls[1].layoutKey,'glossary');large.render('WorkspaceToolPopups',props);assert.equal(large.dragCalls[1].layoutKey,'ai-mingyu|glossary','reposition a fixed-width window after the other window changes the grid layout');
 });
 test('desktop popup is resizable within the viewport and compact tabs override any saved inline size',()=>{
  const css=readFileSync(new URL('../src/workspace-tool-popups.css',import.meta.url),'utf8');
  const main=css.match(/\.workspace-tool-popups\{([^}]+)\}/)?.[1]||'';
  assert.match(main,/height:min\(800px,calc\(100dvh/);assert.match(main,/- 16px/);
- assert.match(css,/\.workspace-tool-popups:not\(\.compact\) \.workspace-popup-header\{[^}]*touch-action:none/);
+ assert.match(css,/\.workspace-tool-popups \.workspace-popup-header\{[^}]*touch-action:none/);
  assert.match(css,/\.workspace-tool-popup\[data-popup-active="true"\]\{z-index:2\}/);
  assert.match(css,/\.workspace-tool-popups:not\(\.compact\) \.workspace-tool-popup\{[^}]*resize:both[^}]*max-height:calc\(100dvh/);
  assert.match(css,/\.workspace-tool-popups.compact \.workspace-tool-popup\{[^}]*width:100%!important[^}]*height:100%!important[^}]*resize:none/);
+});
+
+test('production pause opens only the glossary and refuses direct AI popup requests',()=>{
+ const h=harness({paused:true});let result=h.render('useWorkspaceToolPopups');
+ assert.deepEqual([...result.layer.props.open],['glossary']);result.openTool('ai-mingyu');result=h.render('useWorkspaceToolPopups');assert.deepEqual([...result.layer.props.open],['glossary']);
+ const nodes=walk(h.render('WorkspaceToolPopups',{open:['ai-mingyu','glossary'],active:'ai-mingyu',focusSerial:0,onOpen(){},onClose(){},onActive(){}}));
+ assert.deepEqual(nodes.filter(n=>n.type==='iframe').map(n=>n.props.src),['./?view=glossary&dictionary=1&embedded=1']);
+ assert.equal(h.dragCalls[0].enabled,false);
+});
+test('compact title movement translates the group and reset does not recreate the iframe',()=>{
+ const h=harness({width:390,paused:true}),props={open:['glossary'],active:'glossary',focusSerial:0,onOpen(){},onClose(){},onActive(){}};
+ h.dragControls[2].offset={x:8,y:150};h.dragControls[2].dragging=true;
+ let resets=0;h.dragControls[2].reset=()=>resets++;
+ const tree=h.render('WorkspaceToolPopups',props),nodes=walk(tree);
+ assert.equal(tree.props.style.transform,'translate(8px, 150px)');assert.equal(tree.props['data-popup-dragging'],true);
+ assert.equal(h.dragCalls[2].boundary,'header');
+ nodes.find(n=>n.type==='button'&&n.props['aria-label']?.includes('처음 위치')).props.onClick();assert.equal(resets,1);
+ assert.equal(nodes.find(n=>n.type==='iframe').props.src,'./?view=glossary&dictionary=1&embedded=1');
 });

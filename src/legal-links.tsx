@@ -11,7 +11,7 @@ const statusLabels={current:'현행 조문',proposal:'논문의 개정·신설�
 
 function LegalDialog({mention,onClose,opener}:{mention:LegalMention;onClose:()=>void;opener:HTMLElement|null}){
  const dialog=useRef<HTMLDialogElement>(null);
- const drag=usePopupDrag({elementRef:dialog});
+ const drag=usePopupDrag({elementRef:dialog,boundary:'header'});
  const detail=getLegalMentionDetails(mention);
  const articleText=mention.status==='current'?(mention.articleText||detail.article?.text):undefined;
  useEffect(()=>{

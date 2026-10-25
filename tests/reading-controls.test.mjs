@@ -9,13 +9,14 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import * as readingView from '../src/reading-view.ts';
 import * as menuSwipe from '../src/mobile-menu-swipe.ts';
 import * as workspaceTools from '../src/workspace-tools.ts';
+import * as availability from '../src/ai-mingyu-availability.ts';
 const require=createRequire(import.meta.url);
 const source=readFileSync(new URL('../src/reading-controls.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
-function renderControl(view,menuOpen=false,mobile=false,pane='source'){
+function renderControl(view,menuOpen=false,mobile=false,pane='source',enabled=availability.AI_MINGYU_ENABLED){
  const changed=[],panelChanges=[],widthChanges=[],toolClicks=[];
  const module={exports:{}};
- vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:initial=>[menuOpen||initial,()=>{}],useEffect:()=>{},useRef:initial=>({current:initial})}:id==='./reading-view'?readingView:id==='./mobile-menu-swipe'?menuSwipe:id==='./workspace-tools'?workspaceTools:require(id)});
+ vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:initial=>[menuOpen||initial,()=>{}],useEffect:()=>{},useRef:initial=>({current:initial})}:id==='./reading-view'?readingView:id==='./mobile-menu-swipe'?menuSwipe:id==='./workspace-tools'?workspaceTools:id==='./ai-mingyu-availability'?{...availability,AI_MINGYU_ENABLED:enabled,AI_MINGYU_LABEL:enabled?'AI민규':availability.AI_MINGYU_LABEL}:require(id)});
  const tree=module.exports.default({onTool:tool=>toolClicks.push(tool),view,onChange:v=>changed.push(v),sidebar:true,metadata:true,mobile,pane,onSidebar:v=>panelChanges.push(v),onMetadata:v=>panelChanges.push(v),document:'source',onEqualWidth:()=>widthChanges.push('equal'),onDocument:()=>{throw Error('Reading view must not switch documents');}});
  const all=[],labels=[],links=[];function walk(node){if(!node||typeof node!=='object')return;if(node.type==='button')all.push(node);if(node.type==='a')links.push(node);if(node.type==='label')labels.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
  return {html:renderToStaticMarkup(tree),buttons:all,labels,changed,panelChanges,widthChanges,toolClicks,links};
@@ -114,9 +115,9 @@ test('mobile tab changes override stale focus panel flags without altering deskt
 });
 
 
-test('both popup shortcuts remain outside the closed menu on desktop and mobile, including focus mode',()=>{
+test('when explicitly enabled in the fixture, both popup shortcuts remain outside the closed menu including focus mode',()=>{
  for(const mobile of [false,true]){
-  const result=renderControl({...readingView.DEFAULT_READING_VIEW,focus:true},false,mobile);
+  const result=renderControl({...readingView.DEFAULT_READING_VIEW,focus:true},false,mobile,'source',true);
   assert.deepEqual(result.toolClicks,[],'rendering never opens a window');
   assert.equal(result.links.length,2);assert.ok(!result.html.includes('id="reading-view-options"'));
   for(const [index,tool] of ['ai-mingyu','glossary'].entries()){
@@ -127,10 +128,19 @@ test('both popup shortcuts remain outside the closed menu on desktop and mobile,
  }
 });
 
-test('modified shortcut clicks retain native new-tab behavior without opening or rearranging an in-page popup',()=>{
+test('when explicitly enabled in the fixture, modified shortcut clicks retain native new-tab behavior',()=>{
  for(const change of [{button:1},{ctrlKey:true},{metaKey:true},{shiftKey:true},{altKey:true}]){
-  const h=renderControl(readingView.DEFAULT_READING_VIEW);let prevented=false;
+  const h=renderControl(readingView.DEFAULT_READING_VIEW,false,false,'source',true);let prevented=false;
   h.links[0].props.onClick({button:0,metaKey:false,ctrlKey:false,shiftKey:false,altKey:false,...change,preventDefault(){prevented=true;}});
   assert.equal(prevented,false);assert.deepEqual(h.toolClicks,[]);assert.deepEqual(h.changed,[]);assert.deepEqual(h.panelChanges,[]);
+ }
+});
+
+test('the current paused setting disables AI without removing the glossary or opening a popup',()=>{
+ for(const mobile of [false,true]){
+  const h=renderControl(readingView.DEFAULT_READING_VIEW,false,mobile);
+  const ai=h.buttons.find(b=>b.props.className==='reading-tool-shortcut reading-mingyu-shortcut');assert.ok(ai);assert.equal(ai.props.disabled,true);assert.equal(ai.props.href,undefined);
+  assert.match(h.html,/AI민규\(만드는 중\)/);assert.equal(h.links.length,1);assert.equal(h.links[0].props.href,workspaceTools.workspaceToolHref.glossary);
+  assert.deepEqual(h.toolClicks,[]);h.links[0].props.onClick({button:0,preventDefault(){}});assert.deepEqual(h.toolClicks,['glossary']);assert.deepEqual(h.changed,[]);
  }
 });

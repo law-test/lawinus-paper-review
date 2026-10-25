@@ -7,15 +7,17 @@ import {clampPopupOffset} from '../src/popup-position.ts';
 
 const code=ts.transpileModule(readFileSync(new URL('../src/use-popup-drag.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const plain=value=>({x:value.x,y:value.y});
-function eventSurface(){const listeners=new Map();return {listeners,addEventListener(name,fn){if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);},removeEventListener(name,fn){listeners.get(name)?.delete(fn);},emit(name){for(const fn of [...(listeners.get(name)||[])])fn();},count(){return [...listeners.values()].reduce((n,set)=>n+set.size,0);}};}
-function harness({base={left:100,top:90,width:400,height:300},width=1000,height=800,enabled=true,topInset=64,visual=true}={}){
+function eventSurface(){const listeners=new Map();return {listeners,addEventListener(name,fn){if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);},removeEventListener(name,fn){listeners.get(name)?.delete(fn);},emit(name,event){for(const fn of [...(listeners.get(name)||[])])fn(event);},count(){return [...listeners.values()].reduce((n,set)=>n+set.size,0);}};}
+function harness({base={left:100,top:90,width:400,height:300},width=1000,height=800,enabled=true,topInset=64,visual=true,boundary='panel',headerHeight=64}={}){
  const states=[],refs=[],effects=[],pendingEffects=[],frames=new Map(),observers=[];
  let stateCursor=0,refCursor=0,effectCursor=0,frameSerial=0,domOffset={x:0,y:0},result;
  class Element{interactive=false;focuses=[];captures=new Set();released=[];closest(){return this.interactive?this:null;}focus(options){this.focuses.push(options);}setPointerCapture(id){this.captures.add(id);}hasPointerCapture(id){return this.captures.has(id);}releasePointerCapture(id){this.captures.delete(id);this.released.push(id);}}
  const handle=new Element(),element=new Element();element.getBoundingClientRect=()=>({...base,left:base.left+domOffset.x,top:base.top+domOffset.y});
+ handle.getBoundingClientRect=()=>({left:base.left+domOffset.x,top:base.top+domOffset.y,bottom:base.top+domOffset.y+headerHeight,width:base.width,height:headerHeight});
+ element.querySelector=selector=>selector==='[data-popup-drag-handle]:not([data-popup-drag-hidden="true"])'?handle:null;
  const viewport={...eventSurface(),offsetLeft:0,offsetTop:0,width,height};
  const window={...eventSurface(),innerWidth:width,innerHeight:height,visualViewport:visual?viewport:undefined};
- const options={enabled,elementRef:{current:element},topInset,margin:8,layoutKey:'both'};
+ const options={enabled,elementRef:{current:element},topInset,margin:8,layoutKey:'both',boundary};
  class ResizeObserver{constructor(callback){this.callback=callback;this.targets=[];this.disconnected=false;observers.push(this);}observe(target){this.targets.push(target);}disconnect(){this.disconnected=true;}fire(){if(!this.disconnected)this.callback();}}
  const module={exports:{}};
  vm.runInNewContext(code,{module,exports:module.exports,window,Element,ResizeObserver,requestAnimationFrame:fn=>{const id=++frameSerial;frames.set(id,fn);return id;},cancelAnimationFrame:id=>frames.delete(id),require:id=>{
@@ -89,13 +91,13 @@ test('native element resizing and fullscreen-sized geometry are rechecked withou
  const h=harness();h.result.handleProps.onKeyDown(h.key('ArrowRight',{shiftKey:true}));h.commit();
  h.base.width=920;h.observers.at(-1).fire();h.raf();assert.deepEqual(h.offset,{x:-28,y:0});
  h.commit();h.base.left=8;h.base.top=64;h.base.width=984;h.base.height=728;h.observers.at(-1).fire();h.raf();assert.deepEqual(h.offset,{x:0,y:0});
- assert.equal(h.window.count(),1);assert.equal(h.viewport.count(),2);assert.equal(h.observers.length,1);
+ assert.equal(h.window.count(),5);assert.equal(h.viewport.count(),2);assert.equal(h.observers.length,1);
 });
 
 test('layout changes reobserve a fixed-size window and clamp its new base position',()=>{
  const h=harness();h.result.handleProps.onKeyDown(h.key('ArrowRight',{shiftKey:true}));h.commit();
  h.base.left=700;h.commit({layoutKey:'single'});assert.equal(h.observers[0].disconnected,true);h.raf();assert.deepEqual(h.offset,{x:-108,y:0});
- assert.equal(h.window.count(),1);assert.equal(h.viewport.count(),2);
+ assert.equal(h.window.count(),5);assert.equal(h.viewport.count(),2);
 });
 
 test('a layout change during a drag releases capture and clears the dragging presentation',()=>{
@@ -114,7 +116,7 @@ test('compact disabling resets offsets, cancels work, and re-enabling installs o
  const h=harness();h.result.handleProps.onPointerDown(h.pointer());h.result.handleProps.onPointerMove(h.pointer({clientX:240}));h.commit();
  h.commit({enabled:false});assert.deepEqual(h.offset,{x:0,y:0});assert.equal(h.dragging,false);assert.equal(h.window.count(),0);assert.equal(h.viewport.count(),0);assert.equal(h.frames.size,0);
  h.commit();assert.equal(h.result.handleProps.tabIndex,undefined);h.result.handleProps.onPointerDown(h.pointer());assert.equal(h.dragging,false);h.result.handleProps.onKeyDown(h.key('ArrowRight'));assert.deepEqual(h.offset,{x:0,y:0});
- h.commit({enabled:true});assert.equal(h.window.count(),1);assert.equal(h.viewport.count(),2);assert.equal(h.observers.length,2);
+ h.commit({enabled:true});assert.equal(h.window.count(),5);assert.equal(h.viewport.count(),2);assert.equal(h.observers.length,2);
 });
 
 test('cleanup disconnects observers, removes listeners, cancels scheduled frames and releases capture',()=>{
@@ -125,5 +127,43 @@ test('cleanup disconnects observers, removes listeners, cancels scheduled frames
 
 test('layout viewport fallback works without visualViewport and a closed ref can reopen safely',()=>{
  const h=harness({visual:false});h.result.handleProps.onPointerDown(h.pointer());h.result.handleProps.onPointerMove(h.pointer({clientX:900,clientY:900}));assert.deepEqual(h.offset,{x:492,y:402});
- h.commit({enabled:false,elementRef:{current:null}});h.commit({enabled:true,elementRef:{current:h.element}});h.raf();assert.equal(h.window.count(),1);assert.deepEqual(h.offset,{x:0,y:0});
+ h.commit({enabled:false,elementRef:{current:null}});h.commit({enabled:true,elementRef:{current:h.element}});h.raf();assert.equal(h.window.count(),5);assert.deepEqual(h.offset,{x:0,y:0});
+});
+
+test('an ordinary active/focus rerender keeps the current gesture and does not add observers',()=>{
+ const h=harness();h.result.handleProps.onPointerDown(h.pointer());h.commit();
+ assert.equal(h.dragging,true);assert.ok(h.handle.captures.has(1));assert.equal(h.observers.length,1);assert.equal(h.window.count(),5);
+ h.result.handleProps.onPointerMove(h.pointer({clientX:210,clientY:260}));assert.deepEqual(h.offset,{x:110,y:160});
+ h.commit();h.result.handleProps.onPointerMove(h.pointer({clientX:230,clientY:280}));assert.deepEqual(h.offset,{x:130,y:180});
+ h.result.handleProps.onPointerUp(h.pointer());assert.equal(h.dragging,false);
+});
+
+test('a viewport-height window is vertically pinned by panel bounds but moves 160 pixels with header bounds',()=>{
+ const geometry={base:{left:425,top:65,width:850,height:776.33},width:1701,height:849,topInset:65};
+ const full=harness(geometry),fullBefore=full.offset;
+ full.result.handleProps.onPointerDown(full.pointer());full.result.handleProps.onPointerMove(full.pointer({clientX:210,clientY:260}));
+ assert.equal(full.offset.y,fullBefore.y,'the former full-window policy leaves no downward movement');
+ const h=harness({...geometry,boundary:'header'});h.result.handleProps.onPointerDown(h.pointer());h.result.handleProps.onPointerMove(h.pointer({clientX:210,clientY:260}));
+ assert.deepEqual(h.offset,{x:110,y:160});h.commit();
+ h.result.handleProps.onPointerMove(h.pointer({clientX:9000,clientY:9000}));h.commit();const header=h.handle.getBoundingClientRect();
+ assert.ok(header.left>=8&&header.left+header.width<=1693);assert.ok(header.top>=65&&header.bottom<=841,'whole title and close action stay visible');
+ assert.ok(h.element.getBoundingClientRect().top+h.base.height>849,'content may extend below the viewport while the title remains recoverable');
+ h.result.handleProps.onKeyDown(h.key('Home'));assert.deepEqual(h.offset,{x:0,y:0});
+});
+
+test('capture refusal falls back to window movement and ends on up, cancel, or window blur',()=>{
+ for(const ending of ['pointerup','pointercancel','blur']){
+  const h=harness();h.handle.setPointerCapture=()=>{throw Error('capture refused');};h.result.handleProps.onPointerDown(h.pointer());h.commit();
+  h.window.emit('pointermove',h.pointer({pointerId:2,clientX:900}));assert.deepEqual(h.offset,{x:0,y:0});
+  h.window.emit('pointermove',h.pointer({clientX:220,clientY:180}));assert.deepEqual(h.offset,{x:120,y:80});
+  h.window.emit(ending,h.pointer());assert.equal(h.dragging,false,ending);h.window.emit('pointermove',h.pointer({clientX:500}));assert.deepEqual(h.offset,{x:120,y:80});
+  h.unmount();assert.equal(h.window.count(),0);assert.equal(h.viewport.count(),0);
+ }
+});
+
+test('header bounds recheck resizing and viewport movement without losing the reset action',()=>{
+ const h=harness({boundary:'header'});h.result.handleProps.onPointerDown(h.pointer());h.result.handleProps.onPointerMove(h.pointer({clientX:600,clientY:600}));h.commit();
+ h.viewport.width=600;h.viewport.height=400;h.window.emit('resize');h.raf();h.commit();
+ const header=h.handle.getBoundingClientRect();assert.ok(header.left+header.width<=592);assert.ok(header.bottom<=392);assert.equal(h.dragging,false);
+ h.result.handleProps.onKeyDown(h.key('Home'));h.commit();assert.deepEqual(h.offset,{x:0,y:0});assert.equal(h.result.handleProps['data-popup-drag-handle'],true);
 });

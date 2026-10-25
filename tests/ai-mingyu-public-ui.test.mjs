@@ -7,6 +7,7 @@ import ts from 'typescript';
 import React from 'react';
 import * as publicModel from '../src/ai-mingyu-public-model.ts';
 import * as levels from '../src/ai-mingyu-level.ts';
+import * as enter from '../src/ai-mingyu-enter.ts';
 const require=createRequire(import.meta.url),data=JSON.parse(readFileSync(new URL('../src/ai-mingyu-public-answers.json',import.meta.url),'utf8'));
 const compile=source=>ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 const publicCode=compile(readFileSync(new URL('../src/ai-mingyu-public.tsx',import.meta.url),'utf8').replaceAll("import('./ai-mingyu-public-client')",'Promise.resolve(__publicClient)'));
@@ -17,6 +18,7 @@ function harness(){
  vm.runInNewContext(publicCode,{module,exports:module.exports,__publicClient:{publicServiceStatus:async()=>false,askPublicMingyu:async()=>{calls.push('network ask');throw Error('not expected');}},crypto:{randomUUID:()=>String(++serial)},AbortController,Promise,require:id=>{
   if(id==='react')return react;if(id==='./ai-mingyu-public-answers.json')return {default:data};if(id==='./ai-mingyu-public-model')return publicModel;
   if(id==='./ai-mingyu-level')return {...levels,readAnswerLevel:()=> 'undergraduate',saveAnswerLevel:level=>calls.push({savedLevel:level})};
+  if(id==='./ai-mingyu-enter')return enter;
   if(id.startsWith('.'))return {__esModule:true,default:()=>null};return require(id);
  }});
  function render(){cursor=0;refCursor=0;effects.length=0;tree=module.exports.default({onOwner:()=>calls.push('owner clicked'),renderAnswer:props=>React.createElement('answer-card',props)});return tree;}
@@ -29,6 +31,7 @@ test('public wrapper mounts no private component and does not read a private tok
  vm.runInNewContext(code,{module,exports:module.exports,sessionStorage:new Proxy({},{get(){throw Error('private token touched');}}),require:id=>{
   if(id==='react')return {...React,useState:()=>[owner,value=>{owner=value;}],lazy:factory=>{lazyCalls++;return LazyPrivate;}};
   if(id==='./ai-mingyu-public')return {__esModule:true,default:Public};if(id==='./ai-mingyu-answer')return {AnswerCards:()=>null};if(id.endsWith('.css'))return {};
+  if(id==='./ai-mingyu-availability')return {AI_MINGYU_ENABLED:true};
   if(id.startsWith('.'))throw Error('private module imported on entry: '+id);return require(id);
  }});
  let tree=module.exports.default();assert.equal(tree.type,Public);assert.equal(lazyCalls,1);assert.ok(!walk(tree).some(n=>n.type===LazyPrivate));

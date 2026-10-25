@@ -11,8 +11,9 @@ const source=readFileSync(new URL('../src/memo-dialog.tsx',import.meta.url),'utf
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function load(env={}){
  const refs=[],effects=[],module={exports:{}};
- vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useRef:value=>{const ref={current:value};refs.push(ref);return ref;},useEffect:fn=>effects.push(fn)}:id.endsWith('.css')?{}:require(id),...env});
- return {...module.exports,refs,effects};
+ const drag=env.drag??{offset:{x:0,y:0},dragging:false,handleProps:{tabIndex:0,onPointerDown(){},onPointerMove(){},onKeyDown(){}}};let dragOptions;
+ vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useRef:value=>{const ref={current:value};refs.push(ref);return ref;},useEffect:fn=>effects.push(fn)}:id==='./use-popup-drag'?{usePopupDrag:options=>{dragOptions=options;return drag;}}:id.endsWith('.css')?{}:require(id),...env});
+ return {...module.exports,refs,effects,drag,get dragOptions(){return dragOptions;}};
 }
 const draft={anchorType:'source',sourceId:'source-1',noteId:'fn-001',page:27,text:'확인할 문장\n다음 문장',quote:'인용문',visibility:'private',status:'open'};
 function render(extra={},env){
@@ -97,4 +98,27 @@ test('failed save preserves the draft and revision for retry without closing or 
 });
 test('disconnected or empty memo never calls a save endpoint',async()=>{
  for(const options of [{ready:false},{draft:{text:'  '}}]){const {calls}=await saveWithMock(options);assert.ok(!calls.some(c=>c[0]==='request'||c[0]==='composer'));}
+});
+
+test('memo title binds the shared drag handle while its body and save actions remain independent',()=>{
+ const drag={offset:{x:90,y:65},dragging:true,handleProps:{tabIndex:0,onPointerDown(){},onPointerMove(){},onKeyDown(){}}};
+ const r=render({}, {drag}),section=r.nodes.find(n=>n.type==='section'),heading=r.nodes.find(n=>n.props.className==='modal-heading'),body=r.nodes.find(n=>n.props.className==='memo-dialog-body');
+ assert.equal(r.m.dragOptions.elementRef,section.props.ref);assert.equal(r.m.dragOptions.boundary,'header');assert.equal(section.props.style.transform,'translate(90px,65px)');assert.equal(section.props['data-dragging'],true);
+ assert.equal(heading.props.onPointerDown,drag.handleProps.onPointerDown);assert.equal(heading.props.onKeyDown,drag.handleProps.onKeyDown);assert.equal(heading.props.tabIndex,0);assert.match(heading.props['aria-keyshortcuts'],/Home/);
+ assert.equal(body.props.onPointerDown,undefined);assert.equal(body.props.onPointerMove,undefined);assert.equal(r.nodes.find(n=>n.type==='textarea').props.value,draft.text);
+ const css=readFileSync(new URL('../src/memo-dialog.css',import.meta.url),'utf8');assert.match(css,/\.memo-dialog \.modal-heading\{[^}]*touch-action:none/);assert.doesNotMatch(css,/\.memo-dialog-body\{[^}]*touch-action:none/);
+});
+
+test('Tab includes the movable title in the focus loop and Escape retains the save guard',()=>{
+ const listeners=new Map(),focused=[];
+ const document={activeElement:null,addEventListener:(key,fn)=>listeners.set(key,fn),removeEventListener:key=>listeners.delete(key)};
+ const window={addEventListener(){},removeEventListener(){}};
+ const r=render({}, {document,window,requestAnimationFrame:()=>1,cancelAnimationFrame(){}});
+ const title={focus:()=>{focused.push('title');document.activeElement=title;}},save={focus:()=>{focused.push('save');document.activeElement=save;}};
+ let selector='';r.m.refs[0].current={querySelectorAll:value=>{selector=value;return [title,save];}};
+ const cleanup=r.m.effects[0]();let prevented=0;
+ document.activeElement=save;listeners.get('keydown')({key:'Tab',shiftKey:false,preventDefault(){prevented++;}});assert.equal(focused.at(-1),'title');assert.match(selector,/\[tabindex="0"\]/);
+ listeners.get('keydown')({key:'Tab',shiftKey:true,preventDefault(){prevented++;}});assert.equal(focused.at(-1),'save');assert.equal(prevented,2);
+ listeners.get('keydown')({key:'Escape',preventDefault(){}});assert.deepEqual(r.calls,[['close']]);cleanup();
+ const pending=render({saving:true},{document,window,requestAnimationFrame:()=>1,cancelAnimationFrame(){}});const end=pending.m.effects[0]();listeners.get('keydown')({key:'Escape',preventDefault(){}});assert.deepEqual(pending.calls,[]);end();
 });

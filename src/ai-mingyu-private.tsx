@@ -9,6 +9,7 @@ import {LegalText} from './legal-links';
 import ThesisFaq from './thesis-faq';
 import {openMingyuConnection} from './ai-mingyu-bridge';
 import './ai-mingyu.css';
+import {handleQuestionEnter} from './ai-mingyu-enter';
 
 type Status={connected:boolean;authType?:string;model?:string;edition?:unknown;private?:boolean};
 type DefenseItem=FaqItem&{examiner?:string;researchBasis?:unknown;defaultLawId?:string};
@@ -33,6 +34,7 @@ export default function PrivateAiMingyu({onPublic}:{onPublic?:()=>void}){
  const [research,setResearch]=useState<ResearchPerson[]>([]);
  const [redteam,setRedteam]=useState<RedteamItem[]>([]);
  const request=useRef<{id:string;controller:AbortController}|null>(null),answerEnd=useRef<HTMLDivElement>(null);
+ const composing=useRef(false);
  useEffect(()=>{answerEnd.current?.scrollIntoView({block:'nearest',behavior:'smooth'});},[turns.length,busy,mode]);
  useEffect(()=>{if(!token){setStatus(null);return;}let alive=true;mingyuRequest<Status>('/status',token).then(value=>{if(alive){setStatus(value);setError('');}}).catch(e=>{if(alive){setStatus(null);setError(e.message);}});return()=>{alive=false;};},[token]);
  useEffect(()=>()=>{const active=request.current;if(active){active.controller.abort();void mingyuRequest('/cancel',token,{requestId:active.id}).catch(()=>{});}},[token]);
@@ -86,8 +88,8 @@ export default function PrivateAiMingyu({onPublic}:{onPublic?:()=>void}){
      <form className="mingyu-question-form" onSubmit={ask}>
       {!busy&&(classification||!!suggestions.length)&&<details className="mingyu-compose-context"><summary>{classification?.label||classification?.category||'질문 분류'}{!!suggestions.length&&` · 관련 FAQ ${suggestions.length}개`}</summary>{classification&&<p className="mingyu-route">자동 분류: {classification.label||classification.category}{classification.model&&` · 새 답변이 필요하면 ${classification.model}`}<small>{classification.reason}</small></p>}{!!suggestions.length&&<div className="mingyu-suggestions"><p>관련 FAQ · 선택하면 검토된 답변을 바로 봅니다.</p>{suggestions.map(item=><button key={item.id} type="button" onClick={()=>void submitQuestion(item.question,item.id)}><small>{item.examiner||item.category}</small>{item.question}</button>)}</div>}</details>}
       <label className="mingyu-input-label" htmlFor="mingyu-question">AI민규에게 질문 보내기</label>
-      <textarea id="mingyu-question" value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.nativeEvent.isComposing){e.preventDefault();if(!busy)void submitQuestion(question);}}} maxLength={1800} rows={2} placeholder="주장, 조문, 예외 또는 예상 반론을 질문해 주세요."/>
-      <div className="mingyu-compose-footer"><span>{busy?'다음 질문을 적어 둘 수 있어요.':'Ctrl + Enter로 보내기'}</span><div className="mingyu-actions">{busy?<button type="button" className="mingyu-stop" onClick={cancel}>답변 중지</button>:<button type="submit" disabled={!question.trim()}>보내기 <span aria-hidden="true">↑</span></button>}</div></div>
+      <textarea id="mingyu-question" value={question} onChange={e=>setQuestion(e.target.value)} onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={()=>{composing.current=false;}} onKeyDown={e=>handleQuestionEnter(e,()=>void submitQuestion(question),composing.current,busy)} maxLength={1800} rows={2} placeholder="주장, 조문, 예외 또는 예상 반론을 질문해 주세요."/>
+      <div className="mingyu-compose-footer"><span>{busy?'다음 질문을 적어 둘 수 있어요.':'Enter로 보내기 · Shift + Enter로 줄바꿈'}</span><div className="mingyu-actions">{busy?<button type="button" className="mingyu-stop" onClick={cancel}>답변 중지</button>:<button type="submit" disabled={!question.trim()}>보내기 <span aria-hidden="true">↑</span></button>}</div></div>
      </form>
     </div>
     <div className="mingyu-chat-footer"><details className="mingyu-public-info"><summary>자료·답변 안내 <span>· v104 문안 / v102 적용</span></summary><p>수정지시서 v104는 문안모형이며 실제 적용원고는 v102입니다. 법령 자료 확인일은 2026. 10. 24.이며 실시간 조회 결과가 아닙니다.</p><p>새 답변은 질문의 난도에 따라 Luna·Sol·Astra를 선택합니다. 답변 수준은 이후의 설명 방식에 적용하며 법적 요건·예외는 유지합니다.</p><p>각 질문은 독립적으로 처리합니다. 앞선 답변을 이어 묻더라도 필요한 사실관계를 함께 적어 주세요.</p><p>질문·답변은 이 PC에만 누적 저장되며 ‘저장된 답변’에서 삭제할 수 있습니다.</p></details>{!!turns.length&&!busy&&<button type="button" onClick={()=>setTurns([])}>대화 화면 비우기</button>}</div>

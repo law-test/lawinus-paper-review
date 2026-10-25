@@ -1,5 +1,6 @@
 import type {MingyuAnswer,AnswerSection,Evidence} from './ai-mingyu-client';
 import {answerLevel,type AnswerLevel} from './ai-mingyu-level';
+import {AI_MINGYU_ENABLED,AI_MINGYU_PAUSED_MESSAGE} from './ai-mingyu-availability';
 export const PUBLIC_MINGYU_ENDPOINT='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/ai-mingyu';
 const deviceKey='lawinus.mingyu.public-device.v1';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -48,9 +49,11 @@ async function publicRequest(path:'/status'|'/ask',body?:unknown,signal?:AbortSi
  finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
 }
 export async function publicServiceStatus():Promise<boolean>{
+ if(!AI_MINGYU_ENABLED)return false;
  try{const data=await publicRequest('/status');return record(data)&&data.active===true&&data.generationEnabled===true;}catch{return false;}
 }
 export async function askPublicMingyu(question:string,level:AnswerLevel,requestId:string,signal?:AbortSignal):Promise<PublicMingyuResult>{
+ if(!AI_MINGYU_ENABLED)throw new Error(AI_MINGYU_PAUSED_MESSAGE);
  question=question.trim();if(!question||question.length>1800||!uuid.test(requestId))throw new Error('질문 내용을 확인한 뒤 다시 보내 주세요.');
  const selected=answerLevel(level),data=await publicRequest('/ask',{question,level:selected,deviceId:publicDeviceId(),requestId},signal);
  if(!record(data)||data.private!==false||data.requestId!==requestId||data.level!==selected||!['faq','cache','model'].includes(String(data.source)))throw new Error('답변 요청 정보를 확인하지 못했습니다. 다시 질문해 주세요.');

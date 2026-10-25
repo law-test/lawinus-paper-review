@@ -8,6 +8,7 @@ import React from 'react';
 import * as readingView from '../src/reading-view.ts';
 import * as swipe from '../src/mobile-menu-swipe.ts';
 import * as tools from '../src/workspace-tools.ts';
+import * as availability from '../src/ai-mingyu-availability.ts';
 const require=createRequire(import.meta.url);
 const read=name=>readFileSync(new URL('../src/'+name,import.meta.url),'utf8');
 const code=ts.transpileModule(read('reading-controls.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
@@ -22,7 +23,7 @@ function harness({height=56,bottom=height,windowHeight=844,visualViewport,open=t
  const module={exports:{}};
  vm.runInNewContext(code,{module,exports:module.exports,window:browser,ResizeObserver:class{constructor(callback){observerCallback=callback;}observe(node){observed.push(node);}disconnect(){disconnected=true;}},require:id=>{
   if(id==='react')return {...React,useState:()=>[open,value=>states.push(value)],useRef:initial=>({current:initial}),useEffect:effect=>effects.push(effect)};
-  if(id==='./reading-view')return readingView;if(id==='./mobile-menu-swipe')return swipe;if(id==='./workspace-tools')return tools;return require(id);
+  if(id==='./reading-view')return readingView;if(id==='./mobile-menu-swipe')return swipe;if(id==='./workspace-tools')return tools;if(id==='./ai-mingyu-availability')return availability;return require(id);
  }});
  const tree=module.exports.default({onTool(){},view:readingView.DEFAULT_READING_VIEW,onChange(){},sidebar:true,metadata:true,onSidebar(){},onMetadata(){},document:'thesis',onDocument(){},onEqualWidth(){}});
  tree.props.ref.current=controls;

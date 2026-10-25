@@ -5,6 +5,7 @@ import {createRequire} from 'node:module';
 import vm from 'node:vm';
 import ts from 'typescript';
 import React from 'react';
+import * as enter from '../src/ai-mingyu-enter.ts';
 
 const require=createRequire(import.meta.url);
 const typed='인가 전에 지급했지만 일부 금액만 낸 경우에는 어떻게 되나요?';
@@ -21,6 +22,7 @@ function render(withSuggestions){
   if(id==='react')return react;
   if(id==='./ai-mingyu-client')return {MINGYU_SESSION_KEY:'test',mingyuRequest:async(path,token,body)=>{calls.push({path,token,body});return {answer:{summary:'검토 답변',sections:[],citations:[]},source:'model'};},sectionLabels:{}};
   if(id==='./ai-mingyu-level')return {readAnswerLevel:()=> 'undergraduate',saveAnswerLevel(){}};
+  if(id==='./ai-mingyu-enter')return enter;
   if(id==='./ai-mingyu-answer')return {MingyuAvatar:()=>null};
   if(id==='./ai-mingyu-public')return {AnswerLevelControl:()=>null};
   if(id==='./thesis-faq-model')return {filterFaq:items=>items};

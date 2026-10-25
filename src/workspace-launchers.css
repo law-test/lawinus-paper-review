@@ -17,3 +17,4 @@
 .glossary-window-tools a{color:#305c3e;min-height:32px;display:inline-flex;align-items:center;text-underline-offset:3px}
 @media(max-width:480px){.workspace-launchers{padding-left:10px;padding-right:10px}.workspace-launcher-cards{gap:8px}.workspace-launcher-card{min-height:64px;padding:9px 10px}.workspace-launcher-card strong{font-size:.95rem}.workspace-launcher-card>span{display:none}.workspace-launcher-heading{font-size:.72rem}}
 @media print{.workspace-launchers,.glossary-window-tools{display:none!important}}
+.workspace-launcher-card:disabled{cursor:default;background:#f4f4f0;border-color:#c4c9c3;color:#586359;filter:none}

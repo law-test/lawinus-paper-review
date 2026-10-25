@@ -1,4 +1,5 @@
 import React,{useEffect,useRef} from 'react';
+import {usePopupDrag} from './use-popup-drag';
 import './memo-dialog.css';
 
 type Draft=Record<string,any>;
@@ -14,6 +15,7 @@ export function memoInputScrollTop(scrollTop:number,bodyTop:number,bodyHeight:nu
 
 export default function MemoDialog({draft,saving,sessionReady,sessionConnecting,error,onChange,onClose,onSave,onDelete,onReconnect}:Props){
   const dialog=useRef<HTMLElement>(null),body=useRef<HTMLDivElement>(null),input=useRef<HTMLTextAreaElement>(null);
+  const drag=usePopupDrag({elementRef:dialog,boundary:'header'});
   const opener=useRef(typeof document==='undefined'?null:document.activeElement as HTMLElement|null);
   const current=useRef({saving,onClose});current.current={saving,onClose};
   const revealInput=()=>{
@@ -29,7 +31,7 @@ export default function MemoDialog({draft,saving,sessionReady,sessionConnecting,
     const onKey=(event:KeyboardEvent)=>{
       if(event.key==='Escape'){event.preventDefault();if(!current.current.saving)current.current.onClose();return;}
       if(event.key!=='Tab')return;
-      const items=Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),textarea:not(:disabled),input:not(:disabled),a[href]')||[]);
+      const items=Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),textarea:not(:disabled),input:not(:disabled),a[href],[tabindex="0"]')||[]);
       const first=items[0],last=items[items.length-1];
       if(!first){event.preventDefault();dialog.current?.focus({preventScroll:true});}
       else if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus({preventScroll:true});}
@@ -41,8 +43,8 @@ export default function MemoDialog({draft,saving,sessionReady,sessionConnecting,
   const editable=!draft.id||draft.editable;
   const close=()=>{if(!saving)onClose();};
   return <div className="modal-backdrop memo-dialog-backdrop" onClick={event=>{if(event.target===event.currentTarget)close();}}>
-    <section ref={dialog} className="memo-modal memo-dialog" role="dialog" aria-modal="true" aria-labelledby="memo-title" tabIndex={-1}>
-      <div className="modal-heading"><h2 id="memo-title">{draft.id?'검토 메모':'메모 붙이기'}</h2><button disabled={saving} onClick={close} aria-label="닫기">×</button></div>
+    <section ref={dialog} className="memo-modal memo-dialog" role="dialog" aria-modal="true" aria-labelledby="memo-title" tabIndex={-1} data-dragging={drag.dragging||undefined} style={{transform:`translate(${drag.offset.x}px,${drag.offset.y}px)`}}>
+      <div className="modal-heading" {...drag.handleProps} aria-label="메모창 이동" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home"><h2 id="memo-title">{draft.id?'검토 메모':'메모 붙이기'}</h2><button disabled={saving} onClick={close} aria-label="닫기">×</button></div>
       <div ref={body} className="memo-dialog-body">
         <p className="small-note">{draft.noteId?`각주 ${Number(draft.noteId.slice(3))}`:draft.anchorType==='source'?'참고자료':draft.anchorType==='general'?'전체 의견':'논문 원문'}{draft.page?` · PDF ${draft.page}쪽`:''}</p>
         {draft.quote&&<blockquote>{draft.quote}</blockquote>}

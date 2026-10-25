@@ -1,8 +1,20 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {evidenceHref,MINGYU_ENDPOINT,mingyuRequest} from '../src/ai-mingyu-client.ts';
+import {evidenceHref,MINGYU_ENDPOINT} from '../src/ai-mingyu-client.ts';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
 import {reviewDeepLink,proposalAnnotation} from '../src/thesis-faq-model.ts';
 import {defaultReadingSession,validateReadingSession} from '../src/reading-session.ts';
+
+// Preserve enabled-service timeout coverage while the deployment is paused.
+const enabledModule={exports:{}};
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../src/ai-mingyu-client.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{
+ module:enabledModule,exports:enabledModule.exports,URL,AbortController,DOMException,
+ setTimeout:(...args)=>globalThis.setTimeout(...args),clearTimeout:(...args)=>globalThis.clearTimeout(...args),fetch:(...args)=>globalThis.fetch(...args),
+ require:id=>id==='./ai-mingyu-availability.ts'?{AI_MINGYU_ENABLED:true}:id==='./ai-mingyu-bridge.ts'?{mingyuBridgeActive:()=>false}:null,
+});
+const {mingyuRequest}=enabledModule.exports;
 
 test('private service points to loopback and evidence rejects executable schemes and embedded credentials',()=>{
  assert.equal(MINGYU_ENDPOINT,'http://127.0.0.1:43164');

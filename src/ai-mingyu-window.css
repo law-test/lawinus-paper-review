@@ -3,3 +3,5 @@
 .mingyu-window-tools a{color:#324a60;text-decoration:underline;text-underline-offset:3px}
 .mingyu-standalone>.ai-mingyu-panel{flex:1;min-height:0;width:100%;max-width:none;margin:0}
 @media(max-width:450px){.mingyu-window-tools{padding:9px 12px;font-size:12px;gap:8px}}
+.mingyu-maintenance{flex:1;min-height:0;overflow:auto;padding:28px;color:#284a3b;background:#fffef9}
+.mingyu-maintenance h1{font-size:1.5rem;line-height:1.5}.mingyu-maintenance p{line-height:1.7}.mingyu-maintenance a{display:inline-flex;padding:10px 16px;border:1px solid #92afa0;border-radius:8px;color:#244d3b;text-underline-offset:3px}

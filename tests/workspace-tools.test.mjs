@@ -20,17 +20,17 @@ function browser(width=1700,blocked=false){
  const calls=[];let focused=0;const location={href:'https://paper.lawinus.org/?paragraph=P0283&v=265c#source'};
  return {location,innerWidth:width,calls,get focused(){return focused;},open(...args){calls.push(args);return blocked?null:{focus(){focused++;}};}};
 }
-test('desktop launches each tool in its own named window without moving the paper',()=>{
+test('desktop launches glossary and blocks paused AI without moving the paper',()=>{
  const b=browser();const original=b.location.href;
- assert.equal(openWorkspaceTool('ai-mingyu',b),true);assert.equal(openWorkspaceTool('glossary',b),true);
- assert.equal(b.location.href,original);assert.equal(b.focused,2);
- assert.deepEqual(b.calls.map(c=>c.slice(0,2)),[['https://paper.lawinus.org/?view=ai-mingyu&chat=1','ai-mingyu-chat'],['https://paper.lawinus.org/?view=glossary&dictionary=1','lawinus-glossary']]);
+ assert.equal(openWorkspaceTool('ai-mingyu',b),false);assert.equal(openWorkspaceTool('glossary',b),true);
+ assert.equal(b.location.href,original);assert.equal(b.focused,1);
+ assert.deepEqual(b.calls.map(c=>c.slice(0,2)),[['https://paper.lawinus.org/?view=glossary&dictionary=1','lawinus-glossary']]);
  assert.ok(b.calls.every(c=>c[2].includes('popup,')&&c[2].includes('scrollbars=yes')));
 });
-test('small screens open a new tab for both tools instead of replacing the paper',()=>{
+test('small screens open the available glossary in a new tab instead of replacing the paper',()=>{
  const b=browser(390);const original=b.location.href;
- for(const tool of ['ai-mingyu','glossary'])assert.equal(openWorkspaceTool(tool,b),true);
- assert.equal(b.location.href,original);assert.equal(b.calls.length,2);assert.ok(b.calls.every(c=>c[1]==='_blank'&&c.length===2));
+ assert.equal(openWorkspaceTool('ai-mingyu',b),false);assert.equal(openWorkspaceTool('glossary',b),true);
+ assert.equal(b.location.href,original);assert.equal(b.calls.length,1);assert.ok(b.calls.every(c=>c[1]==='_blank'&&c.length===2));
 });
 test('blocked popups leave the native new-tab link available',()=>{
  const b=browser(1700,true);assert.equal(openWorkspaceTool('glossary',b),false);
@@ -47,7 +47,7 @@ test('modifier and middle-button clicks retain browser-native link behavior',()=
 });
 
 test('automatic in-page tools open only on the first ordinary top-level entry',()=>{
- for(const search of ['', '?v=265c'])assert.deepEqual(initialWorkspaceTools(search,'',false,false),['ai-mingyu','glossary']);
+ for(const search of ['', '?v=265c'])assert.deepEqual(initialWorkspaceTools(search,'',false,false),['glossary']);
  for(const [search,hash,embedded,seen] of [['','',false,true],['','',true,false],['','#P0283',false,false],['?paragraph=P0283','',false,false],['?view=ai-mingyu','',false,false],['?view=glossary&dictionary=1&embedded=1','',true,false]])assert.deepEqual(initialWorkspaceTools(search,hash,embedded,seen),[]);
  for(const tool of ['ai-mingyu','glossary']){const url=new URL(embeddedWorkspaceToolHref(tool),'https://paper.lawinus.org/');assert.equal(standaloneWorkspaceTool(url.search),tool);assert.equal(url.searchParams.get('embedded'),'1');}
 });

@@ -9,9 +9,9 @@ const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.Comm
 const requestId='12345678-1234-4123-8123-123456789abc',deviceId='87654321-4321-4321-8321-abcdef123456';
 const answer={summary:'검토 결과',sections:[{kind:'author_interpretation',title:'필자 해석',text:'필자의 해석이며 법원의 확정된 결론과 구별합니다.',citationIds:['P1']}],citations:[{id:'P1',kind:'paper',label:'논문 근거',href:'https://paper.lawinus.org/?proposal=P0979'}],edition:'v104 문안모형',sourceWarning:'실제 적용원고 v102'};
 const valid=()=>({answer:structuredClone(answer),level:'doctoral',source:'model',model:'gpt-model',requestId,private:false,elapsedMs:55,generatedAt:'2026-10-25T00:00:00Z',evidenceDate:'2026-10-24'});
-function setup(result,status=200){
+function setup(result,status=200,enabled=true){
  const requests=[],reads=[],writes=[],values=new Map(),module={exports:{}};
- vm.runInNewContext(code,{module,exports:module.exports,URL,Set,Map,AbortController,setTimeout,clearTimeout,Date,crypto:{randomUUID:()=>deviceId},localStorage:{getItem:key=>{reads.push(key);return values.get(key)||null;},setItem:(key,value)=>{writes.push({key,value});values.set(key,value);}},sessionStorage:new Proxy({},{get(){throw Error('private storage touched');}}),fetch:async(url,options)=>{requests.push({url,options});return {ok:status>=200&&status<300,status,text:async()=>JSON.stringify(result)};},require:id=>{if(id==='./ai-mingyu-level')return levels;throw Error('Unexpected runtime import '+id);}});
+ vm.runInNewContext(code,{module,exports:module.exports,URL,Set,Map,AbortController,setTimeout,clearTimeout,Date,crypto:{randomUUID:()=>deviceId},localStorage:{getItem:key=>{reads.push(key);return values.get(key)||null;},setItem:(key,value)=>{writes.push({key,value});values.set(key,value);}},sessionStorage:new Proxy({},{get(){throw Error('private storage touched');}}),fetch:async(url,options)=>{requests.push({url,options});return {ok:status>=200&&status<300,status,text:async()=>JSON.stringify(result)};},require:id=>{if(id==='./ai-mingyu-level')return levels;if(id==='./ai-mingyu-availability')return {AI_MINGYU_ENABLED:enabled,AI_MINGYU_PAUSED_MESSAGE:'준비 중입니다. 논문 FAQ를 이용해 주세요.'};throw Error('Unexpected runtime import '+id);}});
  return {...module.exports,requests,reads,writes,values};
 }
 test('public status does not touch device or private storage and an absent service stays in FAQ mode',async()=>{
@@ -58,4 +58,9 @@ test('a clarification-only limitations response can omit citations without imply
  assert.equal(h.validatePublicAnswer(clarification).sections[0].kind,'limitations');
  const unsupported=structuredClone(clarification);unsupported.sections[0].kind='current_law';assert.throws(()=>h.validatePublicAnswer(unsupported));
  const mixed=structuredClone(answer);mixed.sections.push(clarification.sections[0]);assert.equal(h.validatePublicAnswer(mixed).sections.length,2);
+});
+test('the paused service performs no status or question request and touches no browser identity',async()=>{
+ const h=setup(valid(),200,false);assert.equal(await h.publicServiceStatus(),false);
+ await assert.rejects(()=>h.askPublicMingyu('질문','doctoral',requestId),/준비 중/);
+ assert.equal(h.requests.length,0);assert.equal(h.reads.length,0);assert.equal(h.writes.length,0);
 });

@@ -1,4 +1,5 @@
 import {bridgeRequest,mingyuBridgeActive} from './ai-mingyu-bridge.ts';
+import {AI_MINGYU_ENABLED,AI_MINGYU_PAUSED_MESSAGE} from './ai-mingyu-availability.ts';
 export const MINGYU_ENDPOINT='http://127.0.0.1:43164';
 export const MINGYU_SESSION_KEY='lawinus.ai-mingyu.private-session.v1';
 export type Evidence={id:string;label:string;href:string;kind?:string;edition?:string};
@@ -9,6 +10,7 @@ export function evidenceHref(value:string):string|null{
  try{const url=new URL(value,'https://paper.lawinus.org/');return url.protocol==='https:'&&!url.username&&!url.password?url.href:null;}catch{return null;}
 }
 export async function mingyuRequest<T>(path:string,token:string,body?:unknown,signal?:AbortSignal,method?:string):Promise<T>{
+ if(!AI_MINGYU_ENABLED)throw new Error(AI_MINGYU_PAUSED_MESSAGE);
  if(mingyuBridgeActive())return bridgeRequest<T>(path,body,signal,method);
  if(token==='bridge')throw new Error('이 PC의 연결창을 다시 열어 주세요. 사용하는 동안 연결창을 열어 두어야 합니다.');
  const controller=new AbortController();let timedOut=false;
