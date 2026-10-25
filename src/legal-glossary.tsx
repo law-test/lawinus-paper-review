@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {dictionaryHref,exampleKindLabel,favoriteStorageKey,filterGlossary,glossarySearchText,languageLabels,normalizeLanguage,parseFavoriteIds,parseGlossary,selectSpeechVoice,speechLanguages,type GlossaryData,type GlossaryEntry,type GlossaryExample,type GlossaryLanguage,type GlossaryOrder} from './legal-glossary-model';
 import './legal-glossary.css';
+import {parseLearningExamples,type LearningExample} from './legal-glossary-learning';
 
 function usePronunciation(){
  const [voices,setVoices]=useState<SpeechSynthesisVoice[]>([]);
@@ -41,7 +42,7 @@ function usePronunciation(){
  return{speaking,message,phase,voiceLabel,speak,stop};
 }
 
-function Entry({entry,examples,sourceNames,favorite,onFavorite,speakingId,onSpeak}:{entry:GlossaryEntry;examples:GlossaryExample[];sourceNames:Map<string,string>;favorite:boolean;onFavorite:()=>void;speakingId:string|null;onSpeak:(value:{id:string;text:string;language:GlossaryLanguage})=>void}){
+function Entry({entry,examples,learning,sourceNames,favorite,onFavorite,speakingId,onSpeak}:{entry:GlossaryEntry;examples:GlossaryExample[];learning?:LearningExample;sourceNames:Map<string,string>;favorite:boolean;onFavorite:()=>void;speakingId:string|null;onSpeak:(value:{id:string;text:string;language:GlossaryLanguage})=>void}){
  const [shown,setShown]=useState(8);
  const [shownExamples,setShownExamples]=useState(1);
  const gloss=[entry.pronunciation,entry.meaning].filter(Boolean).join(', ');
@@ -52,6 +53,11 @@ function Entry({entry,examples,sourceNames,favorite,onFavorite,speakingId,onSpea
    <h3><a href={dictionaryHref(entry)} target="_blank" rel="noopener noreferrer" lang={speechLanguages[entry.language]} aria-label={`${entry.term} 외부 사전에서 보기 (새 창)`}>{entry.term}</a>{gloss&&<span className="glossary-gloss">, {gloss}</span>}</h3>
    <button type="button" className="glossary-favorite" aria-pressed={favorite} onClick={onFavorite} aria-label={`${entry.term} 즐겨찾기 ${favorite?'해제':'추가'}`} title={`즐겨찾기 ${favorite?'해제':'추가'}`}><span aria-hidden="true">{favorite?'★':'☆'}</span></button>
   </div>
+  {learning&&learning.language===entry.language&&<div className="glossary-example glossary-learning-example">
+   <span className="glossary-example-kind">쉬운 예문 · 학습용</span>
+   <div className="glossary-example-original"><button type="button" className={`glossary-speak${speakingId===`learning:${entry.id}`?' is-speaking':''}`} onClick={()=>onSpeak({id:`learning:${entry.id}`,text:learning.speechText||learning.text,language:learning.language})} aria-label={`${entry.term} 쉬운 예문 ${languageLabels[learning.language]} 발음 ${speakingId===`learning:${entry.id}`?'중지':'듣기'}`}><span aria-hidden="true">{speakingId===`learning:${entry.id}`?'◉':'🔊'}</span></button><p lang={speechLanguages[learning.language]}>{learning.text}</p></div>
+   <p className="glossary-example-translation">{learning.translation}</p>
+  </div>}
   {examples.slice(0,shownExamples).map(example=><div className="glossary-example" key={example.id}>
    <span className="glossary-example-kind">{exampleKindLabel(example.kind)}</span>
    <div className="glossary-example-original"><button type="button" className={`glossary-speak${speakingId===`example:${entry.id}:${example.id}`?' is-speaking':''}`} onClick={()=>onSpeak({id:`example:${entry.id}:${example.id}`,text:example.text,language:example.language})} aria-label={`${entry.term} ${exampleKindLabel(example.kind)} ${languageLabels[example.language]} 발음 ${speakingId===`example:${entry.id}:${example.id}`?'중지':'듣기'}`}><span aria-hidden="true">{speakingId===`example:${entry.id}:${example.id}`?'◉':'🔊'}</span></button><p lang={speechLanguages[example.language]}>{example.text}</p></div>
@@ -77,12 +83,17 @@ function Entry({entry,examples,sourceNames,favorite,onFavorite,speakingId,onSpea
 
 export default function LegalGlossary(){
  const [data,setData]=useState<GlossaryData|null>(null);const [error,setError]=useState(false);const [reload,setReload]=useState(0);
+ const [learning,setLearning]=useState<Map<string,LearningExample>>(new Map());const [learningError,setLearningError]=useState(false);const [learningReload,setLearningReload]=useState(0);
  const [query,setQuery]=useState('');const [language,setLanguage]=useState('all');const [source,setSource]=useState('all');const [order,setOrder]=useState<GlossaryOrder>('importance');const [onlyImportant,setOnlyImportant]=useState(false);const [onlyFavorites,setOnlyFavorites]=useState(false);const [favorites,setFavorites]=useState<Set<string>>(new Set());const [limit,setLimit]=useState(50);const [storageMessage,setStorageMessage]=useState('');
  const pronunciation=usePronunciation();
  useEffect(()=>{const abort=new AbortController();setError(false);setData(null);
   fetch('./legal-glossary265.json',{signal:abort.signal}).then(response=>{if(!response.ok)throw new Error('fetch');return response.json();}).then(raw=>{const parsed=parseGlossary(raw);if(abort.signal.aborted)return;setData(parsed);try{setFavorites(parseFavoriteIds(localStorage.getItem(favoriteStorageKey(parsed.version)),parsed.entries));}catch{setFavorites(new Set());setStorageMessage('이 브라우저에서는 즐겨찾기를 저장할 수 없습니다. 현재 화면에서는 사용할 수 있습니다.');}}).catch(()=>{if(!abort.signal.aborted)setError(true);});
   return()=>abort.abort();
  },[reload]);
+ useEffect(()=>{const abort=new AbortController();setLearningError(false);
+  fetch('./legal-glossary-learning270.json',{signal:abort.signal}).then(response=>{if(!response.ok)throw new Error('fetch-learning');return response.json();}).then(raw=>{const parsed=parseLearningExamples(raw);if(!abort.signal.aborted)setLearning(parsed);}).catch(()=>{if(!abort.signal.aborted)setLearningError(true);});
+  return()=>abort.abort();
+ },[learningReload]);
  useEffect(()=>setLimit(50),[query,language,source,order,onlyFavorites,onlyImportant]);
  const searchIndex=useMemo(()=>new Map(data?.entries.map(e=>[e.id,glossarySearchText(e)])??[]),[data]);
  const sourceNames=useMemo(()=>new Map(data?.sources.map(s=>[s.id,s.title])??[]),[data]);
@@ -94,6 +105,8 @@ export default function LegalGlossary(){
  return <section className="scroll-panel legal-glossary-panel" aria-labelledby="legal-glossary-title">
   <div className="panel-heading"><span className="section-eyebrow">법학 어학사전</span><h2 id="legal-glossary-title">원문을 읽는 데 필요한 단어</h2><p>논문에서 인용한 외국 문헌의 단어를 찾아보고, 원문에서 쓰인 자리로 이동할 수 있습니다.</p></div>
   <p className="glossary-note">한글 발음은 읽기를 돕는 약식 표기입니다. 스피커는 브라우저 합성음성으로 읽으며, 단어를 누르면 외부 사전이 열립니다.</p>
+  <p className="glossary-learning-note">쉬운 예문은 단어 학습을 위해 만든 문장입니다. 아래 원문 예문에서 참고문헌의 실제 쓰임을 확인할 수 있습니다.</p>
+  {learningError&&<p className="glossary-note" role="status">쉬운 예문을 불러오지 못했습니다. <button type="button" onClick={()=>setLearningReload(v=>v+1)}>다시 불러오기</button></p>}
   {!data&&!error&&<p role="status">사전을 불러오는 중입니다.</p>}
   {error&&<div className="glossary-empty" role="alert"><p>사전을 불러오지 못했습니다.</p><button type="button" onClick={()=>setReload(v=>v+1)}>다시 불러오기</button></div>}
   {data&&<>
@@ -110,7 +123,7 @@ export default function LegalGlossary(){
    {pronunciation.message&&<p className="glossary-audio-message" role="status">{pronunciation.message}</p>}
    {pronunciation.speaking&&<div className="glossary-audio-controls"><span role="status">{pronunciation.phase==='playing'?'발음 재생 중':'발음 준비 중'}</span><button type="button" onClick={pronunciation.stop}>발음 중지</button></div>}
    {pronunciation.voiceLabel&&<details className="glossary-voice-info"><summary>발음 정보</summary><p>선택 음성: {pronunciation.voiceLabel}</p><p>{pronunciation.phase==='playing'?'브라우저가 재생 시작을 알렸습니다.':pronunciation.phase==='preparing'?'브라우저의 재생 시작을 기다리고 있습니다.':'현재 발음을 재생하고 있지 않습니다.'}</p></details>}
-   {filtered.length?<div className="glossary-list">{filtered.slice(0,limit).map(entry=><Entry key={entry.id} entry={entry} examples={(entry.exampleIds??[]).map(id=>exampleMap.get(id)).filter((e):e is GlossaryExample=>!!e)} sourceNames={sourceNames} favorite={favorites.has(entry.id)} onFavorite={()=>toggleFavorite(entry.id)} speakingId={pronunciation.speaking} onSpeak={pronunciation.speak}/>)}</div>:<div className="glossary-empty"><p>{onlyFavorites?'조건에 맞는 즐겨찾기가 없습니다.':'조건에 맞는 단어가 없습니다.'}</p><button type="button" onClick={clearFilters}>전체 단어 보기</button></div>}
+   {filtered.length?<div className="glossary-list">{filtered.slice(0,limit).map(entry=><Entry key={entry.id} entry={entry} learning={learning.get(entry.id)} examples={(entry.exampleIds??[]).map(id=>exampleMap.get(id)).filter((e):e is GlossaryExample=>!!e)} sourceNames={sourceNames} favorite={favorites.has(entry.id)} onFavorite={()=>toggleFavorite(entry.id)} speakingId={pronunciation.speaking} onSpeak={pronunciation.speak}/>)}</div>:<div className="glossary-empty"><p>{onlyFavorites?'조건에 맞는 즐겨찾기가 없습니다.':'조건에 맞는 단어가 없습니다.'}</p><button type="button" onClick={clearFilters}>전체 단어 보기</button></div>}
    {filtered.length>limit&&<button type="button" className="glossary-load-more" onClick={()=>setLimit(n=>n+50)}>50개 더 보기 ({Math.min(limit,filtered.length).toLocaleString('ko-KR')}/{filtered.length.toLocaleString('ko-KR')})</button>}
    <details className="glossary-source-list"><summary>수록 문헌과 범위</summary>{data.scope&&<p>{data.scope}</p>}<ul>{data.sources.map(s=><li key={s.id}>{s.href?<a href={s.href} target="_blank" rel="noopener noreferrer">{s.title} ↗</a>:s.title}{s.scope&&<p>{s.scope}</p>}</li>)}</ul></details>
   </>}

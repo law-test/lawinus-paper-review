@@ -6,17 +6,19 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import React from 'react';
 import * as model from '../src/pdf-viewer-model.ts';
+import * as selection from '../src/pdf-selection.ts';
 
 const require=createRequire(import.meta.url);
 const code=ts.transpileModule(readFileSync(new URL('../src/pdf-viewer.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function QuickTools(){return null;}
 function memory(initial=[]){const map=new Map(initial);return {map,getItem:key=>map.get(key)??null,setItem:(key,value)=>map.set(key,value)};}
 function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=null,id='thesis',navigationToken=0,scrollQuantum=0}={}){
- const hooks=[],layouts=[],effects=[],observers=new Set(),frames=new Map(),timers=new Map(),reports=[],acks=[];
- let index=0,dirty=true,tree,top=0,left=0,contentHeight=1,contentWidth=1,serial=0,resolveDoc;
- const win=Object.assign(new EventTarget(),{localStorage:storage}),document=Object.assign(new EventTarget(),{hidden:false,baseURI:'https://example.invalid/'});
+ const hooks=[],layouts=[],effects=[],observers=new Set(),frames=new Map(),timers=new Map(),reports=[],acks=[],clipboardWrites=[],textNodes=new Set();
+ let index=0,dirty=true,tree,top=0,left=0,contentHeight=1,contentWidth=1,serial=0,resolveDoc,currentSelection=null;
+ const win=Object.assign(new EventTarget(),{localStorage:storage,getSelection:()=>currentSelection}),document=Object.assign(new EventTarget(),{hidden:false,baseURI:'https://example.invalid/'});
+ const navigator={clipboard:{writeText:async text=>{clipboardWrites.push(text);}}};
  const rounded=value=>scrollQuantum?Math.round(value/scrollQuantum)*scrollQuantum:value;
- const host={clientWidth:width,clientHeight:height,hasPointerCapture:()=>false,releasePointerCapture(){},get scrollTop(){return top;},set scrollTop(v){top=Math.max(0,Math.min(rounded(v),Math.max(0,contentHeight+36-host.clientHeight)));},get scrollLeft(){return left;},set scrollLeft(v){left=Math.max(0,Math.min(rounded(v),Math.max(0,contentWidth+44-host.clientWidth)));}};
+ const host={contains:node=>textNodes.has(node),clientWidth:width,clientHeight:height,hasPointerCapture:()=>false,releasePointerCapture(){},get scrollTop(){return top;},set scrollTop(v){top=Math.max(0,Math.min(rounded(v),Math.max(0,contentHeight+36-host.clientHeight)));},get scrollLeft(){return left;},set scrollLeft(v){left=Math.max(0,Math.min(rounded(v),Math.max(0,contentWidth+44-host.clientWidth)));}};
  let docPromise=new Promise(resolve=>{resolveDoc=resolve;});
  const props={id,page,total:279,zoom,fitMode,quickTools:true,persistenceKey:'d:'+id,navigationToken,onZoomResolved:value=>{props.zoom=value;dirty=true;},onZoomChange:value=>{props.zoom=value;props.fitMode=null;dirty=true;},onFitModeChange:value=>{props.fitMode=value;dirty=true;},onPageChange:value=>{reports.push(value);props.page=value;dirty=true;},onNavigationHandled:value=>{acks.push(value);if(props.navigationToken===value){props.navigationToken=0;dirty=true;}}};
  const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
@@ -24,8 +26,9 @@ function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=n
  const useEffect=(queue)=>(fn,deps)=>{const i=index++,old=hooks[i];if(!old||!same(old.deps,deps)){hooks[i]={deps,cleanup:old?.cleanup};queue.push(()=>{hooks[i].cleanup?.();hooks[i].cleanup=fn();});}};
  const react={...React,useRef:initial=>{const i=index++;return hooks[i]??= {current:initial};},useState:initial=>{const i=index++;if(!(i in hooks))hooks[i]={value:typeof initial==='function'?initial():initial};return [hooks[i].value,next=>{const value=typeof next==='function'?next(hooks[i].value):next;if(!Object.is(value,hooks[i].value)){hooks[i].value=value;dirty=true;}}];},useMemo,useCallback:(fn,deps)=>useMemo(()=>fn,deps),useLayoutEffect:useEffect(layouts),useEffect:useEffect(effects)};
  const module={exports:{}};
- vm.runInNewContext(code,{module,exports:module.exports,window:win,document,URL,performance,getComputedStyle:()=>({paddingLeft:'22',paddingRight:'22'}),requestAnimationFrame:fn=>{const n=++serial;frames.set(n,fn);return n;},cancelAnimationFrame:n=>frames.delete(n),setTimeout:fn=>{const n=++serial;timers.set(n,fn);return n;},clearTimeout:n=>timers.delete(n),ResizeObserver:class{constructor(fn){this.fn=fn;}observe(){observers.add(this.fn);this.fn();}disconnect(){observers.delete(this.fn);}},require:name=>{
+ vm.runInNewContext(code,{module,exports:module.exports,window:win,document,navigator,URL,performance,getComputedStyle:()=>({paddingLeft:'22',paddingRight:'22'}),requestAnimationFrame:fn=>{const n=++serial;frames.set(n,fn);return n;},cancelAnimationFrame:n=>frames.delete(n),setTimeout:fn=>{const n=++serial;timers.set(n,fn);return n;},clearTimeout:n=>timers.delete(n),ResizeObserver:class{constructor(fn){this.fn=fn;}observe(){observers.add(this.fn);this.fn();}disconnect(){observers.delete(this.fn);}},require:name=>{
   if(name==='react')return react;
+  if(name==='./pdf-selection')return selection;
   if(name==='./pdf-viewer-model')return {...model,createPdfRuntimeCache:()=>({get:async()=>({getDocument:()=>({promise:docPromise,destroy:async()=>{}})}),retry(){}})};
   if(name==='./review-api')return {assetUrl:key=>'https://example.invalid/'+key};
   if(name==='./pdf-quick-controls')return {__esModule:true,default:QuickTools};
@@ -45,9 +48,73 @@ function harness({storage=memory(),width=390,height=700,page=20,zoom=1,fitMode=n
  function fit(next,{frames=true}={}){nodes().find(n=>n.type===QuickTools).props.onFitModeChange(next);settle(frames);}
  function numeric(next){nodes().find(n=>n.type===QuickTools).props.onZoomChange(next);settle();}
  function dimensions(){return nodes().find(n=>n.props?.className==='pdf-continuous-pages').props.style;}
+ function textSelection(text){const anchorNode={},focusNode={};textNodes.add(anchorNode);textNodes.add(focusNode);return {isCollapsed:false,anchorNode,focusNode,toString:()=>text};}
+ function select(value,{notify=true}={}){currentSelection=value;if(notify){document.dispatchEvent(new Event('selectionchange'));settle();}}
+ const copyButton=()=>nodes().find(n=>n.type==='button'&&n.props.children==='선택 복사');
+ const copyStatus=()=>nodes().find(n=>n.props.className==='pdf-copy-help').props.children;
+ async function copy(){await copyButton().props.onClick();settle();}
  function dispose(){for(const h of hooks)h?.cleanup?.();frames.clear();timers.clear();}
- settle();return {host,props,storage,reports,acks,load,resize,scroll,flush,change,quick,fit,numeric,dimensions,dispose,settle};
+ settle();return {host,props,storage,reports,acks,load,resize,scroll,flush,change,quick,fit,numeric,dimensions,dispose,settle,nodes,textSelection,select,copyButton,copyStatus,copy,clipboardWrites};
 }
+
+test('the real copy button preserves the current PDF selection and its whitespace',async()=>{
+ const h=harness();
+ assert.equal(h.copyButton().props.disabled,true);
+ const text='주택임차인의 권리  및 요건\n예외·기한\t보존';
+ h.select(h.textSelection(text));assert.equal(h.copyButton().props.disabled,false);
+ let prevented=0;h.copyButton().props.onMouseDown({preventDefault:()=>prevented++});
+ assert.equal(prevented,1,'pressing the copy button must preserve the browser selection');
+ await h.copy();assert.deepEqual(h.clipboardWrites,[text]);
+ assert.equal(h.copyStatus(),'선택한 글자를 복사했습니다.');h.dispose();
+});
+
+test('copy never reuses old selected text after selection is cleared, even before selectionchange arrives',async()=>{
+ for(const cleared of [null,{isCollapsed:true,anchorNode:{},focusNode:{},toString:()=>''}]){
+  const h=harness();h.select(h.textSelection('이전에 선택한 문장'));
+  h.select(cleared,{notify:false});assert.equal(h.copyButton().props.disabled,false,'reproduce stale button state before the browser event');
+  await h.copy();assert.deepEqual(h.clipboardWrites,[],'no previous text may reach the clipboard');
+  assert.equal(h.copyStatus(),'먼저 복사할 문장을 드래그해 선택하세요.');
+  h.select(cleared);assert.equal(h.copyButton().props.disabled,true);h.dispose();
+ }
+});
+
+test('another PDF pane selection cannot copy the old selection or the other pane text',async()=>{
+ const paper=harness({id:'thesis'}),reference=harness({id:'reference'});
+ paper.select(paper.textSelection('논문의 이전 선택'));
+ const referenceSelection=reference.textSelection('각주 원전의 현재 선택');
+ paper.select(referenceSelection,{notify:false});
+ await paper.copy();assert.deepEqual(paper.clipboardWrites,[]);
+ assert.equal(paper.copyStatus(),'먼저 복사할 문장을 드래그해 선택하세요.');
+ paper.select(referenceSelection);assert.equal(paper.copyButton().props.disabled,true);
+ reference.select(referenceSelection);await reference.copy();
+ assert.deepEqual(reference.clipboardWrites,['각주 원전의 현재 선택']);
+ paper.dispose();reference.dispose();
+});
+
+test('copy rereads a newer valid selection instead of its previous rendered value',async()=>{
+ const h=harness();h.select(h.textSelection('이전 선택'));
+ h.select(h.textSelection('새로 선택한 문장'),{notify:false});
+ await h.copy();assert.deepEqual(h.clipboardWrites,['새로 선택한 문장']);h.dispose();
+});
+
+test('a document identity change clears selection and the old copy-success message without a browser selection event',async()=>{
+ const h=harness();h.select(h.textSelection('이전 문서의 선택'));await h.copy();
+ assert.equal(h.copyStatus(),'선택한 글자를 복사했습니다.');
+ h.select(null,{notify:false});h.change({id:'different-reference',persistenceKey:'d:different-reference'});
+ assert.equal(h.copyButton().props.disabled,true);
+ assert.equal(h.copyStatus(),'문장 드래그 → Ctrl+C / ⌘C');
+ assert.deepEqual(h.clipboardWrites,['이전 문서의 선택']);
+ h.select(h.textSelection('새 문서의 선택'));await h.copy();
+ assert.deepEqual(h.clipboardWrites,['이전 문서의 선택','새 문서의 선택']);h.dispose();
+});
+test('PDF opens in text-selection mode; only an explicit hand-mode choice suppresses browser selection',()=>{
+ const h=harness();
+ let stage=h.nodes().find(n=>n.props.onScroll);assert.match(stage.props.className,/selection-mode/);
+ let prevented=0;const event={pointerType:'mouse',button:0,pointerId:1,clientX:10,clientY:10,target:{closest:()=>null},currentTarget:h.host,preventDefault:()=>prevented++};
+ stage.props.onPointerDown(event);assert.equal(prevented,0);
+ const hand=h.nodes().find(n=>n.type==='button'&&n.props.children==='✋ 이동');hand.props.onClick();h.settle();
+ stage=h.nodes().find(n=>n.props.onScroll);assert.match(stage.props.className,/hand-mode/);stage.props.onPointerDown(event);assert.equal(prevented,1);h.dispose();
+});
 function bookmark(storage,{width=346,zoom=1.6,page=249,fraction=.37,left=121.25,key='d:thesis'}={}){const layout=model.pageLayout(279,width,zoom,{}),position=model.capturePdfReadingPosition(key,layout,layout.offsets[page-1]+layout.heights[page-1]*fraction+18,left,page,zoom,{});model.writePdfReadingPosition(storage,position);return position;}
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 

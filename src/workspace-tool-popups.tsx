@@ -1,60 +1,23 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {embeddedWorkspaceToolHref,initialWorkspaceTools,readWorkspacePopupVisit,rememberWorkspacePopupVisit,workspaceToolLabels,workspaceToolAvailable,type WorkspaceTool} from './workspace-tools';
-import {usePopupDrag} from './use-popup-drag';
+import {openWorkspaceTool,workspaceToolHref,workspaceToolLabels,workspaceToolAvailable,type WorkspaceTool} from './workspace-tools';
 import './workspace-tool-popups.css';
 
-const toolOrder:WorkspaceTool[]=['ai-mingyu','glossary'];
-const availableTools=toolOrder.filter(workspaceToolAvailable);
-function browserStorage(kind:'localStorage'|'sessionStorage'){try{return window[kind];}catch{return undefined;}}
-function firstVisitTools(){return initialWorkspaceTools(window.location.search,window.location.hash,window.self!==window.top,readWorkspacePopupVisit(browserStorage('localStorage'))||readWorkspacePopupVisit(browserStorage('sessionStorage')));}
-
+// Cards, shortcuts and the sidebar share a synchronous window launcher.
+// Initial deep links offer a link instead of attempting an automatic popup.
 export function useWorkspaceToolPopups(){
- const [open,setOpen]=useState<WorkspaceTool[]>(firstVisitTools),[active,setActive]=useState<WorkspaceTool>('ai-mingyu');
- const [focusSerial,setFocusSerial]=useState(0),openers=useRef<Partial<Record<WorkspaceTool,HTMLElement>>>({});
- useEffect(()=>{if(firstVisitTools().length){if(!rememberWorkspacePopupVisit(browserStorage('localStorage')))rememberWorkspacePopupVisit(browserStorage('sessionStorage'));}},[]);
- function openTool(tool:WorkspaceTool){
+ const [notice,setNotice]=useState<{tool:WorkspaceTool;blocked:boolean}|null>(null);
+ const link=useRef<HTMLAnchorElement>(null),opener=useRef<HTMLElement|null>(null);
+ useEffect(()=>{if(notice?.blocked)link.current?.focus({preventScroll:true});},[notice]);
+ function openTool(tool:WorkspaceTool,userInitiated=true){
   if(!workspaceToolAvailable(tool))return;
-  const focused=document.activeElement;if(focused instanceof HTMLElement&&!focused.closest('[data-workspace-tool-popup]'))openers.current[tool]=focused;
-  setOpen(old=>old.includes(tool)?old:[...old,tool]);setActive(tool);setFocusSerial(n=>n+1);
+  if(document.activeElement instanceof HTMLElement)opener.current=document.activeElement;
+  if(!userInitiated){setNotice({tool,blocked:false});return;}
+  setNotice(openWorkspaceTool(tool)?null:{tool,blocked:true});
  }
- function closeTool(tool:WorkspaceTool){
-  setOpen(old=>old.filter(value=>value!==tool));setActive(tool==='ai-mingyu'?'glossary':'ai-mingyu');
-  queueMicrotask(()=>{const trigger=openers.current[tool];if(trigger?.isConnected&&trigger!==document.body)trigger.focus({preventScroll:true});else document.querySelector<HTMLButtonElement>(`[data-workspace-tool-launch="${tool}"]`)?.focus({preventScroll:true});});
- }
- return {openTool,layer:<WorkspaceToolPopups open={open} active={active} focusSerial={focusSerial} onOpen={openTool} onClose={closeTool} onActive={setActive}/>};
-}
-
-export function WorkspaceToolPopups({open,active,focusSerial,onOpen,onClose,onActive}:{open:WorkspaceTool[];active:WorkspaceTool;focusSerial:number;onOpen:(tool:WorkspaceTool)=>void;onClose:(tool:WorkspaceTool)=>void;onActive:(tool:WorkspaceTool)=>void}){
- const [compact,setCompact]=useState(()=>window.innerWidth<950),[loaded,setLoaded]=useState<Partial<Record<WorkspaceTool,boolean>>>({});
- const panels=useRef<Partial<Record<WorkspaceTool,HTMLElement>>>({}),frameListeners=useRef<Partial<Record<WorkspaceTool,()=>void>>>({});
- const aiPanel=useRef<HTMLElement|null>(null),glossaryPanel=useRef<HTMLElement|null>(null),groupPanel=useRef<HTMLDivElement|null>(null);
- const topInset=()=>document.querySelector('.reading-view-menu')?.getBoundingClientRect().bottom??0;
- const layoutKey=open.join('|');
- const aiDrag=usePopupDrag({enabled:!compact&&workspaceToolAvailable('ai-mingyu')&&open.includes('ai-mingyu'),elementRef:aiPanel,margin:8,topInset,layoutKey,boundary:'header'});
- const glossaryDrag=usePopupDrag({enabled:!compact&&open.includes('glossary'),elementRef:glossaryPanel,margin:8,topInset,layoutKey,boundary:'header'});
- const groupDrag=usePopupDrag({enabled:compact&&open.some(workspaceToolAvailable),elementRef:groupPanel,margin:8,topInset,layoutKey,boundary:'header'});
- const drags={'ai-mingyu':aiDrag,glossary:glossaryDrag},panelRefs={'ai-mingyu':aiPanel,glossary:glossaryPanel};
- const latest=useRef({onClose});latest.current={onClose};
- const visible=availableTools.filter(tool=>open.includes(tool)),shown=visible.includes(active)?active:visible[0];
- useEffect(()=>{const resize=()=>setCompact(window.innerWidth<950);window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
- useEffect(()=>{if(shown&&!document.activeElement?.closest('.workspace-popup-tabs'))panels.current[shown]?.querySelector<HTMLButtonElement>('[data-popup-close]')?.focus({preventScroll:true});},[focusSerial]);
- useEffect(()=>{for(const tool of toolOrder)if(!open.includes(tool)){frameListeners.current[tool]?.();delete frameListeners.current[tool];setLoaded(old=>old[tool]?{...old,[tool]:false}:old);}},[open.join('|')]);
- useEffect(()=>()=>{for(const remove of Object.values(frameListeners.current))remove?.();},[]);
- function close(tool:WorkspaceTool){try{const frame=panels.current[tool]?.querySelector('iframe');frame?.contentWindow?.speechSynthesis?.cancel();}catch{/* Only same-origin standalone frames are used. */}onClose(tool);}
- function frameReady(tool:WorkspaceTool,frame:HTMLIFrameElement){
-  frameListeners.current[tool]?.();setLoaded(old=>({...old,[tool]:true}));
-  try{const inner=frame.contentDocument;if(!inner)return;
-   const escape=(event:KeyboardEvent)=>{if(event.key!=='Escape'||event.defaultPrevented||event.isComposing||inner.querySelector('[role="dialog"][aria-modal="true"]'))return;event.preventDefault();frame.contentWindow?.speechSynthesis?.cancel();latest.current.onClose(tool);};
-   inner.addEventListener('keydown',escape);frameListeners.current[tool]=()=>inner.removeEventListener('keydown',escape);
-  }catch{/* Frame navigation never grants access to a different origin. */}
- }
- if(!visible.length)return null;
- return <div ref={groupPanel} className={`workspace-tool-popups${compact?' compact':''}${visible.length===1?' single':''}`} style={compact?{transform:`translate(${groupDrag.offset.x}px, ${groupDrag.offset.y}px)`}:undefined} data-popup-dragging={groupDrag.dragging} role={compact?'dialog':'region'} aria-modal={compact?false:undefined} aria-label="논문 도구 팝업">
-  {compact&&<div className="workspace-popup-tabs" role="tablist" aria-label="도구 선택">{availableTools.map((tool,index)=><button key={tool} id={`workspace-popup-tab-${tool}`} role="tab" aria-selected={shown===tool} aria-controls={`workspace-popup-${tool}`} tabIndex={shown===tool?0:-1} onClick={()=>onOpen(tool)} onKeyDown={event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=availableTools[event.key==='Home'?0:event.key==='End'?availableTools.length-1:(index+(event.key==='ArrowLeft'?-1:1)+availableTools.length)%availableTools.length];onOpen(next);document.getElementById(`workspace-popup-tab-${next}`)?.focus();}}}>{workspaceToolLabels[tool]}</button>)}</div>}
-  {visible.map(tool=><section key={tool} id={`workspace-popup-${tool}`} ref={node=>{panelRefs[tool].current=node;if(node)panels.current[tool]=node;else delete panels.current[tool];}} data-workspace-tool-popup={tool} data-popup-active={shown===tool} data-popup-dragging={drags[tool].dragging} className="workspace-tool-popup" style={compact?undefined:{transform:`translate(${drags[tool].offset.x}px, ${drags[tool].offset.y}px)`}} role={compact?'tabpanel':'dialog'} aria-modal={compact?undefined:false} aria-labelledby={compact?`workspace-popup-tab-${tool}`:`workspace-popup-title-${tool}`} hidden={compact&&shown!==tool} onPointerDownCapture={()=>onActive(tool)} onFocusCapture={()=>onActive(tool)} onKeyDown={event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!event.nativeEvent.isComposing){event.preventDefault();close(tool);}}}>
-   <header {...(compact?groupDrag:drags[tool]).handleProps} data-popup-drag-hidden={compact&&shown!==tool} className="workspace-popup-header" aria-label={`${workspaceToolLabels[tool]} 창 위치 조절`} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home" title="제목줄을 끌어 이동 · 방향키로 이동 · 두 번 누르거나 Home으로 처음 위치"><h2 id={`workspace-popup-title-${tool}`}>{workspaceToolLabels[tool]}</h2><div className="workspace-popup-actions"><button type="button" onClick={()=>(compact?groupDrag:drags[tool]).reset()} aria-label={`${workspaceToolLabels[tool]} 처음 위치로`} title="처음 위치로">↺</button><button type="button" data-popup-close onClick={()=>close(tool)} aria-label={`${workspaceToolLabels[tool]} 팝업 닫기`}>닫기 ×</button></div></header>
-   {!loaded[tool]&&<p className="workspace-popup-loading" role="status">{workspaceToolLabels[tool]}를 여는 중…</p>}
-   <iframe src={embeddedWorkspaceToolHref(tool)} title={`${workspaceToolLabels[tool]} 도구`} onLoad={event=>frameReady(tool,event.currentTarget)} referrerPolicy="same-origin"/>
-  </section>)}
- </div>;
+ function dismiss(){setNotice(null);if(opener.current?.isConnected)opener.current.focus({preventScroll:true});}
+ return {openTool,layer:notice&&workspaceToolAvailable(notice.tool)?<aside className="workspace-tool-window-notice" aria-label="도구 새 창 안내" onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();dismiss();}}}>
+  <p role="status">{notice.blocked?'새 창이 차단되었습니다. 아래 링크로 새 탭을 열 수 있습니다.':`${workspaceToolLabels[notice.tool]}는 별도 창에서 볼 수 있습니다.`}</p>
+  <a ref={link} href={workspaceToolHref[notice.tool]} target="_blank" rel="noopener noreferrer" onClick={()=>setNotice(null)}>{workspaceToolLabels[notice.tool]} 새 탭으로 열기 ↗</a>
+  <button type="button" onClick={dismiss} aria-label="새 창 안내 닫기">닫기 ×</button>
+ </aside>:null};
 }

@@ -25,3 +25,9 @@
 .workspace-tool-popups.compact .workspace-tool-popup{border-top-left-radius:0;border-top-right-radius:0;width:100%!important;height:100%!important;max-width:100%;min-width:0;min-height:0;resize:none}
 @media(max-width:430px){.workspace-popup-header{padding:7px 8px;gap:5px}.workspace-popup-header h2{font-size:.92rem;min-width:90px}.workspace-popup-actions{gap:5px}.workspace-popup-actions :is(button,a){font-size:.74rem;padding:5px 7px}}
 @media print{.workspace-tool-popups{display:none!important}}
+.workspace-tool-window-notice{position:fixed;z-index:90;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));box-sizing:border-box;width:fit-content;max-width:calc(100vw - 32px);max-height:calc(100dvh - var(--reading-actions-height,44px) - 24px);overflow:auto;margin:0 auto;padding:14px 18px;border:1px solid #96afa1;border-radius:10px;background:#fffef9;box-shadow:0 8px 24px #183e3426;display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;color:#284d3c;font-size:.9rem}
+.workspace-tool-window-notice p{flex-basis:100%;margin:0;overflow-wrap:anywhere}
+.workspace-tool-window-notice a{color:#245e40;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere;min-height:44px;display:inline-flex;align-items:center}
+.workspace-tool-window-notice button{margin-left:auto;min-height:44px;padding:5px 10px;border:1px solid #becdc4;border-radius:6px;background:#fff;font:inherit;cursor:pointer}
+.workspace-tool-window-notice :is(a,button):focus-visible{outline:3px solid #8b0029;outline-offset:2px}
+@media print{.workspace-tool-window-notice{display:none!important}}

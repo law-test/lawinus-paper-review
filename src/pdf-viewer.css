@@ -20,3 +20,4 @@
 @media print{.pdf-reading-tools,.citation-keyboard-link,.citation-hover-tooltip,.citation-hover-region,.pdf-page-number{display:none!important}.pdf-reader{overflow:visible}}
 
 .pdf-reference-underline{position:absolute;box-sizing:border-box;border-bottom:1px solid #8a153875;pointer-events:none}.pdf-reference-underline.literature{border-bottom-style:dotted;border-color:#765b6770}.citation-hover-tooltip{max-width:90%;white-space:normal;overflow-wrap:anywhere}
+.pdf-reading-tools,.pdf-reading-tools>div{flex-wrap:wrap;min-width:0}.pdf-copy-help{flex-basis:100%;font-size:.85em;line-height:1.5;color:#6b625b}.continuous-pdf.selection-mode .textLayer{user-select:text;-webkit-user-select:text}.continuous-pdf.selection-mode .textLayer :is(span,br){cursor:text}.continuous-pdf.selection-mode .citation-hover-tooltip{display:none}

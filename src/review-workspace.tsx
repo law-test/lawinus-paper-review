@@ -135,7 +135,7 @@ export default function ReviewWorkspace(){
     if(link.view==='proposal')selectProposal(link.id);
     else if(link.view==='note'){openNote(link.id,true);setTab('source');setMetadataVisibility(true);}
     else if(link.view==='paragraph'){openParagraph(link.id);setManuscriptMode('body');manuscriptViewChosen.current=true;}
-    else if(link.view==='ai-mingyu'||link.view==='glossary'){toolPopups.openTool(link.view);return;}
+    else if(link.view==='ai-mingyu'||link.view==='glossary'){toolPopups.openTool(link.view,false);return;}
     else{setTab(link.view);setMetadataVisibility(true);setMobilePane('metadata');}
     if(window.innerWidth<1200)setSidebarVisibility(false);
     setMobilePane('metadata');

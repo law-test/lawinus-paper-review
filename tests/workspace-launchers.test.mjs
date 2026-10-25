@@ -15,7 +15,7 @@ test('start cards show paused AI and the working glossary, and can be folded awa
  let dismissed=false;const calls=[],module={exports:{}};
  vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>id==='react'?{...React,useState:()=>[dismissed,next=>{dismissed=next;}]}:id==='./workspace-tools'?{...tools,launchWorkspaceTool:(event,tool)=>tools.launchWorkspaceTool(event,tool,id=>{calls.push(id);return true;})}:id==='./ai-mingyu-availability'?availability:id.endsWith('.css')?{}:require(id)});
  const tree=module.exports.default({compactHeader:true,onOpen:tool=>calls.push(tool)});const html=renderToStaticMarkup(tree);
- assert.match(html,/AI민규\(만드는 중\)/);assert.match(html,/법학어학사전/);assert.match(html,/compact-header/);assert.deepEqual(calls,[]);
+ assert.match(html,/AI민규\(만드는 중\)/);assert.match(html,/법학어학사전/);assert.match(html,/새 창 열기/);assert.doesNotMatch(html,/팝업 열기/);assert.match(html,/compact-header/);assert.deepEqual(calls,[]);
  const nodes=[];function walk(node){if(!node||typeof node!=='object')return;nodes.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
  const cards=nodes.filter(n=>n.type==='button'&&n.props['data-workspace-tool-launch']);assert.equal(cards.length,2);for(const card of cards){assert.equal(card.props.type,'button');card.props.onClick();}
  assert.equal(cards[0].props.disabled,true);assert.ok(!cards[1].props.disabled);assert.deepEqual(calls,['glossary']);

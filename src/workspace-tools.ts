@@ -8,7 +8,7 @@ export const workspaceToolHref:Record<WorkspaceTool,string>={
 export const workspaceToolLabels:Record<WorkspaceTool,string>={'ai-mingyu':AI_MINGYU_LABEL,glossary:'법학어학사전'};
 export const WORKSPACE_POPUPS_SEEN_KEY='lawinus.workspace-tool-popups.seen.v1';
 export function initialWorkspaceTools(search:string,hash:string,embedded:boolean,seen:boolean):WorkspaceTool[]{
- return !embedded&&!seen&&ordinaryWorkspaceEntry(search,hash)&&!standaloneWorkspaceTool(search)?(['ai-mingyu','glossary'] as WorkspaceTool[]).filter(workspaceToolAvailable):[];
+ return [];
 }
 export function embeddedWorkspaceToolHref(tool:WorkspaceTool){return workspaceToolHref[tool]+'&embedded=1';}
 export function readWorkspacePopupVisit(storage:Pick<Storage,'getItem'>|undefined){try{return storage?.getItem(WORKSPACE_POPUPS_SEEN_KEY)==='1';}catch{return false;}}
@@ -24,15 +24,24 @@ export function standaloneWorkspaceTool(search:string):WorkspaceTool|null{
  return query.get('view')==='glossary'&&query.get('dictionary')==='1'?'glossary':null;
 }
 
-type ToolBrowser={location:{href:string};innerWidth:number;open:(url:string,target:string,features?:string)=>{focus:()=>void}|null};
+type ToolWindow={focus:()=>void;closed?:boolean;opener?:unknown};
+type ToolBrowser={location:{href:string};innerWidth:number;open:(url:string,target:string,features?:string)=>ToolWindow|null};
+const toolWindows=new WeakMap<ToolBrowser,Partial<Record<WorkspaceTool,ToolWindow>>>();
 export function openWorkspaceTool(tool:WorkspaceTool,browser:ToolBrowser=window){
  if(!workspaceToolAvailable(tool))return false;
- const url=new URL(workspaceToolHref[tool],browser.location.href);
- const small=browser.innerWidth<700;
- const opened=small?browser.open(url.href,'_blank'):browser.open(url.href,tool==='glossary'?'lawinus-glossary':'ai-mingyu-chat',`popup,width=${tool==='glossary'?940:660},height=840,resizable=yes,scrollbars=yes`);
- if(!opened)return false;
- try{opened.focus();}catch{/* The new window may already have moved into a browser tab. */}
- return true;
+ const windows=toolWindows.get(browser)??{};toolWindows.set(browser,windows);
+ const previous=windows[tool];
+ try{if(previous&&!previous.closed){previous.focus();return true;}}catch{/* A closed or detached browsing context is reopened below. */}
+ delete windows[tool];
+ try{
+  const url=new URL(workspaceToolHref[tool],browser.location.href),target=tool==='glossary'?'lawinus-glossary':'ai-mingyu-chat';
+  const opened=browser.innerWidth<700?browser.open(url.href,target):browser.open(url.href,target,`popup,width=${tool==='glossary'?940:660},height=840,resizable=yes,scrollbars=yes`);
+  if(!opened)return false;
+  windows[tool]=opened;
+  try{opened.opener=null;}catch{/* The same-origin tool may have been isolated by browser policy. */}
+  try{opened.focus();}catch{/* A successful new tab may not allow programmatic focus. */}
+  return true;
+ }catch{return false;}
 }
 
 type LinkClick={button:number;metaKey:boolean;ctrlKey:boolean;shiftKey:boolean;altKey:boolean;preventDefault:()=>void};

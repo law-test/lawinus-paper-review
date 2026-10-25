@@ -6,6 +6,7 @@ import PdfQuickControls from './pdf-quick-controls';
 import ReaderControls from './reader-controls';
 import {pageProposalMarkers,placeProposalMarkers,proposalLabel,type ProposalIndicator} from './proposal-indicators';
 import './proposal-indicators.css';
+import {selectedPdfText} from './pdf-selection';
 type Obj=Record<string,any>;
 type Pin={id:string;page:number|null;x:number|null;y:number|null;text:string;status:string;[key:string]:any};
 const NO_PAGE_SIZES:{page:number;width:number;height:number}[]=[];
@@ -98,7 +99,14 @@ export default function PdfPane({controlsHost,id,page,total,zoom:requestedZoom=1
   const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange),onNavigationRef=useRef(onNavigationHandled);
   onPageRef.current=onPageChange;onNavigationRef.current=onNavigationHandled;
   const [loaded,setLoaded]=useState<{id:string;doc:any;runtime:any}|null>(null),[error,setError]=useState(''),[loadAttempt,setLoadAttempt]=useState(0),[renderable,setRenderable]=useState(false);
-  const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(true),[dragging,setDragging]=useState(false),[showHighlights,setShowHighlights]=useState(true);
+  const [viewport,setViewport]=useState({width:550,height:700,top:0}),[measured,setMeasured]=useState<{id:string;values:Record<number,PageSize>}>({id,values:{}}),[hand,setHand]=useState(false),[dragging,setDragging]=useState(false),[showHighlights,setShowHighlights]=useState(true);
+  const [selectedText,setSelectedText]=useState(''),[copyStatus,setCopyStatus]=useState('');
+  useEffect(()=>{setSelectedText('');setCopyStatus('');const update=()=>{const text=selectedPdfText(host.current,window.getSelection?.()??null);setSelectedText(text);setCopyStatus('');};document.addEventListener('selectionchange',update);return()=>document.removeEventListener('selectionchange',update);},[id]);
+  async function copySelection(){
+    const text=selectedPdfText(host.current,window.getSelection?.()??null);
+    if(!text){setCopyStatus('먼저 복사할 문장을 드래그해 선택하세요.');return;}
+    try{if(!navigator.clipboard?.writeText)throw new Error('clipboard-unavailable');await navigator.clipboard.writeText(text);setCopyStatus('선택한 글자를 복사했습니다.');}catch{setCopyStatus('Ctrl+C 또는 ⌘C로 복사하세요.');}
+  }
   const hidden=useRef(false),resumeScroll=useRef(false),savedScroll=useRef({top:0,left:0});
   const position=useMemo<PositionSession>(()=>({key:persistenceKey,pending:persistenceKey?readPdfReadingPosition(positionStorage(),persistenceKey,total):null,ready:false,last:null,timer:null,handledToken:0,localPage:null}),[id,persistenceKey,total]);
   const positionRef=useRef(position);positionRef.current=position;
@@ -165,7 +173,7 @@ export default function PdfPane({controlsHost,id,page,total,zoom:requestedZoom=1
   return <div className="pdf-reader" aria-label={label}>
     {quickTools&&<PdfQuickControls key={id} id={id} label={label} page={page} total={doc?.numPages||total} zoom={zoom} fitMode={fitMode} onFitModeChange={onFitModeChange?requestFit:undefined} hand={hand} onPageChange={requestPage} onZoomChange={onZoomChange} onHandChange={setHand} showHighlights={showHighlights} onHighlightsChange={highlights.length?setShowHighlights:undefined}/>}
     <ReaderControls host={controlsHost}>
-    <div className="pdf-reading-tools"><span>연속 보기</span><div><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그하여 선택·복사">Ⅰ 글자 선택</button>{highlights.length>0&&<button aria-pressed={showHighlights} onClick={()=>setShowHighlights(!showHighlights)}>{showHighlights?'강조 숨기기':'강조 보기'}</button>}</div><span className="pdf-reading-page">{page} / {doc?.numPages||total}</span></div>
+    <div className="pdf-reading-tools"><span>연속 보기</span><div><button className={!hand?'selected':''} aria-pressed={!hand} onClick={()=>setHand(false)} title="글자를 드래그한 뒤 Ctrl+C 또는 ⌘C로 복사">Ⅰ 글자 선택</button><button className={hand?'selected':''} aria-pressed={hand} onClick={()=>setHand(true)} title="문서를 잡고 위아래로 이동">✋ 이동</button><button disabled={!selectedText} onMouseDown={event=>event.preventDefault()} onClick={copySelection} title="드래그해 선택한 글자 복사">선택 복사</button>{highlights.length>0&&<button aria-pressed={showHighlights} onClick={()=>setShowHighlights(!showHighlights)}>{showHighlights?'강조 숨기기':'강조 보기'}</button>}</div><span className="pdf-reading-page">{page} / {doc?.numPages||total}</span><span className="pdf-copy-help" role="status">{copyStatus||(!hand?'문장 드래그 → Ctrl+C / ⌘C':'휠로 스크롤 · 글자 복사는 ‘글자 선택’')}</span></div>
     {Object.keys(proposalIndicators).length>0&&<div className="pdf-proposal-legend"><b>수정제안 있음</b><span className="proposal-required">필수 · 반드시 수정</span><span className="proposal-recommended">권고 · 강하게 권고</span><span className="proposal-optional">선택 · 선택적</span>{currentProposals.length>0&&<button onClick={()=>{const first=currentProposals[0];if(onProposal)onProposal(first.indicator.primaryProposalId);else onTarget?.(first.target.noteId);}}>현재 쪽 {currentProposals.length}건 보기</button>}</div>}
     </ReaderControls>
     <div className={'pdf-stage continuous-pdf'+(hand?' hand-mode':' selection-mode')+(dragging?' is-dragging':'')+(placing?' placing':'')} ref={host} tabIndex={0} aria-label={`${label} 연속 스크롤`}
