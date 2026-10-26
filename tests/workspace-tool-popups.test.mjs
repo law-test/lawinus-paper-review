@@ -67,10 +67,10 @@ test('fallback Escape or close restores its initiating control without scrolling
  }
 });
 
-test('ordinary entry attempts a real glossary window once and offers week pause even when opening succeeds',()=>{
+test('ordinary entry opens the glossary once without a success notice',()=>{
  for(const search of ['', '?v=272']){
   const h=harness({search}),before=h.browser.location.href;h.render();h.effects().forEach(fn=>fn());const result=h.render();
-  assert.equal(h.calls.length,1);assert.equal(h.calls[0][1],'lawinus-glossary');assert.ok(walk(result.layer).some(n=>n.props.onPaused));assert.equal(h.browser.location.href,before);
+  assert.equal(h.calls.length,1);assert.equal(h.calls[0][1],'lawinus-glossary');assert.equal(result.layer,null);assert.equal(h.browser.location.href,before);
   h.effects().forEach(fn=>fn());assert.equal(h.calls.length,1,'effect replay must not duplicate automatic windows');
  }
 });
@@ -87,7 +87,7 @@ test('a week pause or embedded frame prevents automatic launch but does not prev
   h.render().openTool('glossary');assert.equal(h.calls.length,1);
  }
 });
-test('pausing from the separate glossary window dismisses the parent automatic notice',()=>{
- const h=harness({search:''});h.render();h.effects().forEach(fn=>fn());assert.ok(h.render().layer);
+test('pausing from the separate glossary window dismisses an automatic blocked notice',()=>{
+ const h=harness({search:'',blocked:true});h.render();h.effects().forEach(fn=>fn());assert.ok(h.render().layer);
  tools.pauseGlossaryForWeek(h.storage);h.listeners.get('storage')({type:'storage',key:tools.GLOSSARY_AUTOSTART_PAUSE_KEY});assert.equal(h.render().layer,null);
 });
