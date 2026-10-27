@@ -30,8 +30,8 @@ test('every published FAQ has an answer, unique stable ID and usable evidence li
 });
 
 test('a valid proposal link opens the exact current proposal while an unknown ID is ignored',()=>{
- assert.deepEqual(reviewDeepLink('?proposal=P0324',ids),{view:'proposal',id:'P0324'});
- assert.deepEqual(reviewDeepLink('?proposal=P1134&view=faq',ids),{view:'proposal',id:'P1134'});
+ assert.deepEqual(reviewDeepLink('?proposal='+ids[0],ids),{view:'proposal',id:ids[0]});
+ assert.deepEqual(reviewDeepLink('?proposal='+ids[1]+'&view=faq',ids),{view:'proposal',id:ids[1]});
  assert.equal(reviewDeepLink('?proposal=P999999',ids),null);
  assert.equal(reviewDeepLink('?proposal=https%3A%2F%2Fexample.com',ids),null);
  assert.deepEqual(reviewDeepLink('?view=faq&v=faq262',ids),{view:'faq'});

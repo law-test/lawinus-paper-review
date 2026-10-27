@@ -2,13 +2,15 @@ import React,{useMemo} from 'react';
 import {getCitationSegments} from './citation-link-model';
 import {getLegalMentions} from './legal-link-model';
 import {LegalCitation} from './legal-links';
+import {useManuscriptEditionId} from './manuscript-edition-context';
 
 export type SourceSegment=ReturnType<typeof getCitationSegments>[number];
 export default function SourceText({noteId,text,onReference,selectedSourceId}:{noteId:string;text:string;onReference:(segment:SourceSegment)=>void;selectedSourceId?:string}){
- const citations=useMemo(()=>getCitationSegments(noteId,text),[noteId,text]);
+ const edition=useManuscriptEditionId();
+ const citations=useMemo(()=>getCitationSegments(noteId,text,edition),[noteId,text,edition]);
  // A commentary chapter title such as 「제589조」 names the cited book entry.
  // Its click must open that source, not replace it with a statute lookup.
- const laws=useMemo(()=>getLegalMentions(text,{contextId:`note:${noteId}`}).filter(law=>!citations.some(c=>c.start<=law.start&&c.end>=law.end)),[noteId,text,citations]);
+ const laws=useMemo(()=>getLegalMentions(text,{contextId:`note:${noteId}`,edition}).filter(law=>!citations.some(c=>c.start<=law.start&&c.end>=law.end)),[noteId,text,citations,edition]);
  const boundaries=[...new Set([0,text.length,...citations.flatMap(c=>[c.start,c.end]),...laws.flatMap(c=>[c.start,c.end])])].filter(n=>n>=0&&n<=text.length).sort((a,b)=>a-b);
  return <>{boundaries.slice(0,-1).map((start,index)=>{
   const end=boundaries[index+1],value=text.slice(start,end),law=laws.find(c=>c.start<=start&&c.end>=end),citation=citations.find(c=>c.start<=start&&c.end>=end);

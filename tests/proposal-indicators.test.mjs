@@ -32,11 +32,14 @@ test('one grouped proposal gets one margin marker per page and never borrows foo
  const targets=[{page:1,rect:[60,100,400,120],noteId:'P0001',number:1,kind:'paragraph'},{page:1,rect:[70,70,400,90],noteId:'P0002',number:2,kind:'paragraph'},{page:1,rect:[80,1,90,10],noteId:'P0001',number:1,kind:'footnote-text'},{page:2,rect:[60,30,400,50],noteId:'P0001',number:1,kind:'paragraph'}];
  const markers=pageProposalMarkers(targets,map);assert.equal(markers.length,2);assert.equal(markers[0].target.noteId,'P0002');assert.equal(markers[1].target.page,2);
 });
-test('every public human paragraph proposal is represented without changing manuscript or priority data',()=>{
+test('every mapped public human paragraph proposal retains its stable guide ID and recorded priority',()=>{
  const proposals=JSON.parse(readFileSync(new URL('../src/revision-proposals.json',import.meta.url),'utf8')).items;
  const paragraphs=JSON.parse(readFileSync(new URL('../src/paragraph-catalog.json',import.meta.url),'utf8')).paragraphs;
- const ids=new Set(paragraphs.map(p=>p.id));const snapshot=JSON.stringify(proposals),map=buildProposalIndicators(proposals,paragraphs);
- for(const p of proposals.filter(p=>ids.has(p.id))){assert.ok(map[p.id],p.id);assert.ok(map[p.id].proposalIds.includes(p.id),p.id);}
+ const ids=new Set(paragraphs.map(p=>p.id));const snapshot=JSON.stringify(proposals);
+ const anchored=proposals.map(p=>({...p,anchorId:p.originalParagraphId,paragraphIds:p.originalParagraphIds,targetNoteId:p.originalNoteId})),map=buildProposalIndicators(anchored,paragraphs);
+ const expected=anchored.filter(p=>!p.targetNoteId&&p.paragraphIds?.some(id=>ids.has(id)));assert.ok(expected.length>30,'the stable v110 IDs must produce a substantial checked set');
+ for(const p of expected)for(const id of p.paragraphIds.filter(id=>ids.has(id))){assert.ok(map[id],p.id);assert.ok(map[id].proposalIds.includes(p.id),p.id);}
+ for(const p of anchored.filter(p=>p.targetNoteId))assert.ok(!Object.values(map).some(indicator=>indicator.proposalIds.includes(p.id)),p.id+' is a footnote edit, not a paragraph replacement');
  assert.equal(JSON.stringify(proposals),snapshot);assert.ok(Object.keys(map).every(id=>ids.has(id)));
 });
 

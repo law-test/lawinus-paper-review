@@ -23,6 +23,8 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
  const module={exports:{}};
  const dependencies={
   './thesis-faq-model':faqModel,
+  './manuscript-editions':{editionParagraphs:()=>[],editionProposals:()=>[],editionDownloadPath:(id,format)=>'./editions/'+id+'/manuscript.'+format},
+  './review-api':{assetUrl:id=>'https://example.invalid/'+id},
   './workspace-tools':workspaceTools,'./workspace-tool-popups':{useWorkspaceToolPopups:()=>({openTool:()=>{},layer:null})},
   './reader-tool-panel':{__esModule:true,default:({children})=>React.createElement(React.Fragment,null,children)},
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
@@ -48,7 +50,7 @@ function renderWorkspace(focus=false,mode='pdf',width=1701,height=849){
   if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:emptyComponent;
   return require(id);
  }});
- return renderToStaticMarkup(React.createElement(module.exports.default));
+ return renderToStaticMarkup(React.createElement(module.exports.ReviewWorkspaceEdition,{edition:{id:'human73',datasetId:'human-a',label:'인간73',date:'2026. 10. 26.',pages:279,footnotes:1,toc:{entries:[]}},onEdition:()=>{},toolPopups:{openTool:()=>{},layer:null}}));
 }
 test('review opens with footnote details expanded and accurately named controls',()=>{
  const html=renderWorkspace();

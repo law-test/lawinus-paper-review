@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {getLegalMentions,getLegalLaw,legalArticleHref,getLegalMentionDetails} from '../src/legal-link-model.ts';
+import {getLegalMentions as resolveLegalMentions,getLegalLaw,legalArticleHref,getLegalMentionDetails} from '../src/legal-link-model.ts';
 import corpus from './fixtures/legal-model-cases263.json' with {type:'json'};
-import explanations from '../src/citation-explanations.json' with {type:'json'};
+import explanations from './fixtures/legacy1021/citation-explanations.json' with {type:'json'};
+
+const getLegalMentions=(text,context)=>resolveLegalMentions(text,{...(typeof context==='string'?{contextId:context}:context||{}),edition:'legacy1021'});
 
 test('unnamed articles require an evidenced context, not a global DRBA default',()=>{
  assert.equal(getLegalMentions('제615조')[0].status,'unresolved');

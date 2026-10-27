@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
-import {getCitationSegments,citationPdfTargets} from '../src/citation-link-model.ts';
+import {createCitationLinkModel} from '../src/citation-link-model.ts';
 import {targetAt,targetKey,validRect} from '../src/pdf-viewer-model.ts';
-const data=JSON.parse(readFileSync(new URL('../src/citation-links.json',import.meta.url),'utf8'));
+const data=JSON.parse(readFileSync(new URL('./fixtures/legacy1021/citation-links.json',import.meta.url),'utf8'));
+const {getCitationSegments,citationPdfTargets}=createCitationLinkModel(data);
 const segments=id=>getCitationSegments(id,data.notes[id].text);
 const at=(id,text)=>segments(id).find(s=>s.start<=data.notes[id].text.indexOf(text)&&s.end>data.notes[id].text.indexOf(text));
 

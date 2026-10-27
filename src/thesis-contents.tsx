@@ -1,19 +1,20 @@
 import React, {useMemo, useState} from 'react';
-import toc from './thesis-toc-data.json';
+import defaultToc from './thesis-toc-data.json';
 import {currentTocId, visibleToc} from './thesis-toc-model';
 import './thesis-contents.css';
 
 type Props = {
+  toc?: typeof defaultToc;
   page: number;
   onNavigate: (page: number) => void;
   pdfSha256?: string;
 };
 
-export default function ThesisContents({page, onNavigate, pdfSha256}: Props) {
+export default function ThesisContents({toc=defaultToc,page, onNavigate, pdfSha256}: Props) {
   const [query, setQuery] = useState('');
   const [detailed, setDetailed] = useState(true);
   const [selectedId, setSelectedId] = useState<string>();
-  const entries = useMemo(() => visibleToc(toc.entries, query, detailed), [query, detailed]);
+  const entries = useMemo(() => visibleToc(toc.entries, query, detailed), [toc,query, detailed]);
   const currentId = currentTocId(entries, page, selectedId);
 
   if (pdfSha256 && pdfSha256.toLowerCase() !== toc.pdfSha256) {

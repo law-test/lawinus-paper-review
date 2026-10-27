@@ -1,3 +1,4 @@
+import {useManuscriptEditionId} from './manuscript-edition-context';
 import React,{createContext,useContext,useEffect,useMemo,useRef,useState} from 'react';
 import {getLegalMentions,getLegalMentionDetails} from './legal-link-model';
 import {usePopupDrag} from './use-popup-drag';
@@ -42,7 +43,8 @@ export function LegalCitation({mention,children}:{mention:LegalMention;children?
 }
 
 export function LegalText({text,contextId,defaultLawId,onNote}:{text:string;contextId?:string;defaultLawId?:string;onNote?:(id:string)=>void}){
- const mentions=useMemo(()=>getLegalMentions(text,{contextId,defaultLawId}),[text,contextId,defaultLawId]);
+ const edition=useManuscriptEditionId();
+ const mentions=useMemo(()=>getLegalMentions(text,{contextId,defaultLawId,edition}),[text,contextId,defaultLawId,edition]);
  const plain=(value:string,key:number)=>onNote?<React.Fragment key={'plain'+key}>{value.split(/(\[\^\d+\])/g).map((part,i)=>/^\[\^\d+\]$/.test(part)?<button key={i} className="manuscript-note-marker" title="각주 원전 열기" onClick={event=>{event.stopPropagation();onNote('fn-'+part.slice(2,-1).padStart(3,'0'));}}>{part.slice(2,-1)})</button>:part)}</React.Fragment>:value;
  const parts:React.ReactNode[]=[];let cursor=0;
  for(const mention of mentions){if(mention.start<cursor||mention.end<=mention.start||mention.end>text.length)continue;if(mention.start>cursor)parts.push(plain(text.slice(cursor,mention.start),cursor));parts.push(<LegalCitation key={mention.start} mention={mention}>{text.slice(mention.start,mention.end)}</LegalCitation>);cursor=mention.end;}

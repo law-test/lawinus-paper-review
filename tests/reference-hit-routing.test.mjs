@@ -13,7 +13,7 @@ test('every exact source/statute region wins over its surrounding paragraph and 
  for(const t of [...ordinary,...precise]){const p=pages.get(t.page)||[];p.push(t);pages.set(t.page,p);}
  assert.ok(legal.targets.length>0&&citations.pdfTargets.length>0);
  for(const t of precise){
-  assert.ok(validRect(t.rect));assert.ok(Number.isInteger(t.page)&&t.page>0&&t.page<=279);
+  assert.ok(validRect(t.rect));assert.ok(Number.isInteger(t.page)&&t.page>0&&t.page<=324);
   const [a,b,c,d]=t.rect;
   const result=targetAt(pages.get(t.page),(a+c)/2,(b+d)/2);
   assert.equal(action(result),action(t),`wrong target at ${t.page}: ${t.title}`);

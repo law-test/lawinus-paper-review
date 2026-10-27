@@ -15,16 +15,45 @@
     "pagesUrl": "https://law-test.github.io/lawinus-paper-review/"
   },
   "domain": "paper.lawinus.org",
-  "datasetId": "human-1021-1559",
+  "datasetId": "human-1026-1710",
   "state": "deployed",
-  "lastVerifiedDeployment": {
-    "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
-    "pagesCommit": "0e3037f30c1ef5d6771cde0e488ac7228c914f3a",
-    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/39878801349",
+  "editions": {
+    "human73": {
+      "datasetId": "human-1026-1710",
+      "pages": 324,
+      "footnotes": 258
+    },
+    "v110": {
+      "datasetId": "applied-v110-human73",
+      "pages": 335,
+      "footnotes": 267
+    }
+  },
+  "revisionGuide": {
+    "version": "v110",
+    "items": 164,
+    "baseline": "human73"
+  },
+  "aiEnabled": false,
+  "previousVerifiedDeployment": {
+    "sourceCommit": "3b86dc5a4e74da41daba9d54f439b5d0c88bc3b5",
+    "pagesCommit": "a793564f262ce25cd9e672d37cedb16d5644e8a2",
+    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40251522356",
     "pagesBuildConclusion": "success",
-    "sourceFiles": 237,
-    "pagesFiles": 211,
-    "remoteBlobHashMismatches": 0,
-    "customDomainCnamePreserved": true
-  }
+    "sourceFiles": 422,
+    "pagesFiles": 235
+  },
+  "release": "human73-v110-275",
+  "deploymentHistory": [
+    {
+      "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
+      "pagesCommit": "0e3037f30c1ef5d6771cde0e488ac7228c914f3a",
+      "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/39878801349",
+      "pagesBuildConclusion": "success",
+      "sourceFiles": 237,
+      "pagesFiles": 211,
+      "remoteBlobHashMismatches": 0,
+      "customDomainCnamePreserved": true
+    }
+  ]
 }

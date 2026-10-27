@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
 import {citedSourceRefs, citedPages, citationStartPage, citationHighlights, citedTextParts, citedPageLabel} from '../src/citation-model.ts';
 
-const map = JSON.parse(readFileSync(new URL('../src/citation-pages.json', import.meta.url), 'utf8'));
+const map = JSON.parse(readFileSync(new URL('./fixtures/legacy1021/citation-pages.json', import.meta.url), 'utf8'));
 
 test('each citation uses its own pages rather than all locators of the same work', () => {
   const entry = map['fn-001']['s-ead27940ae5e0e78'];

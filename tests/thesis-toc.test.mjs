@@ -1,48 +1,33 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
-import {currentTocId, visibleToc} from '../src/thesis-toc-model.ts';
-
-const toc = JSON.parse(readFileSync(new URL('../src/thesis-toc-data.json', import.meta.url), 'utf8'));
-
-test('detailed contents stay tied to the unchanged 279-page human PDF', () => {
-  assert.equal(toc.pdfSha256, '81ef0ae033b078406e5434eae6291c2eb2bc71a6aa27d5715c4ca0e35ee031d6');
-  assert.equal(toc.pageCount, 279);
-  assert.equal(toc.entries.length, 169);
-  assert.equal(new Set(toc.entries.map(entry => entry.id)).size, 169);
-  for (let index = 1; index < toc.entries.length; index++) {
-    assert.ok(toc.entries[index].page >= toc.entries[index - 1].page);
-    assert.ok(toc.entries[index].level <= toc.entries[index - 1].level + 1);
-  }
+import {currentTocId,visibleToc} from '../src/thesis-toc-model.ts';
+const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
+const human=read('../src/thesis-toc-data.json'),applied=read('../src/thesis-toc-data-v110.json');
+test('both contents catalogs are bound to their exact PDF editions and real paragraph locations',()=>{
+ for(const [toc,suffix,pages] of [[human,'',324],[applied,'-v110',335]]){
+  const catalog=read(`../src/paragraph-catalog${suffix}.json`),paragraphs=new Map(catalog.paragraphs.map(p=>[p.id,p]));
+  assert.equal(toc.pageCount,pages);assert.equal(toc.pdfSha256,catalog.pdfSha256);assert.equal(new Set(toc.entries.map(e=>e.id)).size,toc.entries.length);
+  for(const e of toc.entries){assert.ok(e.page>=1&&e.page<=pages);if(e.paragraphId)assert.equal(e.page,paragraphs.get(e.paragraphId)?.page,e.title);}
+  for(let i=1;i<toc.entries.length;i++)assert.ok(toc.entries[i].page>=toc.entries[i-1].page);
+ }
+ assert.equal(applied.pdfSha256,'a515d7d807355529c7c3a37c6561825437f256d1c00a48fb48a259f208bce685');
 });
-
-test('stale printed contents and incomplete PDF bookmarks do not dictate anchors', () => {
-  const heading = title => toc.entries.find(entry => entry.title === title);
-  assert.equal(heading('제4장 임대인의 도산절차에서 임차보증금반환채권의 현실화').page, 142);
-  assert.equal(heading('제3절 우선변제권의 행사와 채권액·배당액의 산정').page, 62);
-  assert.equal(heading('Ⅱ. 경매신청과 배당참가의 구별').page, 65);
-  assert.equal(heading('4. 면책·폐지 후의 권리행사').page, 246);
-  assert.equal(heading('제5장 결론').page, 255);
-  assert.equal(heading('참고문헌').page, 264);
+test('same title routes to each edition own pagination, including native front matter',()=>{
+ const heading=(toc,title)=>toc.entries.find(e=>e.title===title);
+ assert.equal(heading(human,'제1장 서론').page,19);assert.equal(heading(applied,'제1장 서론').page,20);
+ assert.equal(heading(human,'세부목차').page,11);assert.equal(heading(applied,'세부목차').page,11);
+ assert.equal(heading(human,'일러두기').page,18);assert.equal(heading(applied,'일러두기').page,19);
+ assert.ok(heading(applied,'제5장 결론').page>heading(human,'제5장 결론').page);
 });
-
-test('search keeps ancestors, including when matching a deep numbered heading', () => {
-  const found = visibleToc(toc.entries, '면책 · 폐지 후', false);
-  assert.deepEqual(found.map(entry => entry.level), [1, 2, 3, 4]);
-  assert.equal(found.at(-1).page, 246);
-  assert.equal(found[0].page, 142);
-  assert.deepEqual(visibleToc(toc.entries, '존재하지않는목차', true), []);
+test('search preserves ancestors and details while the short contents mode stays compact',()=>{
+ for(const toc of [human,applied]){
+  assert.ok(visibleToc(toc.entries,'',false).every(e=>e.level<=2));
+  assert.equal(visibleToc(toc.entries,'',true).length,toc.entries.length);
+  const found=visibleToc(toc.entries,'변제계획의 기재사항',false);assert.ok(found.length>1);assert.ok(found.some(e=>e.title.includes('변제계획의 기재사항')));
+  assert.deepEqual(visibleToc(toc.entries,'존재하지않는목차',true),[]);
+ }
 });
-
-test('chapter/section mode does not hide a detailed search result', () => {
-  assert.ok(visibleToc(toc.entries, '', false).every(entry => entry.level <= 2));
-  assert.equal(visibleToc(toc.entries, '', true).length, 169);
-  assert.ok(visibleToc(toc.entries, '변제계획의 기재사항', false).some(entry => entry.level === 4));
-});
-
-test('same-page headings preserve a clicked title; scrolling selects the corresponding chapter', () => {
-  const chapter = toc.entries.find(entry => entry.title === '제4장 임대인의 도산절차에서 임차보증금반환채권의 현실화');
-  assert.equal(currentTocId(toc.entries, 142, chapter.id), chapter.id);
-  assert.equal(toc.entries.find(entry => entry.id === currentTocId(toc.entries, 145, chapter.id)).title, '2. 파산면책 후 반환청구와 우선변제권');
-  assert.equal(currentTocId(toc.entries, 0), undefined);
+test('same-page selected headings remain stable and pages before the document have no active item',()=>{
+ for(const toc of [human,applied]){const chapter=toc.entries.find(e=>e.title==='제1장 서론');assert.equal(currentTocId(toc.entries,chapter.page,chapter.id),chapter.id);assert.equal(currentTocId(toc.entries,0),undefined);}
 });

@@ -1,11 +1,15 @@
 import type {PdfTarget} from './pdf-viewer-model';
 
-export type ProposalPriority='반드시 수정'|'강하게 권고'|'선택적';
+export type ProposalPriority='반드시 수정'|'필수'|'연동 필수'|'강하게 권고'|'권고'|'권장'|'권고·명확화'|'권고·요건명확화'|'권고·탐색성'|'권장·명확화'|'선택적'|'선택·이미 반영 유지';
 export type ProposalIndicator={priority:ProposalPriority;tone:'required'|'recommended'|'optional';shortLabel:'필수'|'권고'|'선택';proposalIds:string[];primaryProposalId:string};
-type Proposal={id:string;priority:string;before:string;page:number;page_end?:number;anchorId?:string;paragraphIds?:string[]};
+type Proposal={id:string;priority:string;before:string;page:number;page_end?:number;anchorId?:string;paragraphIds?:string[];targetNoteId?:string};
 type Paragraph={id:string;text:string;page:number;kind:string};
 const PRIORITIES:Record<ProposalPriority,{rank:number;tone:ProposalIndicator['tone'];shortLabel:ProposalIndicator['shortLabel']}>= {
  '반드시 수정':{rank:3,tone:'required',shortLabel:'필수'},'강하게 권고':{rank:2,tone:'recommended',shortLabel:'권고'},'선택적':{rank:1,tone:'optional',shortLabel:'선택'},
+ '필수':{rank:3,tone:'required',shortLabel:'필수'},'연동 필수':{rank:3,tone:'required',shortLabel:'필수'},
+ '권고':{rank:2,tone:'recommended',shortLabel:'권고'},'권장':{rank:2,tone:'recommended',shortLabel:'권고'},
+ '권고·명확화':{rank:2,tone:'recommended',shortLabel:'권고'},'권고·요건명확화':{rank:2,tone:'recommended',shortLabel:'권고'},'권고·탐색성':{rank:2,tone:'recommended',shortLabel:'권고'},'권장·명확화':{rank:2,tone:'recommended',shortLabel:'권고'},
+ '선택·이미 반영 유지':{rank:1,tone:'optional',shortLabel:'선택'},
 };
 const normalize=(value:string)=>value.replace(/\s+/g,' ').trim();
 export function proposalLabel(indicator:ProposalIndicator){return `수정제안 있음 · ${indicator.priority}${indicator.proposalIds.length>1?` · ${indicator.proposalIds.length}건`:''}`;}
@@ -14,7 +18,7 @@ export function proposalLabel(indicator:ProposalIndicator){return `수정제안 
 export function buildProposalIndicators(proposals:Proposal[],paragraphs:Paragraph[]):Record<string,ProposalIndicator>{
  const byId=new Map(paragraphs.map(p=>[p.id,p])),matches=new Map<string,Proposal[]>();
  for(const proposal of proposals){
-  if(!Object.hasOwn(PRIORITIES,proposal.priority)||/^FN\d+$/.test(proposal.id))continue;
+  if(!Object.hasOwn(PRIORITIES,proposal.priority)||proposal.targetNoteId||/^FN\d+$/.test(proposal.id))continue;
   const anchor=proposal.anchorId||(/^INSERT_AFTER_(P\d+)$/.exec(proposal.id)?.[1])||proposal.id;
   const ids=new Set((proposal.paragraphIds||[]).filter(id=>byId.has(id)));
   if(byId.has(anchor))ids.add(anchor);

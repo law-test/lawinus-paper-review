@@ -76,18 +76,18 @@ test('proposal labels retain urgency text and a deleted passage remains reviewab
  assert.doesNotMatch(html,/임차인 보호/);
 });
 test('every editable paragraph preserves the independently recorded human original',()=>{
- assert.equal(catalog.pdfSha256,originals.pdfSha256);assert.equal(catalog.paragraphs.length,1155);
+ assert.equal(catalog.pdfSha256,originals.pdfSha256);assert.equal(catalog.paragraphs.length,1262);
  assert.equal(Object.keys(originals.paragraphSha256).length,catalog.paragraphs.length);
- for(const p of catalog.paragraphs){assert.equal(sha256(p.text),originals.paragraphSha256[p.id],p.id);assert.ok(p.rects.length);assert.ok(p.rects.every(r=>r.page>=1&&r.page<=279&&r.rect[2]>r.rect[0]&&r.rect[3]>r.rect[1]));}
+ for(const p of catalog.paragraphs){assert.equal(sha256(p.text),originals.paragraphSha256[p.id],p.id);assert.ok(p.rects.length);assert.ok(p.rects.every(r=>r.page>=1&&r.page<=324&&r.rect[2]>r.rect[0]&&r.rect[3]>r.rect[1]));}
  for(const item of guide.items.filter(x=>/^P\d+$/.test(x.id)))assert.ok(Object.hasOwn(originals.paragraphSha256,item.id),item.id);
 });
-test('all 246 public footnotes retain their original text and a web manuscript page',()=>{
- const pages=new Set(catalog.paragraphs.map(p=>p.page));assert.equal(originals.footnotes.length,246);
+test('all 258 public footnotes retain their original text and a web manuscript page',()=>{
+ const pages=new Set(catalog.paragraphs.map(p=>p.page));assert.equal(originals.footnotes.length,258);
  originals.footnotes.forEach((n,i)=>{assert.equal(n.id,'fn-'+String(i+1).padStart(3,'0'));assert.equal(n.number,i+1);assert.equal(sha256(n.text),n.textSha256);assert.ok(pages.has(n.page),n.id);});
  const noteIds=new Set(originals.footnotes.map(n=>n.id));
  for(const p of catalog.paragraphs)for(const match of p.text.matchAll(/\[\^(\d+)\]/g))assert.ok(noteIds.has('fn-'+match[1].padStart(3,'0')),p.id+' '+match[0]);
 });
-test('split legislative table targets start on their verified human PDF pages',()=>{assert.equal(catalog.paragraphs.find(p=>p.id==='P1154').page,243);assert.equal(catalog.paragraphs.find(p=>p.id==='P1161').page,245);});
+test('both editions retain their own appendix table pages',()=>{const applied=JSON.parse(readFileSync(new URL('../src/paragraph-catalog-v110.json',import.meta.url),'utf8'));assert.equal(catalog.paragraphs.find(p=>p.id==='P1478').page,319);assert.equal(applied.paragraphs.find(p=>p.id==='P1486').page,330);});
 test('experience displays only the starting year for all recorded date forms',()=>{
  for(const period of ['2014. 8.~2017. 7.','2019. 10. 취임','2026. 4.부터','2026. 9.']){const html=renderToStaticMarkup(React.createElement(ProfileRow,{section:'experience',row:{period,institution:'기관',role:'위원'}}));assert.ok(html.includes('>'+period.slice(0,4)+'</span>'));assert.ok(!html.includes('취임'));assert.ok(!html.includes('부터'));assert.ok(!html.includes('~'));}
 });

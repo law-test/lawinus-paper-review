@@ -8,7 +8,7 @@ import {RevisionCopyButton,RevisionComparison} from './revision-copy';
 import {formatRevisionComparison,parseRevisionComparison} from './revision-composite';
 
 export type SharedEditEditorProps = {
- kind:SharedEditKind; targetId:string; proposalId?:string; originalText:string; proposalBeforeText?:string; proposalDisplayText?:string; proposalReason?:string; proposalApplyText?:string; proposalUnsupportedReason?:string;
+ datasetId?:string; kind:SharedEditKind; targetId:string; proposalId?:string; originalText:string; proposalBeforeText?:string; proposalDisplayText?:string; proposalReason?:string; proposalApplyText?:string; proposalUnsupportedReason?:string;
  current:SharedEdit|undefined; onSaved:(edit:SharedEdit)=>void; onMemo?:(draft:string)=>void;
 };
 
@@ -32,14 +32,14 @@ export function sharedMobileInputHeight(visibleHeight:number,bodyHeight?:number,
 }
 
 type DraftStorage = Pick<Storage,'getItem'|'setItem'|'removeItem'>;
-export function sharedDraftKey(kind:SharedEditKind,targetId:string){
- return `lawinus.shared-edit-draft.v1:${kind}:${targetId}`;
+export function sharedDraftKey(kind:SharedEditKind,targetId:string,datasetId?:string){
+ return datasetId?`lawinus.shared-edit-draft.v2:${encodeURIComponent(datasetId)}:${kind}:${targetId}`:`lawinus.shared-edit-draft.v1:${kind}:${targetId}`;
 }
 
-export function readSharedEditorDraft(storage:DraftStorage,kind:SharedEditKind,targetId:string,originalText:string,current?:SharedEdit){
+export function readSharedEditorDraft(storage:DraftStorage,kind:SharedEditKind,targetId:string,originalText:string,current?:SharedEdit,datasetId?:string){
  const fallback={state:initialSharedEditorState(originalText,current),recovered:false,failed:false};
  try{
-  const raw=storage.getItem(sharedDraftKey(kind,targetId));if(!raw)return fallback;
+  const raw=storage.getItem(sharedDraftKey(kind,targetId,datasetId));if(!raw)return fallback;
   const data=JSON.parse(raw);const state=data?.state;
   if(data.schema!==1||data.kind!==kind||data.targetId!==targetId||data.originalText!==originalText||!state||
    !['draft','reason','baseText'].every(key=>typeof state[key]==='string')||
@@ -50,8 +50,8 @@ export function readSharedEditorDraft(storage:DraftStorage,kind:SharedEditKind,t
  }catch{return {...fallback,failed:true};}
 }
 
-export function writeSharedEditorDraft(storage:DraftStorage,kind:SharedEditKind,targetId:string,originalText:string,state:EditorState){
- const key=sharedDraftKey(kind,targetId);
+export function writeSharedEditorDraft(storage:DraftStorage,kind:SharedEditKind,targetId:string,originalText:string,state:EditorState,datasetId?:string){
+ const key=sharedDraftKey(kind,targetId,datasetId);
  if((state.draft===state.baseText||state.autoProposal)&&!state.reason&&!state.comparisonEdited){storage.removeItem(key);return;}
  storage.setItem(key,JSON.stringify({schema:1,kind,targetId,originalText,state}));
 }
@@ -117,14 +117,14 @@ function revisionDate(value:string):string {
 
 /** A new target gets its own draft and pending-request lifetime. */
 export function SharedEditEditor(props:SharedEditEditorProps){
- return <SharedEditEditorSession key={`${props.kind}:${props.targetId}`} {...props}/>;
+ return <SharedEditEditorSession key={`${props.datasetId||'legacy'}:${props.kind}:${props.targetId}`} {...props}/>;
 }
 
-function SharedEditEditorSession({kind,targetId,proposalId,originalText,proposalBeforeText,proposalDisplayText,proposalReason,proposalApplyText,proposalUnsupportedReason,current,onSaved,onMemo}:SharedEditEditorProps){
- const validCurrent=current?.kind===kind&&current.targetId===targetId?current:undefined;
+function SharedEditEditorSession({datasetId,kind,targetId,proposalId,originalText,proposalBeforeText,proposalDisplayText,proposalReason,proposalApplyText,proposalUnsupportedReason,current,onSaved,onMemo}:SharedEditEditorProps){
+ const validCurrent=current?.kind===kind&&current.targetId===targetId&&(!datasetId||current.datasetId===datasetId)?current:undefined;
  const [boot]=useState(()=>{
   let restored:{state:EditorState;recovered:boolean;failed:boolean};
-  try{restored=typeof window==='undefined'?{state:initialSharedEditorState(originalText,validCurrent),recovered:false,failed:false}:readSharedEditorDraft(window.sessionStorage,kind,targetId,originalText,validCurrent);}
+  try{restored=typeof window==='undefined'?{state:initialSharedEditorState(originalText,validCurrent),recovered:false,failed:false}:readSharedEditorDraft(window.sessionStorage,kind,targetId,originalText,validCurrent,datasetId);}
   catch{restored={state:initialSharedEditorState(originalText,validCurrent),recovered:false,failed:true};}
   const state={...restored.state};
   if(state.comparison===undefined){
@@ -211,7 +211,7 @@ function SharedEditEditorSession({kind,targetId,proposalId,originalText,proposal
   if(validCurrent)dispatch({type:'incoming',revision:validCurrent.revision,text:validCurrent.text});
  },[validCurrent?.revision,validCurrent?.text]);
  useEffect(()=>{
-  try{writeSharedEditorDraft(window.sessionStorage,kind,targetId,originalText,state);setStorageFailed(false);}
+  try{writeSharedEditorDraft(window.sessionStorage,kind,targetId,originalText,state,datasetId);setStorageFailed(false);}
   catch{setStorageFailed(true);}
  },[kind,targetId,originalText,state]);
  useEffect(()=>{
@@ -228,8 +228,9 @@ function SharedEditEditorSession({kind,targetId,proposalId,originalText,proposal
   loading.current=true;setHistoryBusy(true);setError('');
   const requestEpoch=epoch.current;
   try{
-   const result=await getSharedEditHistory(kind,targetId,cursor);
+   const result=await getSharedEditHistory(kind,targetId,cursor,50,datasetId);
    if(!alive.current||requestEpoch!==epoch.current)return;
+   if(datasetId&&(result.original.datasetId!==datasetId||result.original.kind!==kind||result.original.targetId!==targetId))throw new Error('선택한 판본의 수정 이력을 확인하지 못했습니다.');
    if(mode==='more'){
     setHistory(previous=>{
      if(!previous)return result;
@@ -271,9 +272,10 @@ function SharedEditEditorSession({kind,targetId,proposalId,originalText,proposal
  }
 
  function acceptSaved(edit:SharedEdit){
+  if(datasetId&&(edit.datasetId!==datasetId||edit.kind!==kind||edit.targetId!==targetId))throw new Error('선택한 판본의 저장 결과를 확인하지 못했습니다.');
   epoch.current++;
   setResetUndo(null);
-  try{window.sessionStorage.removeItem(sharedDraftKey(kind,targetId));setStorageFailed(false);}catch{setStorageFailed(true);}
+  try{window.sessionStorage.removeItem(sharedDraftKey(kind,targetId,datasetId));setStorageFailed(false);}catch{setStorageFailed(true);}
   dispatch({type:'saved',edit,comparison:formatRevisionComparison({...(parsedComparison.ok?parsedComparison.parts:{before:proposalBeforeText??originalText,reason:proposalReason??''}),after:edit.text})});setShowLatest(false);setError('');
   setHistory(previous=>previous?{
    ...previous,currentRevision:edit.revision,
@@ -288,7 +290,7 @@ function SharedEditEditorSession({kind,targetId,proposalId,originalText,proposal
   if(state.confirmOverwrite&&!window.confirm(`확인한 최신 수정 ${state.revision}을 입력한 문안으로 바꾸시겠습니까? 기존 내용은 변경 이력에 남습니다.`))return;
   saving.current=true;setBusy(true);setError('');setNotice('');
   try{
-   const edit=await saveSharedEdit({kind,targetId,text:parsedComparison.parts.after,expectedRevision:state.revision,reason:state.reason});
+   const edit=await saveSharedEdit({kind,targetId,text:parsedComparison.parts.after,expectedRevision:state.revision,reason:state.reason},datasetId);
    if(alive.current)acceptSaved(edit);
   }catch(caught){
    if(alive.current){if(isConflict(caught))dispatch({type:'conflict'});setError(errorText(caught));}
@@ -302,7 +304,7 @@ function SharedEditEditorSession({kind,targetId,proposalId,originalText,proposal
   if(!window.confirm(`${name}으로 복원하시겠습니까? 복원은 새 변경 이력으로 저장되며 이전 이력은 유지됩니다.${draftWarning}`))return;
   saving.current=true;setBusy(true);setError('');setNotice('');
   try{
-   const edit=await restoreSharedEdit({kind,targetId,restoreRevision:revision,expectedRevision:state.revision,reason:state.reason||`${name}으로 복원`});
+   const edit=await restoreSharedEdit({kind,targetId,restoreRevision:revision,expectedRevision:state.revision,reason:state.reason||`${name}으로 복원`},datasetId);
    if(alive.current)acceptSaved(edit);
   }catch(caught){
    if(alive.current){if(isConflict(caught))dispatch({type:'conflict'});setError(errorText(caught));}

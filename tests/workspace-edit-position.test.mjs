@@ -17,15 +17,17 @@ const compile=file=>{const source=readFileSync(new URL('../src/'+file,import.met
 function loadReadingModel(){const module={exports:{}};vm.runInNewContext(compile('web-manuscript.tsx'),{module,exports:module.exports,require:id=>id.startsWith('.')?{}:require(id)});return module.exports;}
 const readingModel=loadReadingModel();
 const paragraphs=[{id:'P0283',text:'원문[^1]',page:20,printed:1,heading:false,kind:'paragraph',rects:[],order:283}];
-const proposal={id:'P0283',page:20,page_end:249,priority:'권고',before:'원문[^1]',after:'수정문[^1]',reason:'수정 이유',applyText:'수정문[^1]'};
+const proposal={id:'P0283',targetParagraphId:'P0283',page:20,page_end:249,priority:'권고',before:'원문[^1]',after:'수정문[^1]',reason:'수정 이유',applyText:'수정문[^1]'};
 const fixture={meta:{pageCount:279},pages:[],sources:[{id:'source-1',kind:'pdf',title:'원전',pages:220}],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[{sourceId:'source-1'}],clickTargets:[],noteHighlights:[]}]};
 function PdfPane(){return null;}function WebManuscript(){return null;}function SharedEditEditor(){return null;}function MemoDialog(){return null;}
 const empty={__esModule:true,default:()=>null};
-function harness(mode='pdf',memoRows=[]){
+const edition={id:'human73',datasetId:'human-a',label:'인간73',date:'2026. 10. 26.',pages:279,footnotes:1,toc:{entries:[]}};
+function harness(mode='pdf',memoRows=[],guide=[proposal]){
  const states=[],refs=[];let stateIndex=0,refIndex=0,oneCount=0,effects=[],tree;
  const module={exports:{}};
  const dependencies={
   './thesis-faq-model':faqModel,
+  './manuscript-editions':{editionParagraphs:()=>paragraphs,editionProposals:()=>guide,editionDownloadPath:(id,format)=>`./editions/${id}/manuscript.${format}`},
   './workspace-tools':workspaceTools,'./workspace-tool-popups':{useWorkspaceToolPopups:()=>({openTool:()=>{},layer:null})},
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
@@ -46,13 +48,13 @@ function harness(mode='pdf',memoRows=[]){
   },useRef:initial=>{const index=refIndex++;return refs[index]??=( {current:initial});},useMemo:fn=>fn(),useEffect:(fn,deps)=>effects.push({fn,deps})};
   if(id in dependencies)return dependencies[id];if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:empty;return require(id);
  }});
- function render(){stateIndex=0;refIndex=0;effects=[];tree=module.exports.default();return tree;}
+ function render(){stateIndex=0;refIndex=0;effects=[];tree=module.exports.ReviewWorkspaceEdition({edition,onEdition:()=>{},toolPopups:dependencies['./workspace-tool-popups'].useWorkspaceToolPopups()});return tree;}
  function nodes(){const all=[];function walk(node){if(!node||typeof node!=='object')return;all.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);return all;}
  const label=node=>React.Children.toArray(node.props?.children).map(c=>typeof c==='object'?label(c):String(c)).join('');
  function pollView(){const effect=effects.find(e=>e.deps?.length===2&&e.deps[0]===fixture);assert.ok(effect);effect.fn();render();}
  render();return {render,nodes,label,pollView,memo:()=>nodes().find(n=>n.type===MemoDialog),pdf:()=>nodes().find(n=>n.type===PdfPane&&n.props.id==='thesis'),body:()=>nodes().find(n=>n.type===WebManuscript),editor:kind=>nodes().find(n=>n.type===SharedEditEditor&&n.props.kind===kind)};
 }
-const edit=(kind,text,revision=3)=>({id:String(revision+10),kind,targetId:kind==='paragraph'?'P0283':'fn-001',revision,text});
+const edit=(kind,text,revision=3)=>({id:String(revision+10),datasetId:'human-a',kind,targetId:kind==='paragraph'?'P0283':'fn-001',revision,text});
 
 test('saving a footnote preserves the current PDF page, zoom and selected original through the next poll',()=>{
  const h=harness();
@@ -74,6 +76,21 @@ test('a proposal badge on a continuation page opens editing without jumping back
 test('selecting a proposal from the list still explicitly navigates to its first page',()=>{
  const h=harness();const menu=h.nodes().find(n=>n.type==='button'&&h.label(n)==='✎수정안');assert.ok(menu);menu.props.onClick();h.render();
  const item=h.nodes().find(n=>n.type==='button'&&h.label(n).includes('원문[^1]'));assert.ok(item);item.props.onClick();h.render();assert.equal(h.pdf().props.page,20);
+});
+
+test('a footnote proposal with a paragraph owner opens only the footnote editor',()=>{
+ const noteProposal={...proposal,id:'FN73-001',targetNoteId:'fn-001',targetParagraphId:'P0283',before:'각주 원문',after:'각주 교정문'};
+ const h=harness('pdf',[],[noteProposal]);h.pdf().props.onProposal('FN73-001');h.render();
+ assert.equal(h.editor('paragraph'),undefined);
+ assert.equal(h.editor('footnote').props.targetId,'fn-001');
+ assert.equal(h.editor('footnote').props.datasetId,'human-a');
+ assert.equal(h.editor('footnote').props.proposalId,'FN73-001');
+});
+
+test('a late edit from another dataset cannot replace a matching local paragraph number',()=>{
+ const h=harness('body');h.body().props.onParagraph('P0283');h.render();
+ h.editor('paragraph').props.onSaved({...edit('paragraph','구판 수정'),datasetId:'human-1021-1559'});h.render();
+ assert.equal(h.body().props.overrides.P0283,undefined);
 });
 test('restoring an original footnote keeps its revision for future saves without forcing body mode',()=>{
  const h=harness();h.editor('footnote').props.onSaved(edit('footnote','각주 원문',4));h.render();h.pollView();

@@ -23,8 +23,8 @@ export class SharedEditError extends Error {
  constructor(message:string,public readonly code:string){super(message);this.name='SharedEditError';}
 }
 
-async function sharedRpc<T>(name:string,args:Record<string,unknown>):Promise<T>{
- const {config,client}=await getReviewConnection();
+async function sharedRpc<T>(name:string,args:Record<string,unknown>,datasetId?:string):Promise<T>{
+ const {config,client}=await getReviewConnection(datasetId);
  const {data,error}=await client.rpc(`paper_review_shared_${name}`,{p_dataset_id:config.datasetId,...args});
  if(error){
   const code=error.code||'CONNECTION_ERROR';
@@ -40,30 +40,30 @@ async function sharedRpc<T>(name:string,args:Record<string,unknown>):Promise<T>{
  return data as T;
 }
 
-export function loadSharedEdits():Promise<{datasetId:string;overrides:SharedEdit[];snapshotId:string}>{
- return sharedRpc('list',{});
+export function loadSharedEdits(datasetId?:string):Promise<{datasetId:string;overrides:SharedEdit[];snapshotId:string}>{
+ return sharedRpc('list',{},datasetId);
 }
-export function getSharedEditHistory(kind:SharedEditKind,targetId:string,beforeRevision:number|null=null,limit=50):Promise<SharedHistory>{
- return sharedRpc('history',{p_kind:kind,p_target_id:targetId,p_before_revision:beforeRevision,p_limit:limit});
+export function getSharedEditHistory(kind:SharedEditKind,targetId:string,beforeRevision:number|null=null,limit=50,datasetId?:string):Promise<SharedHistory>{
+ return sharedRpc('history',{p_kind:kind,p_target_id:targetId,p_before_revision:beforeRevision,p_limit:limit},datasetId);
 }
-export async function saveSharedEdit(input:{kind:SharedEditKind;targetId:string;text:string;expectedRevision:number;reason?:string}):Promise<SharedEdit>{
+export async function saveSharedEdit(input:{kind:SharedEditKind;targetId:string;text:string;expectedRevision:number;reason?:string},datasetId?:string):Promise<SharedEdit>{
  if(Array.from(input.text).length>100000||Array.from(input.reason||'').length>2000)throw new SharedEditError('수정 내용은 100,000자, 수정 이유는 2,000자 이내로 입력해 주세요.','PT400');
  await initializeReviewSession();
  return (await sharedRpc<{edit:SharedEdit}>('save',{p_kind:input.kind,p_target_id:input.targetId,
-  p_expected_revision:input.expectedRevision,p_text:input.text,p_reason:input.reason||'',p_restore_revision:null})).edit;
+  p_expected_revision:input.expectedRevision,p_text:input.text,p_reason:input.reason||'',p_restore_revision:null},datasetId)).edit;
 }
-export async function restoreSharedEdit(input:{kind:SharedEditKind;targetId:string;restoreRevision:number;expectedRevision:number;reason?:string}):Promise<SharedEdit>{
+export async function restoreSharedEdit(input:{kind:SharedEditKind;targetId:string;restoreRevision:number;expectedRevision:number;reason?:string},datasetId?:string):Promise<SharedEdit>{
  await initializeReviewSession();
  return (await sharedRpc<{edit:SharedEdit}>('save',{p_kind:input.kind,p_target_id:input.targetId,
-  p_expected_revision:input.expectedRevision,p_text:null,p_reason:input.reason||'',p_restore_revision:input.restoreRevision})).edit;
+  p_expected_revision:input.expectedRevision,p_text:null,p_reason:input.reason||'',p_restore_revision:input.restoreRevision},datasetId)).edit;
 }
 
 // Complete history, fixed at the first page's committed snapshot. No silent cap.
-export async function collectSharedEditsExport(){
- const {config}=await getReviewConnection();const targets:SharedCatalogTarget[]=[];
+export async function collectSharedEditsExport(datasetId?:string){
+ const {config}=await getReviewConnection(datasetId);const targets:SharedCatalogTarget[]=[];
  let offset=0;let catalogTotal:number|undefined;
  for(;;){
-  const p=await sharedRpc<{targets:SharedCatalogTarget[];totalCount:number;hasMore:boolean;nextOffset:number}>('catalog',{p_offset:offset,p_limit:500});
+  const p=await sharedRpc<{targets:SharedCatalogTarget[];totalCount:number;hasMore:boolean;nextOffset:number}>('catalog',{p_offset:offset,p_limit:500},datasetId);
   catalogTotal??=p.totalCount;
   if(p.totalCount!==catalogTotal)throw new Error('원문 목록이 바뀌었습니다. 다시 내보내 주세요.');
   targets.push(...p.targets);if(!p.hasMore)break;
@@ -72,7 +72,7 @@ export async function collectSharedEditsExport(){
  if(targets.length!==catalogTotal)throw new Error('원문 목록 일부를 수집하지 못했습니다.');
  const revisions:SharedEdit[]=[];let after='0';let snapshot:string|null=null;let total:number|undefined;
  for(;;){
-  const p:{snapshotId:string;totalCount:number;revisions:SharedEdit[];hasMore:boolean;nextAfterId:string}=await sharedRpc('export',{p_after_id:after,p_through_id:snapshot,p_limit:200});
+  const p:{snapshotId:string;totalCount:number;revisions:SharedEdit[];hasMore:boolean;nextAfterId:string}=await sharedRpc('export',{p_after_id:after,p_through_id:snapshot,p_limit:200},datasetId);
   snapshot??=p.snapshotId;total??=p.totalCount;
   if(snapshot!==p.snapshotId||total!==p.totalCount)throw new Error('수정 이력의 기준 시점이 바뀌었습니다. 다시 내보내 주세요.');
   revisions.push(...p.revisions);if(!p.hasMore)break;
@@ -81,8 +81,8 @@ export async function collectSharedEditsExport(){
  if(revisions.length!==total||new Set(revisions.map(r=>r.id)).size!==revisions.length)throw new Error('수정 이력에 누락 또는 중복이 있습니다.');
  return {schemaVersion:1,datasetId:config.datasetId,exportedAt:new Date().toISOString(),snapshotId:snapshot,targets,revisions};
 }
-export async function downloadSharedEditsExport():Promise<void>{
- const bundle=await collectSharedEditsExport();const url=URL.createObjectURL(new Blob([JSON.stringify(bundle,null,2)],{type:'application/json;charset=utf-8'}));
+export async function downloadSharedEditsExport(datasetId?:string):Promise<void>{
+ const bundle=await collectSharedEditsExport(datasetId);const url=URL.createObjectURL(new Blob([JSON.stringify(bundle,null,2)],{type:'application/json;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download=`공통수정이력_${bundle.datasetId}_${new Date().toISOString().slice(0,10)}.json`;a.click();
  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }

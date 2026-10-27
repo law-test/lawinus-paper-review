@@ -1,9 +1,10 @@
 import catalogData from './legal-link-catalog.json' with {type:'json'};
+import editionContextData from './manuscript-legal-contexts.json' with {type:'json'};
 
 export type LegalStatus='current'|'proposal'|'historical'|'foreign'|'unresolved';
 export type LegalRelated={label:string;href:string;lawId?:string;article?:string};
 export type LegalMention={start:number;end:number;label:string;lawId?:string;lawName?:string;article?:string;paragraph?:string;href:string;related:LegalRelated[];status:LegalStatus;reason?:string;articleText?:string};
-export type LegalContext={contextId?:string;defaultLawId?:string};
+export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human73'|'v110'|'legacy1021'};
 export type LegalArticle={title:string;text:string;paragraphs?:string[]};
 export type LegalLaw={id:string;name:string;aliases:string[];status?:LegalStatus;href:string;lsiSeq?:string;effectiveDate?:string;effectiveLabel?:string;articleNumbers?:string[];articles?:Record<string,LegalArticle>;relatedLawIds?:string[];relatedArticleMap?:Record<string,{lawId:string;article:string}[]>;relatedNote?:string};
 type ContextRecord={defaultLawId?:string;lawId?:string;status?:LegalStatus;proposalHref?:string;source?:string;textHash?:string;mentions?:{article:string;lawId:string;status?:LegalStatus;start?:number}[];auditedSpans?:{start:number;label:string;article:string;lawId:string;status:LegalStatus}[]};
@@ -38,11 +39,12 @@ const citationExplanationScopes:Record<string,{lawId:string;textHash:string}>={
 function contextRecord(context:string|LegalContext|undefined,text:string):ContextRecord {
  const o=typeof context==='string'?{contextId:context}:context||{};let id=o.contextId||'';
  const explanation=id.match(/^citation-explanation:(fn-\d+):([^:]+)$/);
- const scope=explanation?citationExplanationScopes[explanation[1]+':'+explanation[2]]:undefined;
+ const scope=explanation?Object.entries(citationExplanationScopes).find(([key])=>key.endsWith(':'+explanation[2]))?.[1]:undefined;
  if(scope)return {defaultLawId:o.defaultLawId||(scope.textHash===legalTextFingerprint(text)?scope.lawId:undefined)};
  const plain=explanation?.[1]||id.replace(/^(paragraph|note|faq):/,'');
- const base=legalCatalog.contexts[id]||legalCatalog.contexts[plain]||{};
- const extra=legalCatalog.contextOverrides[id]||legalCatalog.contextOverrides[plain]||{};
+ const scoped=o.edition==='legacy1021'?legalCatalog:(editionContextData as unknown as Record<string,{contexts:Record<string,ContextRecord>;contextOverrides:Record<string,ContextRecord>}>)[o.edition||'human73'];
+ const base=scoped.contexts[id]||scoped.contexts[plain]||{};
+ const extra=scoped.contextOverrides[id]||scoped.contextOverrides[plain]||{};
  return {...base,...extra,...(o.defaultLawId?{defaultLawId:o.defaultLawId}:{})};
 }
 function relatedLinks(law:LegalLaw|undefined,article:string,status:LegalStatus):LegalRelated[]{
@@ -87,11 +89,15 @@ export function getLegalMentions(text:string,context?:string|LegalContext):Legal
  const contextId=typeof context==='string'?context:context?.contextId||'';
  // Contract terms and local practice directions are linked by the source-document layer.
  // Sending these provision numbers to the national statute search would misidentify them.
- if(/(?:^|:)fn-067$/.test(contextId))return [];
+ if(/주택도시보증공사/.test(text)&&/한국주택금융공사/.test(text)&&/SGI서울보증/.test(text)&&/약관/.test(text))return [];
  let previous:LegalMention|undefined;
  const matches=[...text.matchAll(articlePattern)];
  for(const m of matches){
   const start=m.index!,end=start+m[0].length,article=m[1]+(m[2]?'-'+m[2]:''),paragraph=m[3];
+  // A proposal may quote a commentary chapter titled 「제589조」. It is a
+  // bibliographic title, not an instruction to open a national statute.
+  if(contextId.startsWith('proposal:')&&/「\s*$/.test(text.slice(0,start))&&/^\s*」/.test(text.slice(end)))continue;
+  if(contextId.startsWith('proposal:')&&/김범준\s*$/.test(text.slice(0,start))&&m[1]==='615'&&!m[2])continue;
   // Local practice-rule numbers are document references; a later national-law
   // provision in the same footnote remains linkable through its audited scope.
   if(!hits.length&&/약관/.test(text))continue;

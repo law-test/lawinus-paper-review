@@ -1,7 +1,7 @@
 import type {ReadingView,ReadingSurface} from './reading-view';
 export type DocumentReading={page:number;zoom:number;fitMode?:'width'|'page'};
 export type ReadingSession={schema:1;datasetId:string;thesis:DocumentReading;sources:Record<string,DocumentReading>;sourceId:string;textTranslation:string;activeNote:string;manuscriptMode:'pdf'|'body';mobilePane:'contents'|'thesis'|'source'|'metadata';tab:string;paragraphId:string;proposalId:string;readingView:ReadingView;sidebarOpen:boolean;metadataOpen:boolean};
-export type ReadingCatalog={pageCount:number;sources:{id:string;pages?:number}[];noteIds:string[];paragraphIds:string[];proposalIds:string[];defaultSourceId?:string;defaultSourcePage?:number;defaultSidebarOpen?:boolean;textTranslations?:{sourceId:string;kind:string;noteIds?:string[]}[]};
+export type ReadingCatalog={pageCount:number;sources:{id:string;pages?:number}[];noteIds:string[];paragraphIds:string[];proposalIds:string[];defaultThesisPage?:number;defaultSourceId?:string;defaultSourcePage?:number;defaultSidebarOpen?:boolean;textTranslations?:{sourceId:string;kind:string;noteIds?:string[]}[]};
 type ReadingStorage=Pick<Storage,'getItem'|'setItem'>;
 const record=(value:unknown):Record<string,unknown>|undefined=>value!==null&&typeof value==='object'&&!Array.isArray(value)?value as Record<string,unknown>:undefined;
 const integer=(value:unknown,fallback:number,total:number)=>typeof value==='number'&&Number.isFinite(value)?Math.max(1,Math.min(Math.max(1,Math.floor(total)),Math.floor(value))):fallback;
@@ -18,7 +18,7 @@ export function readingDocument(value:unknown,total:number,fallbackPage=1):Docum
 }
 export function defaultReadingSession(datasetId:string,catalog:ReadingCatalog):ReadingSession {
  const source=catalog.sources.find(s=>s.id===catalog.defaultSourceId),sourceId=source?.id||'';
- return {schema:1,datasetId,thesis:readingDocument({page:20},catalog.pageCount),sources:source?{[sourceId]:readingDocument({page:catalog.defaultSourcePage},source.pages||1)}:{},sourceId,textTranslation:'',activeNote:catalog.noteIds.includes('fn-001')?'fn-001':catalog.noteIds[0]||'',manuscriptMode:'pdf',mobilePane:'thesis',tab:'source',paragraphId:'',proposalId:'',readingView:readingView(undefined),sidebarOpen:catalog.defaultSidebarOpen??true,metadataOpen:true};
+ return {schema:1,datasetId,thesis:readingDocument({page:catalog.defaultThesisPage??20},catalog.pageCount),sources:source?{[sourceId]:readingDocument({page:catalog.defaultSourcePage},source.pages||1)}:{},sourceId,textTranslation:'',activeNote:catalog.noteIds.includes('fn-001')?'fn-001':catalog.noteIds[0]||'',manuscriptMode:'pdf',mobilePane:'thesis',tab:'source',paragraphId:'',proposalId:'',readingView:readingView(undefined),sidebarOpen:catalog.defaultSidebarOpen??true,metadataOpen:true};
 }
 export function validateReadingSession(value:unknown,datasetId:string,catalog:ReadingCatalog):ReadingSession|undefined {
  const v=record(value);if(v?.schema!==1||v.datasetId!==datasetId)return;
@@ -31,7 +31,7 @@ export function validateReadingSession(value:unknown,datasetId:string,catalog:Re
  const activeNote=typeof v.activeNote==='string'&&catalog.noteIds.includes(v.activeNote)?v.activeNote:fallback.activeNote;
  const textTranslation=typeof v.textTranslation==='string'&&catalog.textTranslations?.some(t=>t.sourceId===v.textTranslation&&t.kind==='text'&&t.noteIds?.includes(activeNote))?v.textTranslation:'';
  const tab=['source','library','memos','revision','profile','faq','ai-mingyu'].includes(String(v.tab))?String(v.tab):'source';
- return {schema:1,datasetId,thesis:readingDocument(v.thesis,catalog.pageCount,20),sources,sourceId,textTranslation,
+ return {schema:1,datasetId,thesis:readingDocument(v.thesis,catalog.pageCount,fallback.thesis.page),sources,sourceId,textTranslation,
   activeNote,
   manuscriptMode:v.manuscriptMode==='body'?'body':'pdf',mobilePane:pane==='source'&&!sourceId&&!textTranslation?'thesis':pane,tab,
   paragraphId:typeof v.paragraphId==='string'&&catalog.paragraphIds.includes(v.paragraphId)?v.paragraphId:'',

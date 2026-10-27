@@ -15,10 +15,11 @@ import * as workspaceTools from '../src/workspace-tools.ts';
 const require=createRequire(import.meta.url),source=readFileSync(new URL('../src/review-workspace.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 const paragraphs=[{id:'P0283',text:'원문',page:20,printed:1,heading:false,kind:'paragraph',rects:[],order:283}];
-const fixture={meta:{pageCount:279},pages:[],sources:[{id:'a',kind:'pdf',title:'원전 A',pages:220},{id:'b',kind:'pdf',title:'원전 B',pages:48}],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[{sourceId:'a'},{sourceId:'b'}],clickTargets:[],noteHighlights:[]}]};
+const fixture={datasetId:'human-a',meta:{pageCount:279},pages:[{page:249,printedPage:'231'}],sources:[{id:'a',kind:'pdf',title:'원전 A',pages:220},{id:'b',kind:'pdf',title:'원전 B',pages:48}],notes:[{id:'fn-001',number:1,page:20,text:'각주 원문',sourceRefs:[{sourceId:'a'},{sourceId:'b'}],clickTargets:[],noteHighlights:[]}]};
 function PdfPane(){return null;}function WebManuscript(){return null;}function ParallelSourceReader(){return null;}function ReadingControls(){return null;}function PaneResizer(){return null;}function WorkspaceLaunchers(){return null;}
 const translations=[{sourceId:'t-german',kind:'text',noteIds:['fn-001'],title:'독일어 원문'}];
 const empty={__esModule:true,default:()=>null};
+const edition={id:'human73',datasetId:'human-a',label:'인간73',date:'2026. 10. 26.',pages:279,footnotes:1,toc:{entries:[]}};
 function harness(saved,width=390,height=844,layout,entry={search:'',hash:''}){
  const popupCalls=[],values=new Map(),writes=[];if(layout)values.set(workspaceLayout.WORKSPACE_LAYOUT_KEY,JSON.stringify(layout));if(saved)values.set(readingSession.readingSessionKey('human-a'),JSON.stringify(saved));
  const local={getItem:key=>values.get(key)||null,setItem:(key,value)=>{writes.push({key,value});values.set(key,value);}};
@@ -26,6 +27,7 @@ function harness(saved,width=390,height=844,layout,entry={search:'',hash:''}){
  const pendingManifest=new Promise(resolve=>{resolveManifest=resolve;});
  const module={exports:{}},dependencies={
   './thesis-faq-model':faqModel,
+  './manuscript-editions':{editionParagraphs:()=>paragraphs,editionProposals:()=>[],editionDownloadPath:(id,format)=>`./editions/${id}/manuscript.${format}`},
   './workspace-tools':workspaceTools,'./workspace-tool-popups':{useWorkspaceToolPopups:()=>({openTool:tool=>popupCalls.push(tool),layer:null})},'./workspace-launchers':{...empty,default:WorkspaceLaunchers},
   './legal-links':{useLegalLinks:()=>()=>{},LegalText:({text})=>React.createElement(React.Fragment,null,text)},
   './source-text':{__esModule:true,default:({text})=>React.createElement(React.Fragment,null,text)},
@@ -43,7 +45,7 @@ function harness(saved,width=390,height=844,layout,entry={search:'',hash:''}){
   if(id==='react')return {...React,useState:initial=>{const i=cursor++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return [states[i],next=>{states[i]=typeof next==='function'?next(states[i]):next;}];},useRef:initial=>refs[refIndex++]??=( {current:initial}),useMemo:fn=>fn(),useEffect:(fn,deps)=>effects.push({fn,deps})};
   if(id in dependencies)return dependencies[id];if(id.startsWith('.'))return id.endsWith('.css')?{}:id.endsWith('.json')?{default:{}}:empty;return require(id);
  }});
- function render(){cursor=0;refIndex=0;effects=[];tree=module.exports.default();return tree;}
+ function render(){cursor=0;refIndex=0;effects=[];tree=module.exports.ReviewWorkspaceEdition({edition,onEdition:()=>{},toolPopups:dependencies['./workspace-tool-popups'].useWorkspaceToolPopups()});return tree;}
  function nodes(){const all=[];function walk(node){if(!node||typeof node!=='object')return;all.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);return all;}
  function persist(){effects.find(e=>e.fn.toString().includes('readingSnapshot.current')&&e.deps?.length>1)?.fn();}
  async function boot(){effects.find(e=>e.fn.toString().includes('loadReviewConfig'))?.fn();resolveManifest(fixture);await new Promise(resolve=>setTimeout(resolve,0));render();}
@@ -51,6 +53,13 @@ function harness(saved,width=390,height=844,layout,entry={search:'',hash:''}){
  render();return {popupCalls,render,nodes,persist,persistLayout:()=>effects.find(e=>e.fn.toString().includes("saveWorkspaceLayout"))?.fn(),applyDeepLink:()=>effects.find(e=>e.fn.toString().includes('reviewDeepLink'))?.fn(),boot,writes,values,label,pdf:id=>nodes().find(n=>n.type===PdfPane&&n.props.id===id),body:()=>nodes().find(n=>n.type===WebManuscript)};
 }
 const saved={schema:1,datasetId:'human-a',thesis:{page:249,zoom:1.15},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'a',textTranslation:'',activeNote:'fn-001',manuscriptMode:'pdf',mobilePane:'source',tab:'source',paragraphId:'',proposalId:'',readingView:{focus:false,header:true,tools:true,footnotes:true},sidebarOpen:false,metadataOpen:true};
+
+test('footer uses the actual edition printed-page label and never derives an old offset',async()=>{
+ const h=harness(saved);await h.boot();
+ assert.ok(h.nodes().some(node=>node.type==='span'&&h.label(node)==='PDF 249쪽 · 인쇄 231면'));
+ h.pdf('thesis').props.onPageChange(250);h.render();
+ assert.ok(h.nodes().some(node=>node.type==='span'&&h.label(node)==='PDF 250쪽'));
+});
 test('workspace does not save initial defaults while loading and renders the restored values together',async()=>{
  const h=harness(saved);h.persist();assert.equal(h.writes.length,0);await h.boot();
  assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('thesis').props.zoom,1.15);assert.equal(h.pdf('thesis').props.persistenceKey,'human-a:thesis');

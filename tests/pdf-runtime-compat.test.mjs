@@ -47,7 +47,7 @@ test('mobile fallback raster dimensions do not change PDF CSS geometry or the na
   assert.ok(source.includes('pdfRuntime=createPdfRuntimeCache'));
   assert.ok(source.includes('await renderSettled.current.catch'));
   assert.ok(source.includes('cv.width=0;cv.height=0'));
-  assert.ok(source.includes('href={assetUrl(id)}'));
+  assert.ok(source.includes('href={url||assetUrl(id)}'));
 });
 
 test('an explicit retry replaces a rejected fake-worker cache without destroying another document',()=>{

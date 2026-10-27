@@ -28,3 +28,8 @@ public/config.json
 !public/research/paper-7f37cc885e23.pdf
 !public/research/paper-ea5c8240dcc4.pdf
 !public/research/paper-f4a1876095f4.pdf
+
+# Published author-owned thesis editions
+!public/editions/**/*.pdf
+!public/editions/**/*.hwp
+!public/editions/**/*.hwpx

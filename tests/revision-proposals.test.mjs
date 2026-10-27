@@ -2,61 +2,44 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-
-const guide=JSON.parse(readFileSync(new URL('../src/revision-proposals.json',import.meta.url),'utf8'));
-const original=JSON.parse(readFileSync(new URL('./fixtures/human-originals.json',import.meta.url),'utf8'));
-const catalog=JSON.parse(readFileSync(new URL('../src/paragraph-catalog.json',import.meta.url),'utf8'));
-const paragraphs=new Map(catalog.paragraphs.map(p=>[p.id,p]));
-const movedTableRows=new Set(['P1091','P1100','P1119','P1126','P1136','P1154','P1161','P1169','P1188']);
-const notes=new Map(original.footnotes.map(n=>[String(n.number),n]));
+const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
+const guide=read('../src/revision-proposals.json'),original=read('./fixtures/human-originals.json');
+const paragraphs=new Map(read('../src/paragraph-catalog.json').paragraphs.map(p=>[p.id,p]));
+const applied=new Map(read('../src/paragraph-catalog-v110.json').paragraphs.map(p=>[p.id,p]));
+const notes=new Map(original.footnotes.map(n=>[n.id,n]));
 const sha=text=>createHash('sha256').update(text,'utf8').digest('hex');
-
-test('all proposal payloads have an immutable human target and explicit applicability',()=>{
+test('v110 keeps 164 human73 instructions with separate original and applied navigation',()=>{
+ assert.equal(guide.version,'v110');assert.equal(guide.baseline,'human-1026-1710');assert.equal(guide.items.length,164);
+ assert.equal(new Set(guide.items.map(p=>p.id)).size,164);
  for(const p of guide.items){
-  const applicable=typeof p.applyText==='string';
-  assert.notEqual(applicable,typeof p.applyUnsupportedReason==='string',p.id);
-  if(/^P\d+$/.test(p.id)){
-   const before=p.before.replace(/〔각주 (\d+)〕/g,'[^$1]');
-   if(movedTableRows.has(p.id)){
-    const header=paragraphs.get('P'+String(Number(p.id.slice(1))-1).padStart(4,'0'));
-    const body=paragraphs.get(p.id);
-    assert.equal(applicable,false,p.id);
-    assert.equal(header.kind,'table_row',p.id);assert.equal(body.kind,'table_row',p.id);
-    assert.equal(sha(header.text),original.paragraphSha256[header.id],p.id);
-    assert.equal(sha(body.text),original.paragraphSha256[body.id],p.id);
-    assert.equal(before,header.text+'\n\n'+body.text,p.id);
-   }else assert.equal(sha(before),original.paragraphSha256[p.id],p.id);
-  }else if(/^FN\d+$/.test(p.id)){
-   const n=notes.get(p.id.slice(2));assert.ok(n,p.id);
-   assert.equal(p.before.replace(/^각주\s*\d+:\s*/,''),n.text,p.id);
-  }else assert.equal(applicable,false,p.id);
+  assert.ok(p.humanPages.length&&p.humanPages.every(n=>n>=1&&n<=324),p.id);
+  assert.ok(p.appliedPages.length&&p.appliedPages.every(n=>n>=1&&n<=335),p.id);
+  assert.equal(p.page,p.humanPage,p.id);assert.equal(typeof p.before,'string');assert.equal(typeof p.after,'string');assert.equal(typeof p.reason,'string');
+  if(p.kind==='paragraph')assert.equal(sha(p.before),original.paragraphSha256[p.originalParagraphId],p.id);
+  if(p.kind==='footnote')assert.equal(p.before,notes.get(p.originalNoteId)?.text,p.id);
+  if(p.appliedParagraphId)assert.ok(applied.has(p.appliedParagraphId),p.id);
  }
 });
-
-test('all nine appendix table moves are manual and retain complete original table text',()=>{
- for(const id of movedTableRows){
-  const p=guide.items.find(item=>item.id===id);assert.ok(p,id);
-  assert.equal(p.applyText,undefined,id);
-  assert.match(p.applyUnsupportedReason,/부록 이동/,id);
+test('all proposal payloads target a preserved human paragraph or footnote and structural changes remain explicit',()=>{
+ for(const p of guide.items){
+  const applicable=typeof p.applyText==='string';assert.notEqual(applicable,typeof p.applyUnsupportedReason==='string',p.id);
+  if(applicable)assert.ok(p.kind==='footnote'?notes.has(p.originalNoteId):paragraphs.has(p.originalParagraphId),p.id);
+  if(['new_footnote','heading_insert','toc','layout','bibliography_insert'].includes(p.kind))assert.equal(applicable,false,p.id);
  }
+ assert.equal(guide.items.filter(p=>p.kind==='new_footnote').length,9);
 });
-
-test('saved proposal text excludes display-only deletion, layout instructions, and applied-version note labels',()=>{
+test('saved payloads exclude display deletion markers and unknown note identities',()=>{
  let deletions=0,linkedNotes=0;
  for(const p of guide.items.filter(x=>typeof x.applyText==='string')){
-  assert.notEqual(p.applyText,'(삭제)',p.id);
-  assert.doesNotMatch(p.applyText,/〔각주 \d+〕|각주 표시와 각주 설명의 첫머리를 같은 면에 배치한다\./,p.id);
+  assert.notEqual(p.applyText,'(삭제)',p.id);assert.doesNotMatch(p.applyText,/〔각주 \d+〕|\[\^[^\d]/,p.id);
   if(p.after==='(삭제)'){assert.equal(p.applyText,'',p.id);deletions++;}
-  for(const m of p.applyText.matchAll(/\[\^([^\]]+)\]/g)){assert.ok(notes.has(m[1]),p.id+' '+m[1]);linkedNotes++;}
+  for(const m of p.applyText.matchAll(/\[\^(\d+)\]/g)){assert.ok(notes.has('fn-'+m[1].padStart(3,'0')),p.id);linkedNotes++;}
  }
  assert.ok(deletions>0);assert.ok(linkedNotes>0);
 });
-
-test('footnote re-citations keep human numbers even when display After uses applied-version numbers',()=>{
- for(const [id,human,applied] of [['FN22',21,22],['FN77',15,16],['FN189',34,36]]){
-  const p=guide.items.find(x=>x.id===id);assert.ok(p,id);
-  assert.ok(p.after.includes(`주 ${applied})`),id);
-  assert.ok(p.applyText.includes(`주 ${human})`),id);
-  assert.ok(!p.applyText.includes(`주 ${applied})`),id);
+test('human edits use human recitation numbers and keep the external source own footnote number',()=>{
+ for(const [id,human,final] of [['FN73-052',50,55],['FN73-097',95,101],['FN73-243',242,250]]){
+  const p=guide.items.find(x=>x.id===id);assert.ok(p.after.includes(`주 ${final})`));assert.ok(p.applyText.includes(`주 ${human})`));
  }
+ const p=guide.items.find(x=>x.id==='FN73-157');assert.match(p.after,/각주 167/);assert.match(p.applyText,/각주 167/);
 });

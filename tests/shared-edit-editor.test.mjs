@@ -29,6 +29,16 @@ function boxParts(html){const match=html.match(/<textarea[^>]+class="shared-edit
 const edit=(revision,text)=>({id:String(revision),kind:'paragraph',targetId:'P0001',revision,text});
 function memoryStorage(){const values=new Map();return {getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};}
 
+test('identical paragraph IDs and text retain separate unsaved drafts for the two editions',()=>{
+ const storage=memoryStorage(),human=reduce(init('같은 원문'),{type:'draft',value:'인간본 교정'}),applied=reduce(init('같은 원문'),{type:'draft',value:'적용본 교정'});
+ writeDraft(storage,'paragraph','P0001','같은 원문',human,'human-1026-1710');
+ writeDraft(storage,'paragraph','P0001','같은 원문',applied,'applied-v110-human73');
+ assert.equal(readDraft(storage,'paragraph','P0001','같은 원문',undefined,'human-1026-1710').state.draft,'인간본 교정');
+ assert.equal(readDraft(storage,'paragraph','P0001','같은 원문',undefined,'applied-v110-human73').state.draft,'적용본 교정');
+ assert.equal(readDraft(storage,'paragraph','P0001','같은 원문').recovered,false);
+ assert.notEqual(sharedDraftKey('paragraph','P0001','human-1026-1710'),sharedDraftKey('paragraph','P0001','applied-v110-human73'));
+});
+
 test('an intentionally emptied saved paragraph is not silently replaced by its original',()=>{
  const state=init('원문',edit(3,''));
  assert.equal(state.draft,'');assert.equal(state.baseText,'');assert.equal(state.revision,3);

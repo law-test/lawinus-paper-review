@@ -29,7 +29,7 @@ export function validateReviewConfig(value: unknown): ReviewConfig {
   return { supabaseUrl: url, supabasePublishableKey: key, storageBucket, datasetId };
 }
 
-export function loadReviewConfig(): Promise<ReviewConfig> {
+async function loadBaseReviewConfig(): Promise<ReviewConfig> {
   if (config) return Promise.resolve(config);
   return configPromise ??= (async () => {
     const response = await fetch(new URL('./config.json', document.baseURI), { cache: 'no-store' });
@@ -37,22 +37,28 @@ export function loadReviewConfig(): Promise<ReviewConfig> {
     config = validateReviewConfig(await response.json());
     client = createClient(config.supabaseUrl, config.supabasePublishableKey, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
-        storageKey: `paper-review-${new URL(config.supabaseUrl).hostname}-${config.datasetId}` },
+        storageKey: `paper-review-${new URL(config.supabaseUrl).hostname}-human-1021-1559` },
     });
     return config;
   })().catch(error => { config = undefined; configPromise = undefined; throw error; });
 }
 
-function connection() {
+export async function loadReviewConfig(datasetId?:string):Promise<ReviewConfig> {
+  const base=await loadBaseReviewConfig();
+  if(datasetId!==undefined&&!/^[a-z0-9][a-z0-9-]{0,79}$/.test(datasetId))throw new Error('기준본 식별자가 올바르지 않습니다.');
+  return datasetId?{...base,datasetId}:base;
+}
+
+function connection(datasetId?:string) {
   if (!config || !client) throw new Error('사이트 연결 설정이 아직 준비되지 않았습니다.');
-  return { config, client };
+  return { config:datasetId?{...config,datasetId}:config, client };
 }
 
 // Share the same anonymous visitor session with common-document editing.
 // This does not create a second Supabase client or independent auth storage.
-export async function getReviewConnection() {
-  await loadReviewConfig();
-  return connection();
+export async function getReviewConnection(datasetId?:string) {
+  await loadReviewConfig(datasetId);
+  return connection(datasetId);
 }
 
 function errorMessage(error: { message?: string; code?: string }): Error {
@@ -80,8 +86,10 @@ export function initializeReviewSession(): Promise<SessionResult> {
   })().finally(() => { sessionPromise = undefined; });
 }
 
-export function assetUrl(id: string): string {
-  const { config, client } = connection();
+export function assetUrl(id: string, datasetId?:string): string {
+  const { config, client } = connection(datasetId);
+  const edition=config.datasetId==='human-1026-1710'?'human73':config.datasetId==='applied-v110-human73'?'v110':undefined;
+  if(edition&&(id==='human'||id==='thesis'||id==='manifest'))return new URL(`./editions/${edition}/${id==='manifest'?'manifest.json':'manuscript.pdf'}`,document.baseURI).href;
   let key: string;
   if (id === 'human' || id === 'thesis') key = 'human.pdf';
   else if (id === 'manifest' || id === 'profile') key = `${id}.json`;
@@ -90,8 +98,8 @@ export function assetUrl(id: string): string {
   return client.storage.from(config.storageBucket).getPublicUrl(`${config.datasetId}/${key}`).data.publicUrl;
 }
 
-async function publicJson(id: 'manifest'|'profile') {
-  const r = await fetch(assetUrl(id), { cache: 'no-cache', credentials: 'omit' });
+async function publicJson(id: 'manifest'|'profile',datasetId?:string) {
+  const r = await fetch(assetUrl(id,datasetId), { cache: 'no-cache', credentials: 'omit' });
   if (!r.ok) throw new Error('자료가 아직 등록되지 않았거나 불러올 수 없습니다.');
   return r.json();
 }
@@ -112,15 +120,15 @@ async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
   return data as T;
 }
 
-export async function api(path: string, init?: RequestInit): Promise<any> {
-  await loadReviewConfig();
-  const { config } = connection();
+export async function api(path: string, init?: RequestInit, datasetId?:string): Promise<any> {
+  await loadReviewConfig(datasetId);
+  const { config } = connection(datasetId);
   const url = new URL(path, 'https://paper.invalid');
   if (url.origin !== 'https://paper.invalid') throw new Error('허용되지 않은 요청입니다.');
   const method = (init?.method || 'GET').toUpperCase();
   if (method === 'GET' && url.pathname === '/api/session') return initializeReviewSession();
-  if (method === 'GET' && url.pathname === '/api/manifest') return publicJson('manifest');
-  if (method === 'GET' && url.pathname === '/api/profile') return publicJson('profile');
+  if (method === 'GET' && url.pathname === '/api/manifest') return publicJson('manifest',config.datasetId);
+  if (method === 'GET' && url.pathname === '/api/profile') return publicJson('profile','human-1021-1559');
   if (method === 'GET' && url.pathname === '/api/notes') {
     const status = url.searchParams.get('status');
     if (status !== null && status !== 'open' && status !== 'resolved') throw new Error('메모 상태가 올바르지 않습니다.');
@@ -161,9 +169,9 @@ export function renderNotesExport(notes: ReviewNote[], format: 'md'|'csv'|'json'
   return { mime: 'text/markdown;charset=utf-8', text: '# 논문 검토 메모\n\n' + rows.join('\n') };
 }
 
-export async function exportNotes(format: 'md'|'csv'|'json'): Promise<void> {
-  await loadReviewConfig();
-  const { config } = connection();
+export async function exportNotes(format: 'md'|'csv'|'json',datasetId?:string): Promise<void> {
+  await loadReviewConfig(datasetId);
+  const { config } = connection(datasetId);
   const result = await rpc<NoteResult>('paper_review_list_notes', { p_dataset_id: config.datasetId, p_status: null, p_export: true });
   if (result.truncated) throw new Error('메모 전체를 확보하지 못했으므로 내보내지 않았습니다.');
   const output = renderNotesExport(result.notes, format, config.datasetId);

@@ -1,16 +1,27 @@
 import data from './citation-links.json' with {type:'json'};
+import v110Data from './citation-links-v110.json' with {type:'json'};
 import type {PdfTarget} from './pdf-viewer-model.ts';
 
 export type CitationSegment={start:number;end:number;sourceId?:string;page:number;title:string;linkId:string;status:'available'|'unavailable';href?:string};
 type CitationNote={text:string;segments:CitationSegment[]};
-const notes=data.notes as Record<string,CitationNote>;
+type EditionId='human73'|'v110';
+export type CitationDataset={notes:Record<string,CitationNote>;pdfTargets:PdfTarget[]};
+export function createCitationLinkModel(source:CitationDataset){
+ return {
+  getCitationSegments(noteId:string,text:string):CitationSegment[]{
+   const note=source.notes[noteId];
+   if(!note||!text||note.text!==text)return [];
+   return note.segments.map(segment=>({...segment}));
+  },
+  citationPdfTargets():PdfTarget[]{return source.pdfTargets.map(target=>({...target,rect:[...target.rect]}));},
+ };
+}
+const editions={human73:createCitationLinkModel(data as unknown as CitationDataset),v110:createCitationLinkModel(v110Data as unknown as CitationDataset)};
 // Offsets belong to the audited original note. An edit must never inherit an
 // adjacent citation's destination because its characters happen to move.
-export function getCitationSegments(noteId:string,text:string):CitationSegment[]{
-  const note=notes[noteId];
-  if(!note||!text||note.text!==text)return [];
-  return note.segments.map(segment=>({...segment}));
+export function getCitationSegments(noteId:string,text:string,edition:EditionId='human73'):CitationSegment[]{
+  return editions[edition].getCitationSegments(noteId,text);
 }
-export function citationPdfTargets():PdfTarget[]{
-  return (data.pdfTargets as PdfTarget[]).map(target=>({...target,rect:[...target.rect]}));
+export function citationPdfTargets(edition:EditionId='human73'):PdfTarget[]{
+  return editions[edition].citationPdfTargets();
 }

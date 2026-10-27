@@ -1,0 +1,8 @@
+.manuscript-edition-bar{position:relative;display:flex;flex:0 0 auto;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:8px 18px;border-bottom:1px solid #d8c7cc;background:#fbf6f7;min-width:0;font-size:13px;color:#4f3440}
+.manuscript-edition-choice{display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:0}
+.manuscript-edition-choice select{min-height:36px;max-width:100%;padding:5px 9px;background:white;border:1px solid #b99ca5;border-radius:4px;color:#70000c;font-weight:600}
+.manuscript-edition-details{white-space:nowrap;color:#65565c}
+.manuscript-edition-downloads{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;margin-left:auto}
+.manuscript-edition-downloads a,.manuscript-edition-downloads button{color:#70000c;text-decoration:underline;background:none;border:0;padding:5px 0;min-height:32px;line-height:1.4}
+.manuscript-edition-bar label{font-weight:600}
+@media(max-width:700px){.manuscript-edition-bar{padding:6px 10px;gap:3px 10px;font-size:12px}.manuscript-edition-downloads{margin-left:0;gap:6px 10px}.manuscript-edition-choice select{min-height:34px}}
