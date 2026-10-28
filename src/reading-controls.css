@@ -75,3 +75,9 @@
 .review-app.reading-focus .reading-view-actions>.reading-collapse-toggle{min-height:32px;padding:3px 8px;font-size:12px;opacity:.8}
 .review-app.reading-focus .reading-collapse-toggle:hover,
 .review-app.reading-focus .reading-collapse-toggle:focus-visible{opacity:1}
+
+/* Keep the two reading controls compact after removing duplicate tool shortcuts. */
+@media screen and (min-width:1200px){
+ .reading-view-menu{padding-top:3px;padding-bottom:3px}
+ .review-app .reading-view-actions>button{min-height:32px;padding:3px 8px;line-height:1.4;font-size:13px}
+}

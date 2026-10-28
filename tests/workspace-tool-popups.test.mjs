@@ -74,12 +74,10 @@ test('ordinary entry opens the glossary once without a success notice',()=>{
   h.effects().forEach(fn=>fn());assert.equal(h.calls.length,1,'effect replay must not duplicate automatic windows');
  }
 });
-test('blocked automatic popup offers a manual click and pause without focus stealing or repeated attempts',()=>{
- const h=harness({search:'',blocked:true});h.render();h.effects().forEach(fn=>fn());let result=h.render();
- const link=walk(result.layer).find(n=>n.type==='a'),focused=new h.Element();link.props.ref.current=focused;h.effects().forEach(fn=>fn());
- assert.equal(focused.focusCalls.length,0);assert.equal(h.calls.length,1);
- h.browser.open=(...args)=>{h.calls.push(args);return {focus(){}};};
- walk(result.layer).find(n=>n.type==='button'&&!n.props['aria-label']).props.onClick();assert.equal(h.calls.length,2);assert.equal(h.render().layer,null);
+test('blocked automatic popup stays silent and permits a later manual opening',()=>{
+ const h=harness({search:'',blocked:true});h.render();h.effects().forEach(fn=>fn());assert.equal(h.render().layer,null);assert.equal(h.calls.length,1);
+ h.effects().forEach(fn=>fn());assert.equal(h.calls.length,1);
+ h.browser.open=(...args)=>{h.calls.push(args);return {focus(){}};};h.render().openTool('glossary');assert.equal(h.calls.length,2);assert.equal(h.render().layer,null);
 });
 test('a week pause or embedded frame prevents automatic launch but does not prevent manual opening',()=>{
  for(const options of [{paused:true},{embedded:true}]){
@@ -87,7 +85,7 @@ test('a week pause or embedded frame prevents automatic launch but does not prev
   h.render().openTool('glossary');assert.equal(h.calls.length,1);
  }
 });
-test('pausing from the separate glossary window dismisses an automatic blocked notice',()=>{
- const h=harness({search:'',blocked:true});h.render();h.effects().forEach(fn=>fn());assert.ok(h.render().layer);
+test('pausing from the separate glossary window preserves the silent reader',()=>{
+ const h=harness({search:'',blocked:true});h.render();h.effects().forEach(fn=>fn());assert.equal(h.render().layer,null);
  tools.pauseGlossaryForWeek(h.storage);h.listeners.get('storage')({type:'storage',key:tools.GLOSSARY_AUTOSTART_PAUSE_KEY});assert.equal(h.render().layer,null);
 });

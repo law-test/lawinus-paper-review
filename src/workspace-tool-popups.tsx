@@ -13,7 +13,7 @@ export function useWorkspaceToolPopups(){
  useEffect(()=>{
   if(autoAttempted.current)return;autoAttempted.current=true;
   if(!shouldAutoOpenGlossary(window.location.search,window.location.hash,window.self!==window.top,glossaryPopupStorage()))return;
-  setNotice(openWorkspaceTool('glossary')?null:{tool:'glossary',blocked:true,automatic:true});
+  openWorkspaceTool('glossary');
  },[]);
  useEffect(()=>{const sync=(event:Event)=>{if(event.type==='storage'&&(event as StorageEvent).key!==GLOSSARY_AUTOSTART_PAUSE_KEY&&(event as StorageEvent).key!==null)return;if(glossaryPauseUntil(glossaryPopupStorage()))setNotice(value=>value?.automatic?null:value);};window.addEventListener('storage',sync);window.addEventListener(GLOSSARY_AUTOSTART_CHANGED,sync);return()=>{window.removeEventListener('storage',sync);window.removeEventListener(GLOSSARY_AUTOSTART_CHANGED,sync);};},[]);
  function openTool(tool:WorkspaceTool,userInitiated=true){

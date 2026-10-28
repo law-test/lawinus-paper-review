@@ -115,32 +115,12 @@ test('mobile tab changes override stale focus panel flags without altering deskt
 });
 
 
-test('when explicitly enabled in the fixture, both popup shortcuts remain outside the closed menu including focus mode',()=>{
- for(const mobile of [false,true]){
-  const result=renderControl({...readingView.DEFAULT_READING_VIEW,focus:true},false,mobile,'source',true);
-  assert.deepEqual(result.toolClicks,[],'rendering never opens a window');
-  assert.equal(result.links.length,2);assert.ok(!result.html.includes('id="reading-view-options"'));
-  for(const [index,tool] of ['ai-mingyu','glossary'].entries()){
-   const link=result.links[index];assert.equal(link.props.href,workspaceTools.workspaceToolHref[tool]);assert.equal(link.props.target,'_blank');
-   let prevented=false;link.props.onClick({button:0,metaKey:false,ctrlKey:false,shiftKey:false,altKey:false,preventDefault(){prevented=true;}});assert.equal(prevented,true);
-  }
-  assert.deepEqual(result.toolClicks,['ai-mingyu','glossary']);assert.deepEqual(result.changed,[]);assert.deepEqual(result.panelChanges,[]);
- }
-});
-
-test('when explicitly enabled in the fixture, modified shortcut clicks retain native new-tab behavior',()=>{
- for(const change of [{button:1},{ctrlKey:true},{metaKey:true},{shiftKey:true},{altKey:true}]){
-  const h=renderControl(readingView.DEFAULT_READING_VIEW,false,false,'source',true);let prevented=false;
-  h.links[0].props.onClick({button:0,metaKey:false,ctrlKey:false,shiftKey:false,altKey:false,...change,preventDefault(){prevented=true;}});
-  assert.equal(prevented,false);assert.deepEqual(h.toolClicks,[]);assert.deepEqual(h.changed,[]);assert.deepEqual(h.panelChanges,[]);
- }
-});
-
-test('the current paused setting disables AI without removing the glossary or opening a popup',()=>{
- for(const mobile of [false,true]){
-  const h=renderControl(readingView.DEFAULT_READING_VIEW,false,mobile);
-  const ai=h.buttons.find(b=>b.props.className==='reading-tool-shortcut reading-mingyu-shortcut');assert.ok(ai);assert.equal(ai.props.disabled,true);assert.equal(ai.props.href,undefined);
-  assert.match(h.html,/AI민규\(만드는 중\)/);assert.equal(h.links.length,1);assert.equal(h.links[0].props.href,workspaceTools.workspaceToolHref.glossary);
-  assert.deepEqual(h.toolClicks,[]);h.links[0].props.onClick({button:0,preventDefault(){}});assert.deepEqual(h.toolClicks,['glossary']);assert.deepEqual(h.changed,[]);
+test('reading controls omit tool shortcuts in desktop, mobile and focused modes',()=>{
+ for(const mobile of [false,true])for(const focus of [false,true])for(const enabled of [false,true]){
+  const h=renderControl({...readingView.DEFAULT_READING_VIEW,focus},false,mobile,'source',enabled);
+  assert.equal(h.links.length,0);assert.equal(h.buttons.some(b=>String(b.props.className).includes('reading-tool-shortcut')),false);
+  assert.equal(h.buttons.filter(b=>b.props.className==='reading-collapse-toggle').length,1);
+  assert.equal(h.buttons.filter(b=>b.props.className==='reading-view-trigger').length,1);
+  assert.deepEqual(h.toolClicks,[]);assert.deepEqual(h.changed,[]);
  }
 });

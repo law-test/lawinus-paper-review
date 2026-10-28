@@ -1,8 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {type ReadingView,type ReadingPane,readingVisibility,withReadingFocus,withReadingSurface} from './reading-view';
 import {menuSwipeAction,type MenuSwipe} from './mobile-menu-swipe';
-import {workspaceToolHref,type WorkspaceTool} from './workspace-tools';
-import {AI_MINGYU_ENABLED,AI_MINGYU_LABEL,AI_MINGYU_PAUSED_MESSAGE} from './ai-mingyu-availability';
+import {type WorkspaceTool} from './workspace-tools';
 
 type Props={onTool:(tool:WorkspaceTool)=>void;view:ReadingView;onChange:(view:ReadingView)=>void;sidebar:boolean;metadata:boolean;onSidebar:(show:boolean)=>void;onMetadata:(show:boolean)=>void;document:'thesis'|'source';onDocument:(document:'thesis'|'source')=>void;onEqualWidth:()=>void;mobile?:boolean;pane?:ReadingPane;layout?:'columns'|'rows';onLayout?:(layout:'columns'|'rows')=>void;onResetSizes?:()=>void};
 
@@ -39,8 +38,6 @@ export default function ReadingControls({onTool,view,onChange,sidebar,metadata,o
   return <div className="reading-view-menu" ref={menu}>
     {mobile&&<span id="mobile-swipe-hint" className="mobile-swipe-hint">접기 버튼을 위로 밀면 메뉴가 접히고, 아래로 밀면 펼쳐집니다.</span>}
     <div className="reading-view-actions">
-      {AI_MINGYU_ENABLED?<a className="reading-tool-shortcut reading-mingyu-shortcut" href={workspaceToolHref['ai-mingyu']} target="_blank" rel="noopener noreferrer" aria-label="AI민규 새 창 열기" onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){event.preventDefault();onTool('ai-mingyu');setOpen(false);}}}>{AI_MINGYU_LABEL} ↗</a>:<button type="button" className="reading-tool-shortcut reading-mingyu-shortcut" disabled title={AI_MINGYU_PAUSED_MESSAGE}>{AI_MINGYU_LABEL}</button>}
-      <a className="reading-tool-shortcut reading-glossary-shortcut" href={workspaceToolHref.glossary} target="_blank" rel="noopener noreferrer" aria-label="법학어학사전 새 창 열기" onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){event.preventDefault();onTool('glossary');setOpen(false);}}}>법학어학사전 ↗</a>
       <button className="reading-collapse-toggle" data-mobile-swipe={mobile?"true":undefined} aria-describedby={mobile?"mobile-swipe-hint":undefined} onPointerDown={startSwipe} onPointerMove={moveSwipe} onPointerUp={endSwipe} onPointerCancel={cancelSwipe} aria-label={view.focus?'메뉴 펼치기':'메뉴 접기'} aria-expanded={!view.focus} aria-controls="workspace-header workspace-basis workspace-navigation reference-metadata" title={view.focus?'접기 전 메뉴와 도구로 돌아가기':'상단 메뉴와 도구를 접고 문서만 보기'} onClick={event=>{if(event?.detail&&suppressClick.current){suppressClick.current=false;event.preventDefault();return;}onChange(withReadingFocus(view,!view.focus));setOpen(false);}}><span aria-hidden="true">{view.focus?'⌄':'⌃'}</span><span className="reading-collapse-label">{view.focus?'메뉴 펼치기':'메뉴 접기'}</span><span className="reading-collapse-short" aria-hidden="true">{view.focus?'펼치기':'접기'}</span></button>
       <button className="reading-view-trigger" ref={trigger} aria-expanded={open} aria-controls="reading-view-options" onClick={()=>setOpen(!open)}>보기</button>
     </div>

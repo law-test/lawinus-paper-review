@@ -35,11 +35,11 @@ test('start cards disable AI even if its click callback is invoked, and retain t
  const ai=nodes.find(n=>n.props?.['data-workspace-tool-launch']==='ai-mingyu');assert.equal(ai.props.disabled,true);assert.match(text(ai),/AI민규\(만드는 중\)/);ai.props.onClick();assert.deepEqual(opened,[]);
  nodes.find(n=>n.props?.['data-workspace-tool-launch']==='glossary').props.onClick();assert.deepEqual(opened,['glossary']);
 });
-test('reading controls expose no clickable AI URL and keep the glossary shortcut',()=>{
- const opened=[],noop=()=>{},tree=load('reading-controls.tsx').default({onTool:tool=>opened.push(tool),view:reading.DEFAULT_READING_VIEW,onChange:noop,sidebar:true,metadata:true,onSidebar:noop,onMetadata:noop,document:'thesis',onDocument:noop,onEqualWidth:noop}),nodes=walk(tree);
- const ai=nodes.find(n=>n.props?.className==='reading-tool-shortcut reading-mingyu-shortcut');assert.equal(ai.type,'button');assert.equal(ai.props.disabled,true);assert.equal(ai.props.href,undefined);assert.equal(text(ai),'AI민규(만드는 중)');
- nodes.find(n=>n.props?.className==='reading-tool-shortcut reading-glossary-shortcut').props.onClick({button:0,preventDefault(){}});assert.deepEqual(opened,['glossary']);
+test('reading controls contain no duplicate tool shortcuts',()=>{
+ const noop=()=>{},tree=load('reading-controls.tsx').default({onTool:noop,view:reading.DEFAULT_READING_VIEW,onChange:noop,sidebar:true,metadata:true,onSidebar:noop,onMetadata:noop,document:'thesis',onDocument:noop,onEqualWidth:noop}),nodes=walk(tree);
+ assert.equal(nodes.some(n=>String(n.props?.className).includes('reading-tool-shortcut')),false);
 });
+
 test('private requests and bridge connection attempts cannot touch a browser or network',async()=>{
  let touched=0;const forbidden=()=>{touched++;throw Error('must not run');};
  const bridge=load('ai-mingyu-bridge.ts',{}, {window:new Proxy({},{get:forbidden}),crypto:new Proxy({},{get:forbidden}),fetch:forbidden});

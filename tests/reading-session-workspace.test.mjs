@@ -177,11 +177,11 @@ test('body mode retains a readable text scale while preserving the saved PDF fit
 });
 
 
-test('ordinary entry presents both launch cards without changing the restored document or pane',async()=>{
+test('ordinary entry omits launch cards without changing the restored document or pane',async()=>{
  const state={...saved,metadataOpen:false,thesis:{page:249,zoom:.45,fitMode:'page'},sources:{...saved.sources,a:{page:199,zoom:1.3,fitMode:'width'}}};
  for(const width of [1701,390]){
   const h=harness(state,width,844,undefined,{search:'?v=265c'});await h.boot();h.persist();
-  assert.ok(h.nodes().find(n=>n.type===WorkspaceLaunchers));
+  assert.equal(h.nodes().find(n=>n.type===WorkspaceLaunchers),undefined);
   const stored=JSON.parse(h.values.get(readingSession.readingSessionKey('human-a')));
   assert.deepEqual(stored,state);
   assert.equal(h.pdf('thesis').props.navigationToken,0);assert.equal(h.pdf('a').props.navigationToken,0);
