@@ -12,15 +12,15 @@ function loadEditions(){const module={exports:{}};vm.runInNewContext(compile('ma
 const editions=loadEditions();
 
 test('the selected edition supplies its own catalog, TOC, page numbers and stable guide IDs',()=>{
- assert.equal(editions.editionFromSearch(''),'human73');assert.equal(editions.editionFromSearch('?edition=v110'),'v110');
- for(const id of ['human73','v110']){
+ assert.equal(editions.editionFromSearch(''),'human77');assert.equal(editions.editionFromSearch('?edition=v112'),'v112');
+ for(const id of ['human77','v112']){
   const version=editions.MANUSCRIPT_EDITIONS[id],catalog=editions.editionParagraphs(id),guide=editions.editionProposals(id);
-  assert.equal(catalog.length,id==='human73'?1262:1261);
-  assert.equal(guide.length,164);assert.equal(new Set(guide.map(item=>item.id)).size,164);
+  assert.equal(catalog.length,id==='human77'?1092:1097);
+  assert.equal(guide.length,120);assert.equal(new Set(guide.map(item=>item.id)).size,120);
   assert.equal(version.toc.pdfSha256,version.catalog.pdfSha256);
-  for(const item of guide){assert.ok(item.page>=1&&item.page<=version.pages,item.id);if(id==='v110')assert.equal(item.applyText,undefined);if(item.targetParagraphId)assert.ok(catalog.some(p=>p.id===item.targetParagraphId),item.id);}
+  for(const item of guide){assert.ok(item.page>=1&&item.page<=version.pages,item.id);if(id==='v112')assert.equal(item.applyText,undefined);if(item.targetParagraphId)assert.ok(catalog.some(p=>p.id===item.targetParagraphId),item.id);}
  }
- assert.deepEqual(editions.editionProposals('human73').map(p=>p.id),editions.editionProposals('v110').map(p=>p.id));
+ assert.deepEqual(editions.editionProposals('human77').map(p=>p.id),editions.editionProposals('v112').map(p=>p.id));
 });
 
 test('the actual edition switch keys a new workspace, clears deep links and selection, and retains the one popup controller',()=>{
@@ -35,8 +35,8 @@ test('the actual edition switch keys a new workspace, clears deep links and sele
   return id.startsWith('.')?{}:require(id);
  }});
  const render=()=>{cursor=0;return module.exports.default();};
- const first=render().props.children;assert.equal(first.key,'human73');assert.equal(first.props.edition.datasetId,'human-1026-1710');
- first.props.onEdition('v110');const second=render().props.children;
- assert.equal(second.key,'v110');assert.equal(second.props.edition.datasetId,'applied-v110-human73');assert.equal(second.props.toolPopups,popup);
- assert.equal(selectionClears,1);assert.equal(history[0],'https://paper.lawinus.org/?edition=v110');assert.equal(popupCalls,2,'hook stays in the unkeyed parent across renders');
+ const first=render().props.children;assert.equal(first.key,'human77');assert.equal(first.props.edition.datasetId,'human-1028-2105');
+ first.props.onEdition('v112');const second=render().props.children;
+ assert.equal(second.key,'v112');assert.equal(second.props.edition.datasetId,'applied-v112-human77');assert.equal(second.props.toolPopups,popup);
+ assert.equal(selectionClears,1);assert.equal(history[0],'https://paper.lawinus.org/?edition=v112');assert.equal(popupCalls,2,'hook stays in the unkeyed parent across renders');
 });

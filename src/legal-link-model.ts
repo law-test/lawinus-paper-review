@@ -4,10 +4,10 @@ import editionContextData from './manuscript-legal-contexts.json' with {type:'js
 export type LegalStatus='current'|'proposal'|'historical'|'foreign'|'unresolved';
 export type LegalRelated={label:string;href:string;lawId?:string;article?:string};
 export type LegalMention={start:number;end:number;label:string;lawId?:string;lawName?:string;article?:string;paragraph?:string;href:string;related:LegalRelated[];status:LegalStatus;reason?:string;articleText?:string};
-export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human73'|'v110'|'legacy1021'};
+export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human77'|'v112'|'legacy1021'};
 export type LegalArticle={title:string;text:string;paragraphs?:string[]};
 export type LegalLaw={id:string;name:string;aliases:string[];status?:LegalStatus;href:string;lsiSeq?:string;effectiveDate?:string;effectiveLabel?:string;articleNumbers?:string[];articles?:Record<string,LegalArticle>;relatedLawIds?:string[];relatedArticleMap?:Record<string,{lawId:string;article:string}[]>;relatedNote?:string};
-type ContextRecord={defaultLawId?:string;lawId?:string;status?:LegalStatus;proposalHref?:string;source?:string;textHash?:string;mentions?:{article:string;lawId:string;status?:LegalStatus;start?:number}[];auditedSpans?:{start:number;label:string;article:string;lawId:string;status:LegalStatus}[]};
+type ContextRecord={defaultLawId?:string;lawId?:string;status?:LegalStatus;proposalHref?:string;source?:string;textHash?:string;excludedSpans?:{start:number;label:string}[];mentions?:{article:string;lawId:string;status?:LegalStatus;start?:number}[];auditedSpans?:{start:number;label:string;article:string;lawId:string;status:LegalStatus}[]};
 type Catalog={verifiedOn:string;laws:LegalLaw[];foreignLaws:LegalLaw[];contexts:Record<string,ContextRecord>;contextOverrides:Record<string,ContextRecord>;proposalArticles:Record<string,string[]>;proposalParagraphs:Record<string,string[]>};
 export const legalCatalog=catalogData as unknown as Catalog;
 const laws=[...legalCatalog.laws,...legalCatalog.foreignLaws];
@@ -42,7 +42,7 @@ function contextRecord(context:string|LegalContext|undefined,text:string):Contex
  const scope=explanation?Object.entries(citationExplanationScopes).find(([key])=>key.endsWith(':'+explanation[2]))?.[1]:undefined;
  if(scope)return {defaultLawId:o.defaultLawId||(scope.textHash===legalTextFingerprint(text)?scope.lawId:undefined)};
  const plain=explanation?.[1]||id.replace(/^(paragraph|note|faq):/,'');
- const scoped=o.edition==='legacy1021'?legalCatalog:(editionContextData as unknown as Record<string,{contexts:Record<string,ContextRecord>;contextOverrides:Record<string,ContextRecord>}>)[o.edition||'human73'];
+ const scoped=o.edition==='legacy1021'?legalCatalog:(editionContextData as unknown as Record<string,{contexts:Record<string,ContextRecord>;contextOverrides:Record<string,ContextRecord>}>)[o.edition||'human77'];
  const base=scoped.contexts[id]||scoped.contexts[plain]||{};
  const extra=scoped.contextOverrides[id]||scoped.contextOverrides[plain]||{};
  return {...base,...extra,...(o.defaultLawId?{defaultLawId:o.defaultLawId}:{})};
@@ -85,6 +85,7 @@ const sentenceStart=(t:string,pos:number)=>Math.max(t.lastIndexOf('\n',pos-1),t.
 /** No global statute default. Context defaults must come from the reviewed manuscript map. */
 export function getLegalMentions(text:string,context?:string|LegalContext):LegalMention[]{
  const ctx=contextRecord(context,text),hits=lawHits(text),out:LegalMention[]=[];
+ const excluded=ctx.textHash===legalTextFingerprint(text)?(ctx.excludedSpans||[]).filter(x=>text.slice(x.start,x.start+x.label.length)===x.label):[];
  const proposedSupplementDocument=/^\s*(?:<\s*신설\s*>\s*\|?\s*)?부칙\s+제\s*1\s*조\s*\(시행일\)/.test(text);
  const contextId=typeof context==='string'?context:context?.contextId||'';
  // Contract terms and local practice directions are linked by the source-document layer.
@@ -94,6 +95,11 @@ export function getLegalMentions(text:string,context?:string|LegalContext):Legal
  const matches=[...text.matchAll(articlePattern)];
  for(const m of matches){
   const start=m.index!,end=start+m[0].length,article=m[1]+(m[2]?'-'+m[2]:''),paragraph=m[3];
+  if(excluded.some(x=>x.start<end&&x.start+x.label.length>start))continue;
+  // A commentary's article-number chapter title belongs to its bibliography
+  // link; retain any actual statute references later in the same footnote.
+  const chapterTitle=/「\s*$/.test(text.slice(0,start))&&/^\s*(?:\[[^\]\n]{1,150}\]\s*)?」\s*,[^;\n]{0,140}『[^』]*(?:주석|온주)/.test(text.slice(end));
+  if(chapterTitle)continue;
   // A proposal may quote a commentary chapter titled 「제589조」. It is a
   // bibliographic title, not an instruction to open a national statute.
   if(contextId.startsWith('proposal:')&&/「\s*$/.test(text.slice(0,start))&&/^\s*」/.test(text.slice(end)))continue;
@@ -183,7 +189,7 @@ export function getLegalMentions(text:string,context?:string|LegalContext):Legal
   const href=status==='proposal'?(ctx.proposalHref||searchHref(law.name+' '+(article.startsWith('부칙:')?'부칙':label)+' 개정안')):status==='historical'?searchHref(law.name+' 부칙 연혁'):legalArticleHref(law,article);
   out.push({start,end,label,lawId,lawName:law.name,article,paragraph,status,href,related:relatedLinks(law,article,status),reason:status==='proposal'?'개정안에 관한 인용입니다. 현행 조문과 구별하여 확인하세요.':status==='historical'?'부칙은 공포번호와 시행시점에 따라 확인해야 합니다.':undefined,...(status==='current'&&law.articles?.[article]?.text?{articleText:law.articles[article].text}:{})});
  }
- return out.sort((a,b)=>a.start-b.start);
+ return out.filter(m=>!excluded.some(x=>x.start<m.end&&x.start+x.label.length>m.start)).sort((a,b)=>a.start-b.start);
 }
 
 export function getLegalMentionDetails(mention:LegalMention){

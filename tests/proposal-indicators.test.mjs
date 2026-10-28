@@ -37,7 +37,7 @@ test('every mapped public human paragraph proposal retains its stable guide ID a
  const paragraphs=JSON.parse(readFileSync(new URL('../src/paragraph-catalog.json',import.meta.url),'utf8')).paragraphs;
  const ids=new Set(paragraphs.map(p=>p.id));const snapshot=JSON.stringify(proposals);
  const anchored=proposals.map(p=>({...p,anchorId:p.originalParagraphId,paragraphIds:p.originalParagraphIds,targetNoteId:p.originalNoteId})),map=buildProposalIndicators(anchored,paragraphs);
- const expected=anchored.filter(p=>!p.targetNoteId&&p.paragraphIds?.some(id=>ids.has(id)));assert.ok(expected.length>30,'the stable v110 IDs must produce a substantial checked set');
+ const expected=anchored.filter(p=>!p.targetNoteId&&p.paragraphIds?.some(id=>ids.has(id)));assert.ok(expected.length>30,'the stable v112 IDs must produce a substantial checked set');
  for(const p of expected)for(const id of p.paragraphIds.filter(id=>ids.has(id))){assert.ok(map[id],p.id);assert.ok(map[id].proposalIds.includes(p.id),p.id);}
  for(const p of anchored.filter(p=>p.targetNoteId))assert.ok(!Object.values(map).some(indicator=>indicator.proposalIds.includes(p.id)),p.id+' is a footnote edit, not a paragraph replacement');
  assert.equal(JSON.stringify(proposals),snapshot);assert.ok(Object.keys(map).every(id=>ids.has(id)));

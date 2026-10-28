@@ -5,7 +5,7 @@ import {getCitationSegments,citationPdfTargets} from '../src/citation-link-model
 import {getLegalMentions} from '../src/legal-link-model.ts';
 import {targetAt,validRect,targetKey} from '../src/pdf-viewer-model.ts';
 const read=path=>JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
-for(const [edition,suffix,count,total] of [['human73','',258,324],['v110','-v110',267,335]]){
+for(const [edition,suffix,count,total] of [['human77','',348,262],['v112','-v112',349,269]]){
  const citations=read(`../src/citation-links${suffix}.json`),pages=read(`../src/citation-pages${suffix}.json`),legal=read(`../src/legal-pdf-targets${suffix}.json`),paragraphs=read(`../src/paragraph-catalog${suffix}.json`),manifest=read(`../public/editions/${edition}/manifest.json`),translations=read(`../src/source-translations${suffix}.json`);
  test(`${edition}: all ${count} current footnotes retain bounded distinct citation spans and correct source membership`,()=>{
   assert.equal(Object.keys(citations.notes).length,count);assert.equal(manifest.notes.length,count);
@@ -45,14 +45,26 @@ for(const [edition,suffix,count,total] of [['human73','',258,324],['v110','-v110
     if(m.status==='proposal')assert.equal(m.articleText,undefined);
    }
   }
-  const abstract=paragraphs.paragraphs.find(p=>p.text.startsWith('본고는 개인회생절차 계속 중'));
+  const abstract=paragraphs.paragraphs.find(p=>p.text.startsWith('또한 개인회생절차 중 목록기재채권'));
   assert.ok(getLegalMentions(abstract.text,{contextId:abstract.id,edition}).every(m=>m.lawId==='drba'));
   assert.equal(getLegalMentions('제615조')[0].status,'unresolved');
+ });
+ test(`${edition}: commentary titles keep their own source and unrelated authors never share a profile link`,()=>{
+  const special=citations.notes[edition==='human77'?'fn-190':'fn-191'];
+  const specialTitle=special.segments.find(s=>s.title.startsWith('박진수,')&&s.title.includes('특별해설'));
+  assert.equal(specialTitle?.sourceId,'s-f95de22aae05230f');
+  const restitution=citations.notes[edition==='human77'?'fn-196':'fn-197'];
+  assert.ok(restitution.segments.some(s=>s.title.startsWith('양형우,')&&s.title.includes('2020다277481')&&s.sourceId==='s-b36c7120f0c98717'));
+  assert.ok(restitution.segments.some(s=>s.title.startsWith('대법원')&&s.sourceId==='s-110ad3aca2ce76cb'));
+  for(const note of Object.values(citations.notes))for(const segment of note.segments){
+   if(segment.href?.includes('leekyung.kim'))assert.ok(segment.title.startsWith('김이경,'));
+   assert.ok(segment.sourceId||segment.href,`${note.text}: empty citation destination`);
+  }
  });
  test(`${edition}: existing public assets and translation IDs do not inherit old manuscript footnote numbers`,()=>{
   for(const source of manifest.sources){assert.equal(source.storageDatasetId,'human-1021-1559');assert.ok(source.assetUrl.endsWith('/assets/'+source.id));assert.ok(source.noteIds.every(id=>citations.notes[id]));}
   for(const translation of translations.sources)for(const id of translation.noteIds)assert.ok(citations.notes[id].segments.some(s=>s.sourceId===translation.sourceId));
-  const german=translations.sources.find(s=>s.language==='de');assert.deepEqual(german.noteIds,[edition==='human73'?'fn-242':'fn-250']);
+  const german=translations.sources.find(s=>s.language==='de');assert.deepEqual(german.noteIds,[edition==='human77'?'fn-317':'fn-318']);
   for(const note of Object.values(citations.notes))for(const segment of note.segments)if(segment.title.includes('계약법과 도산법')){
    assert.equal(segment.status,'unavailable');assert.equal(segment.href,'https://www.kyunginp.co.kr/books/7378/');assert.equal(segment.sourceId,undefined);
   }

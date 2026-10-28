@@ -88,7 +88,8 @@ export function initializeReviewSession(): Promise<SessionResult> {
 
 export function assetUrl(id: string, datasetId?:string): string {
   const { config, client } = connection(datasetId);
-  const edition=config.datasetId==='human-1026-1710'?'human73':config.datasetId==='applied-v110-human73'?'v110':undefined;
+  const editions:Record<string,string>={'human-1026-1710':'human73','applied-v110-human73':'v110','human-1028-2105':'human77','applied-v112-human77':'v112'};
+  const edition=editions[config.datasetId];
   if(edition&&(id==='human'||id==='thesis'||id==='manifest'))return new URL(`./editions/${edition}/${id==='manifest'?'manifest.json':'manuscript.pdf'}`,document.baseURI).href;
   let key: string;
   if (id === 'human' || id === 'thesis') key = 'human.pdf';
