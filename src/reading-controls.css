@@ -66,3 +66,12 @@
 
 /* Persistent controls occupy their own flex row; no panel needs compensating offsets. */
 @media screen and (max-width:380px){.reading-view-actions .reading-tool-shortcut{flex:1 1 auto;white-space:normal;text-align:center;overflow-wrap:anywhere}}
+
+/* Collapsed menus reserve no row above either document. */
+.review-app.reading-focus>.reading-view-menu{position:fixed;top:max(4px,env(safe-area-inset-top));right:max(4px,env(safe-area-inset-right));width:auto;padding:0;border:0;background:transparent}
+.review-app.reading-focus .reading-view-actions>.reading-tool-shortcut,
+.review-app.reading-focus .reading-view-actions>.reading-view-trigger,
+.review-app.reading-focus .mobile-swipe-hint{display:none}
+.review-app.reading-focus .reading-view-actions>.reading-collapse-toggle{min-height:32px;padding:3px 8px;font-size:12px;opacity:.8}
+.review-app.reading-focus .reading-collapse-toggle:hover,
+.review-app.reading-focus .reading-collapse-toggle:focus-visible{opacity:1}

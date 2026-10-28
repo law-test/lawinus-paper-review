@@ -7,8 +7,8 @@ import type {ManuscriptEditionId} from './manuscript-edition-context';
 import type {ManuscriptParagraph} from './web-manuscript';
 
 export const MANUSCRIPT_EDITIONS={
- human73:{id:'human73' as const,datasetId:'human-1026-1710',label:'인간 최종본 · 73차',date:'2026. 10. 26.',pages:324,footnotes:258,catalog:humanCatalog,toc:humanToc},
- v110:{id:'v110' as const,datasetId:'applied-v110-human73',label:'수정 적용본 · v110',date:'2026. 10. 27.',pages:335,footnotes:267,catalog:appliedCatalog,toc:appliedToc},
+ human73:{id:'human73' as const,datasetId:'human-1026-1710',label:'심사본',date:'2026. 10. 26.',pages:324,footnotes:258,catalog:humanCatalog,toc:humanToc},
+ v110:{id:'v110' as const,datasetId:'applied-v110-human73',label:'수정본',date:'2026. 10. 27.',pages:335,footnotes:267,catalog:appliedCatalog,toc:appliedToc},
 };
 export type ManuscriptEdition=typeof MANUSCRIPT_EDITIONS[ManuscriptEditionId];
 export type EditionProposal={id:string;before:string;after:string;reason:string;priority:string;page:number;page_end:number;anchorId?:string;paragraphIds?:string[];targetParagraphId?:string;targetNoteId?:string;applyText?:string;applyUnsupportedReason?:string;[key:string]:unknown};

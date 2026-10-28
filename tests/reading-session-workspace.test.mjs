@@ -198,10 +198,10 @@ test('explicit FAQ opens its panel and glossary opens only its popup without mov
  }
 });
 
-test('start cards remain reachable with a collapsed header while preserving focus and hidden metadata',async()=>{
+test('collapsed menus hide start cards while preserving reading positions and hidden metadata',async()=>{
  const state={...saved,metadataOpen:false,readingView:{...readingView.DEFAULT_READING_VIEW,focus:true}};
  const h=harness(state,390,844,{...workspaceLayout.DEFAULT_WORKSPACE_LAYOUT,headerHeight:0});await h.boot();h.persist();
- assert.equal(h.nodes().find(n=>n.type===WorkspaceLaunchers).props.compactHeader,true);
+ assert.equal(h.nodes().find(n=>n.type===WorkspaceLaunchers),undefined);
  assert.deepEqual(JSON.parse(h.values.get(readingSession.readingSessionKey('human-a'))),state);
  assert.equal(h.pdf('thesis').props.page,249);assert.equal(h.pdf('a').props.page,199);
 });

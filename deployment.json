@@ -36,14 +36,14 @@
   },
   "aiEnabled": false,
   "previousVerifiedDeployment": {
-    "sourceCommit": "3b86dc5a4e74da41daba9d54f439b5d0c88bc3b5",
-    "pagesCommit": "a793564f262ce25cd9e672d37cedb16d5644e8a2",
-    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40251522356",
+    "sourceCommit": "c1ee86180c7b581cefb414c6693860f63aca314a",
+    "pagesCommit": "3c1a68a10f8f85abeec059ffb4669cfb9e94baeb",
+    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40451568564",
     "pagesBuildConclusion": "success",
-    "sourceFiles": 422,
-    "pagesFiles": 235
+    "sourceFiles": 454,
+    "pagesFiles": 248
   },
-  "release": "human73-v110-275",
+  "release": "reader-restored-276",
   "deploymentHistory": [
     {
       "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
@@ -54,6 +54,14 @@
       "pagesFiles": 211,
       "remoteBlobHashMismatches": 0,
       "customDomainCnamePreserved": true
+    },
+    {
+      "sourceCommit": "3b86dc5a4e74da41daba9d54f439b5d0c88bc3b5",
+      "pagesCommit": "a793564f262ce25cd9e672d37cedb16d5644e8a2",
+      "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40251522356",
+      "pagesBuildConclusion": "success",
+      "sourceFiles": 422,
+      "pagesFiles": 235
     }
   ]
 }
