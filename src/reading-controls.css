@@ -68,7 +68,6 @@
 @media screen and (max-width:380px){.reading-view-actions .reading-tool-shortcut{flex:1 1 auto;white-space:normal;text-align:center;overflow-wrap:anywhere}}
 
 /* Collapsed menus reserve no row above either document. */
-.review-app.reading-focus>.reading-view-menu{position:fixed;top:max(4px,env(safe-area-inset-top));right:max(4px,env(safe-area-inset-right));width:auto;padding:0;border:0;background:transparent}
 .review-app.reading-focus .reading-view-actions>.reading-tool-shortcut,
 .review-app.reading-focus .reading-view-actions>.reading-view-trigger,
 .review-app.reading-focus .mobile-swipe-hint{display:none}
@@ -81,3 +80,16 @@
  .reading-view-menu{padding-top:3px;padding-bottom:3px}
  .review-app .reading-view-actions>button{min-height:32px;padding:3px 8px;line-height:1.4;font-size:13px}
 }
+
+/* Reading options live in the existing basis row; no standalone top row. */
+.basis-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;min-width:0}
+.basis-actions>.reading-view-menu,.pdf-quick-dock>.reading-view-menu,.manuscript-control-dock>.reading-view-menu,.metadata-heading-actions>.reading-view-menu,.sidebar-heading>.reading-view-menu{width:auto;padding:0;border:0;background:transparent;flex:0 0 auto}
+.reading-view-options{position:fixed;top:var(--reading-options-top,160px);bottom:var(--reading-options-bottom,auto);right:var(--reading-options-right,8px);z-index:110}
+
+.web-manuscript-reader{position:relative}
+.manuscript-control-dock{position:absolute;bottom:8px;left:8px;z-index:95;max-width:calc(100% - 16px)}
+.metadata-heading-actions,.sidebar-heading{flex-wrap:wrap;gap:6px}
+
+.foreign-source-reader{position:relative}
+.translation-restore-dock{position:absolute;left:8px;bottom:8px;z-index:95;max-width:calc(100% - 16px)}
+.translation-restore-dock>.reading-view-menu,.inline-restore>.reading-view-menu{width:auto;padding:0;border:0;background:transparent}

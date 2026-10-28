@@ -21,17 +21,12 @@ function renderControl(view,menuOpen=false,mobile=false,pane='source',enabled=av
  const all=[],labels=[],links=[];function walk(node){if(!node||typeof node!=='object')return;if(node.type==='button')all.push(node);if(node.type==='a')links.push(node);if(node.type==='label')labels.push(node);React.Children.forEach(node.props?.children,walk);}walk(tree);
  return {html:renderToStaticMarkup(tree),buttons:all,labels,changed,panelChanges,widthChanges,toolClicks,links};
 }
-test('direct collapse is reachable without opening the view options',()=>{
+test('collapse lives inside view options and preserves reading preferences',()=>{
  const normal={...readingView.DEFAULT_READING_VIEW,tools:false,footnotes:false};
- const result=renderControl(normal);
- assert.ok(result.html.includes('메뉴 접기'));
- assert.ok(!result.html.includes('id="reading-view-options"'));
- const direct=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
- assert.equal(direct.props['aria-expanded'],true);
- direct.props.onClick();
- assert.deepEqual(result.changed,[{...normal,focus:true}]);
- assert.deepEqual(result.panelChanges,[]);
- assert.equal(normal.focus,false);
+ const closed=renderControl(normal);assert.equal(closed.buttons.some(b=>b.props.className==='reading-collapse-toggle'),false);
+ const result=renderControl(normal,true);assert.ok(result.html.includes('메뉴 접기'));
+ result.buttons.find(b=>b.props.className==='reading-focus-toggle').props.onClick();
+ assert.deepEqual(result.changed,[{...normal,focus:true}]);assert.deepEqual(result.panelChanges,[]);
 });
 test('one-click restore preserves every original menu preference and document selection',()=>{
  const normal={...readingView.DEFAULT_READING_VIEW,header:false,tools:false};
@@ -63,20 +58,13 @@ test('equal width is an explicit menu action available with the other tools hidd
 });
 
 function pointer(overrides={}){return {pointerId:1,isPrimary:true,pointerType:'touch',clientX:20,clientY:80,timeStamp:0,currentTarget:{setPointerCapture(){},hasPointerCapture(){return true;},releasePointerCapture(){}},...overrides};}
-test('mobile menu swipe collapses once and suppresses its synthetic click',()=>{
- const view={...readingView.DEFAULT_READING_VIEW,tools:false};const result=renderControl(view,false,true),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
- button.props.onPointerDown(pointer());button.props.onPointerMove(pointer({clientY:30,timeStamp:100}));button.props.onPointerUp(pointer({clientY:20,timeStamp:160}));
- let prevented=false;button.props.onClick({detail:1,preventDefault(){prevented=true;}});
- assert.equal(prevented,true);assert.deepEqual(result.changed,[{...view,focus:true}]);assert.deepEqual(result.panelChanges,[]);
- assert.ok(result.html.includes('data-mobile-swipe="true"'));assert.ok(result.html.includes('mobile-swipe-hint'));
-});
 test('downward swipe restores the original preferences and does not switch document',()=>{
  const normal={...readingView.DEFAULT_READING_VIEW,header:false,footnotes:false};const result=renderControl(readingView.withReadingFocus(normal,true),false,true),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
  button.props.onPointerDown(pointer({clientY:20}));button.props.onPointerMove(pointer({clientY:65,timeStamp:80}));button.props.onPointerUp(pointer({clientY:65,timeStamp:130}));assert.deepEqual(result.changed,[normal]);
 });
 test('desktop mouse dragging, cancelled touch, and a second touch do not change menus',()=>{
  for(const scenario of ['mouse','cancel','secondary']){
-  const result=renderControl(readingView.DEFAULT_READING_VIEW,false,scenario!=='mouse'),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
+  const result=renderControl({...readingView.DEFAULT_READING_VIEW,focus:true},false,scenario!=='mouse'),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
   button.props.onPointerDown(pointer({pointerType:scenario==='mouse'?'mouse':'touch'}));
   if(scenario==='cancel')button.props.onPointerCancel();
   if(scenario==='secondary')button.props.onPointerDown(pointer({isPrimary:false,pointerId:2}));
@@ -84,12 +72,6 @@ test('desktop mouse dragging, cancelled touch, and a second touch do not change 
   if(scenario!=='mouse'){button.props.onClick({detail:1,preventDefault(){}});assert.deepEqual(result.changed,[]);}
  }
 });
-test('a mouse on a narrow screen can use the dedicated menu gesture without changing documents',()=>{
- const view={...readingView.DEFAULT_READING_VIEW};const result=renderControl(view,false,true),button=result.buttons.find(b=>b.props.className==='reading-collapse-toggle');
- button.props.onPointerDown(pointer({pointerType:'mouse'}));button.props.onPointerMove(pointer({pointerType:'mouse',clientY:14,timeStamp:9000}));button.props.onPointerUp(pointer({pointerType:'mouse',clientY:14,timeStamp:9100}));
- assert.deepEqual(result.changed,[{...view,focus:true}]);assert.deepEqual(result.panelChanges,[]);
-});
-
 function surfaceInput(result,text){const label=result.labels.find(node=>React.Children.toArray(node.props.children).includes(text));return React.Children.toArray(label.props.children).find(node=>typeof node==='object'&&node.type==='input');}
 test('mobile pane checks follow the visible tab and open a hidden panel with one selection',()=>{
  const normal={...readingView.DEFAULT_READING_VIEW};const result=renderControl(normal,true,true,'thesis');
@@ -119,7 +101,7 @@ test('reading controls omit tool shortcuts in desktop, mobile and focused modes'
  for(const mobile of [false,true])for(const focus of [false,true])for(const enabled of [false,true]){
   const h=renderControl({...readingView.DEFAULT_READING_VIEW,focus},false,mobile,'source',enabled);
   assert.equal(h.links.length,0);assert.equal(h.buttons.some(b=>String(b.props.className).includes('reading-tool-shortcut')),false);
-  assert.equal(h.buttons.filter(b=>b.props.className==='reading-collapse-toggle').length,1);
+  assert.equal(h.buttons.filter(b=>b.props.className==='reading-collapse-toggle').length,focus?1:0);
   assert.equal(h.buttons.filter(b=>b.props.className==='reading-view-trigger').length,1);
   assert.deepEqual(h.toolClicks,[]);assert.deepEqual(h.changed,[]);
  }

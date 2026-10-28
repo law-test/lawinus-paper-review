@@ -60,13 +60,13 @@ export function useTranslationPosition(host:RefObject<HTMLDivElement|null>,key:s
   return {page:shownPage,alignPage:(target:number)=>{if(snapshot.current?.page!==target)pending.current=target;restore();},flush:()=>{capture(false);write();},onScroll:()=>{const el=host.current,ours=ownTop.current!==null&&el&&Math.abs(el.scrollTop-ownTop.current)<.5;ownTop.current=null;capture(!ours);if(timer.current===null)timer.current=setTimeout(write,120);}};
 }
 
-type Props={controlsHost?:HTMLElement|null;sourceId:string;page:number;onPageChange:(page:number)=>void;onComparePage?:(page:number)=>void;children?:React.ReactNode;persistenceKey?:string;navigationToken?:number};
+type Props={restoreControls?:React.ReactNode;controlsHost?:HTMLElement|null;sourceId:string;page:number;onPageChange:(page:number)=>void;onComparePage?:(page:number)=>void;children?:React.ReactNode;persistenceKey?:string;navigationToken?:number};
 export default function ParallelSourceReader(props:Props){
   const entry=translationEntries.find(row=>row.sourceId===props.sourceId);
-  if(!entry)return <div className="source-reader-single">{props.children}</div>;
+  if(!entry)return <div className="source-reader-single">{props.children||props.restoreControls}</div>;
   return <TranslationReader key={(props.persistenceKey||entry.sourceId)+entry.sourceSha256} {...props} entry={entry}/>;
 }
-export function TranslationReader({controlsHost,entry,page,onPageChange,onComparePage,children,persistenceKey,navigationToken=0}:Props&{entry:TranslationEntry}){
+export function TranslationReader({restoreControls,controlsHost,entry,page,onPageChange,onComparePage,children,persistenceKey,navigationToken=0}:Props&{entry:TranslationEntry}){
   const key=(persistenceKey||entry.sourceId)+':'+entry.sourceSha256;
   const [doc,setDoc]=useState<TranslationDocument|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   const [view,setView]=useState(()=>readTranslationView(storage(),key,typeof window!=='undefined'&&window.innerWidth<900));
@@ -81,6 +81,7 @@ export function TranslationReader({controlsHost,entry,page,onPageChange,onCompar
   const original=children||<div className="foreign-text-original" lang={entry.language} ref={originalScroll} onScroll={originalText.onScroll}><div>{doc?.pages.map(p=><article key={p.pdfPage}>{p.blocks.map(b=><div key={b.id} data-reading-block={b.id} data-reading-page={p.pdfPage} className={'translated-block '+b.kind}>{b.kind==='heading'?<h3>{b.original}</h3>:<p>{b.original}</p>}</div>)}</article>)}</div></div>;
   const parallel=view.mode==='parallel',vertical=view.layout==='vertical';
   return <div className="foreign-source-reader" data-translation-mode={view.mode} data-document-alignment={view.mode==='translation'||(parallel&&vertical)?'off':undefined}>
+    {restoreControls&&(view.mode==='translation'||entry.kind==='text')&&<div className="translation-restore-dock">{restoreControls}</div>}
     {error&&<div className="translation-unavailable" role="alert"><p>{error}</p><button onClick={()=>setRetry(x=>x+1)}>다시 불러오기</button></div>}
     <ReaderControls host={controlsHost}><div className="translation-controls"><div className="translation-document"><b>{entry.title}</b><span>{entry.language==='de'?'독일어':'영문'} 원문 · 한국어 번역 · {entry.scope}</span></div></div>
     <div className="translation-switchbar"><div className="translation-mode" role="group" aria-label="외국어 자료 보기">{(['original','translation','parallel'] as TranslationMode[]).map((mode,i)=><button key={mode} aria-pressed={view.mode===mode} onClick={()=>changeView({mode})}>{['원문','번역','병기'][i]}</button>)}</div>

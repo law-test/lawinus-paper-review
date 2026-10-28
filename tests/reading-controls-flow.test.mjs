@@ -14,11 +14,11 @@ const read=name=>readFileSync(new URL('../src/'+name,import.meta.url),'utf8');
 const code=ts.transpileModule(read('reading-controls.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function style(){const values=new Map();return {values,setProperty:(key,value)=>values.set(key,value),removeProperty:key=>values.delete(key)};}
 function harness({height=56,bottom=height,windowHeight=844,visualViewport,open=true}={}){
- const effects=[],cleanups=[],observed=[],states=[],focusCalls=[],windowEvents=new Map(),visualEvents=new Map();let box={height,bottom},observerCallback,disconnected=false;
+ const effects=[],cleanups=[],observed=[],states=[],focusCalls=[],windowEvents=new Map(),visualEvents=new Map();let box={height,bottom,top:bottom-height,right:600},observerCallback,disconnected=false;
  const app={style:style(),querySelector:()=>chrome},chrome={};
  const controls={style:style(),closest:()=>app,getBoundingClientRect:()=>box,contains:node=>node==='inside'};
  const viewport=visualViewport?{...visualViewport,addEventListener:(key,fn)=>visualEvents.set(key,fn),removeEventListener:key=>visualEvents.delete(key)}:undefined;
- const browser={innerHeight:windowHeight,visualViewport:viewport,addEventListener:(key,fn)=>windowEvents.set(key,fn),removeEventListener:key=>windowEvents.delete(key)};
+ const browser={innerHeight:windowHeight,innerWidth:1200,visualViewport:viewport,addEventListener:(key,fn)=>windowEvents.set(key,fn),removeEventListener:key=>windowEvents.delete(key)};
  Object.defineProperty(browser,'localStorage',{get(){throw Error('layout measurement must not access stored reading positions');}});
  const module={exports:{}};
  vm.runInNewContext(code,{module,exports:module.exports,window:browser,ResizeObserver:class{constructor(callback){observerCallback=callback;}observe(node){observed.push(node);}disconnect(){disconnected=true;}},require:id=>{
@@ -61,13 +61,21 @@ test('Escape restores the view trigger without scrolling a document, while an ou
  h.windowEvents.get('pointerdown')({target:'outside'});assert.deepEqual(h.states,[false,false]);assert.equal(h.focusCalls.length,1);h.cleanup();
 });
 function rule(css,selector){return [...css.matchAll(/([^{}]+)\{([^{}]+)\}/g)].filter(match=>match[1].trim()===selector).map(match=>match[2]).join(';');}
-test('the action row stays in document flow ahead of collapsible chrome, with no stale fixed-position compensation',()=>{
+test('view options share the basis row and restoration shares a document dock instead of covering metadata controls',()=>{
  const workspace=read('review-workspace.tsx'),css=read('reading-controls.css'),mobile=read('mobile-layout.css'),row=rule(css,'.reading-view-menu');
- assert.ok(workspace.indexOf('<ReadingControls ')<workspace.indexOf('<div className="workspace-chrome"'));
+ assert.match(workspace,/<div className="basis-actions"><TextSizeControl\/>\{visibleSurfaces.header&&headerHeight!==0&&readingControls\}/);assert.doesNotMatch(workspace+css,/reading-restore-controls/);
+ assert.match(workspace,/extraQuickControls=\{restorePane==='thesis'\?restoreControls:null\}/);
  assert.match(row,/position:\s*relative/);assert.match(row,/flex:\s*0 0 auto/);assert.match(row,/width:\s*100%/);assert.doesNotMatch(row,/position:\s*(fixed|absolute)|order\s*:/);
  assert.doesNotMatch(css+mobile,/reading-actions-clearance/);assert.doesNotMatch(css+mobile,/metadata-pane>\.reference-heading\{padding-top:calc\(var\(--reading-actions-height/);
  assert.match(rule(css,'.reading-view-actions'),/flex-wrap:\s*wrap/);assert.match(css,/max-width:380px[^}]*reading-tool-shortcut[^}]*white-space:normal/);
  assert.match(rule(css,'.reading-view-options'),/box-sizing:\s*border-box/);assert.match(rule(css,'.reading-view-options'),/overflow:\s*auto/);assert.match(rule(css,'.reading-view-options'),/reading-options-space/);
+});
+test('a menu opened from the bottom document dock grows upward inside the visible viewport',()=>{
+ const h=harness({height:44,bottom:830,windowHeight:844});
+ assert.equal(h.controls.style.values.get('--reading-options-top'),'auto');
+ assert.equal(h.controls.style.values.get('--reading-options-bottom'),'64px');
+ assert.equal(h.controls.style.values.get('--reading-options-space'),'774px');
+ h.cleanup();
 });
 test('nonmodal tool windows stay below the view dropdown and existing editing dialogs',()=>{
  const nav=Number(rule(read('reading-controls.css'),'.reading-view-menu').match(/z-index:\s*(\d+)/)?.[1]);

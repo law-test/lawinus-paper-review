@@ -29,6 +29,16 @@ test('quick controls stay closed and do not use document height until requested'
  const open=h.render();assert.equal(open.all.find(n=>n.props?.role==='dialog').props['aria-label'],'박사논문 보기 도구');
  assert.deepEqual(h.pageCalls,[]);assert.deepEqual(h.zoomCalls,[]);
 });
+test('menu restoration and PDF tools share a wrapping dock and never acquire separate overlapping anchors',()=>{
+ const h=harness(),extra=React.createElement('button',{'data-restore':true},'메뉴 펼치기');
+ const view=h.render({extraControls:extra});
+ const dock=view.all.find(n=>n.props?.className==='pdf-quick-dock');
+ assert.ok(dock);assert.ok(React.Children.toArray(dock.props.children).some(n=>n.props?.['data-restore']));
+ assert.ok(React.Children.toArray(dock.props.children).some(n=>n.props?.className==='pdf-quick-trigger'));
+ const css=readFileSync(new URL('../src/pdf-quick-controls.css',import.meta.url),'utf8');
+ assert.match(css,/\.pdf-quick-dock\{[^}]*flex-wrap:wrap/);
+ assert.match(css,/\.review-app \.pdf-quick-trigger\{position:static/);
+});
 
 test('small-screen visible label is short while its accessible document name stays specific',()=>{
  const h=harness();

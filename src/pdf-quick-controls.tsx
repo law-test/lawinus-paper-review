@@ -3,15 +3,15 @@ import {requestedPdfPage,steppedPdfZoom} from './pdf-quick-tools-model';
 import type {PdfFitMode} from './pdf-viewer-model';
 import './pdf-quick-controls.css';
 
-type Props={id:string;label:string;page:number;total:number;zoom:number;fitMode?:PdfFitMode;onFitModeChange?:(mode:PdfFitMode)=>void;hand:boolean;onPageChange:(page:number)=>void;onZoomChange?:(zoom:number)=>void;onHandChange:(hand:boolean)=>void;showHighlights?:boolean;onHighlightsChange?:(show:boolean)=>void};
+type Props={extraControls?:React.ReactNode;id:string;label:string;page:number;total:number;zoom:number;fitMode?:PdfFitMode;onFitModeChange?:(mode:PdfFitMode)=>void;hand:boolean;onPageChange:(page:number)=>void;onZoomChange?:(zoom:number)=>void;onHandChange:(hand:boolean)=>void;showHighlights?:boolean;onHighlightsChange?:(show:boolean)=>void};
 
-export default function PdfQuickControls({id,label,page,total,zoom,fitMode=null,onFitModeChange,hand,onPageChange,onZoomChange,onHandChange,showHighlights=true,onHighlightsChange}:Props){
+export default function PdfQuickControls({extraControls,id,label,page,total,zoom,fitMode=null,onFitModeChange,hand,onPageChange,onZoomChange,onHandChange,showHighlights=true,onHighlightsChange}:Props){
   const [open,setOpen]=useState(false),[draft,setDraft]=useState(String(page));
-  const host=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),editing=useRef(false);
+  const host=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),dock=useRef<HTMLDivElement>(null),editing=useRef(false);
   const panelId='pdf-quick-'+id;
   const close=()=>{setOpen(false);editing.current=false;setDraft(String(page));trigger.current?.focus({preventScroll:true});};
   useEffect(()=>{
-    const button=trigger.current,container=host.current;if(!button||!container)return;
+    const button=dock.current,container=host.current;if(!button||!container)return;
     const measure=()=>container.style.setProperty('--pdf-quick-trigger-height',`${Math.ceil(button.getBoundingClientRect().height)}px`);
     measure();const observer=new ResizeObserver(measure);observer.observe(button);return()=>observer.disconnect();
   },[]);
@@ -29,7 +29,7 @@ export default function PdfQuickControls({id,label,page,total,zoom,fitMode=null,
     setDraft(String(next));editing.current=false;onPageChange(next);
   }
   return <div className="pdf-quick-controls" ref={host} onKeyDown={event=>{if(open&&event.key==='Escape'){event.preventDefault();event.stopPropagation();close();}}}>
-    <button ref={trigger} className="pdf-quick-trigger" aria-expanded={open} aria-controls={panelId} aria-label={label+' 쪽 이동과 확대 도구'} onClick={()=>{if(open)close();else{setDraft(String(page));setOpen(true);}}}><span className="pdf-quick-label-full">{label} 도구</span><span className="pdf-quick-label-short" aria-hidden="true">도구</span><span aria-hidden="true">{open?'⌄':'⌃'}</span></button>
+    <div className="pdf-quick-dock" ref={dock}><button ref={trigger} className="pdf-quick-trigger" aria-expanded={open} aria-controls={panelId} aria-label={label+' 쪽 이동과 확대 도구'} onClick={()=>{if(open)close();else{setDraft(String(page));setOpen(true);}}}><span className="pdf-quick-label-full">{label} 도구</span><span className="pdf-quick-label-short" aria-hidden="true">도구</span><span aria-hidden="true">{open?'⌄':'⌃'}</span></button>{extraControls}</div>
     {open&&<div className="pdf-quick-panel" id={panelId} role="dialog" aria-label={label+' 보기 도구'}>
       <div className="pdf-quick-heading"><b>{label} 보기</b><button aria-label={label+' 도구 접기'} onClick={close}>접기</button></div>
       <form className="pdf-quick-page" onSubmit={navigate}>

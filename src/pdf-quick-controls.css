@@ -4,7 +4,8 @@
 .review-app .pdf-quick-controls button{cursor:pointer}
 .review-app .pdf-quick-controls button:disabled{opacity:.45;cursor:default}
 .review-app .pdf-quick-controls :is(button,input,select):focus-visible{outline:2px solid #8b0029;outline-offset:2px}
-.review-app .pdf-quick-trigger{position:absolute;bottom:calc(8px + env(safe-area-inset-bottom));left:8px;pointer-events:auto;display:flex;align-items:center;gap:7px;max-width:calc(100% - 16px);background:#fffefbea;box-shadow:0 2px 8px #34222b24}
+.pdf-quick-dock{position:absolute;bottom:calc(8px + env(safe-area-inset-bottom));left:8px;max-width:calc(100% - 16px);display:flex;align-items:center;flex-wrap:wrap;gap:6px;pointer-events:auto}
+.review-app .pdf-quick-trigger{position:static;display:flex;align-items:center;gap:7px;max-width:calc(100% - 16px);background:#fffefbea;box-shadow:0 2px 8px #34222b24}
 .pdf-quick-label-short{display:none}
 @media(max-width:480px){.pdf-quick-label-full{display:none}.pdf-quick-label-short{display:inline}}
 .pdf-quick-panel{position:absolute;bottom:calc(var(--pdf-quick-trigger-height,44px) + 14px + env(safe-area-inset-bottom));left:8px;box-sizing:border-box;pointer-events:auto;width:280px;max-width:calc(100% - 16px);max-height:calc(100% - var(--pdf-quick-trigger-height,44px) - 24px - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;border:1px solid #c5b6b9;border-radius:7px;padding:10px;background:#fffefb;box-shadow:0 6px 22px #34222b29}
