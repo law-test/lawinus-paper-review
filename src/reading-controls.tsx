@@ -3,9 +3,9 @@ import {type ReadingView,type ReadingPane,readingVisibility,withReadingFocus,wit
 import {menuSwipeAction,type MenuSwipe} from './mobile-menu-swipe';
 import {type WorkspaceTool} from './workspace-tools';
 
-type Props={onTool:(tool:WorkspaceTool)=>void;view:ReadingView;onChange:(view:ReadingView)=>void;sidebar:boolean;metadata:boolean;onSidebar:(show:boolean)=>void;onMetadata:(show:boolean)=>void;document:'thesis'|'source';onDocument:(document:'thesis'|'source')=>void;onEqualWidth:()=>void;mobile?:boolean;pane?:ReadingPane;layout?:'columns'|'rows';onLayout?:(layout:'columns'|'rows')=>void;onResetSizes?:()=>void};
+type Props={onTool:(tool:WorkspaceTool)=>void;view:ReadingView;onChange:(view:ReadingView)=>void;sidebar:boolean;metadata:boolean;onSidebar:(show:boolean)=>void;onMetadata:(show:boolean)=>void;document:'thesis'|'source';onDocument:(document:'thesis'|'source')=>void;onEqualWidth:()=>void;mobile?:boolean;pane?:ReadingPane;layout?:'columns'|'rows';onLayout?:(layout:'columns'|'rows')=>void;onResetSizes?:()=>void;editionId?:string;editionChoices?:{id:string;label:string}[];onEdition?:(id:string)=>void};
 
-export default function ReadingControls({onTool,view,onChange,sidebar,metadata,onSidebar,onMetadata,document:currentDocument,onDocument,onEqualWidth,mobile=false,pane=currentDocument,layout='columns',onLayout,onResetSizes}:Props){
+export default function ReadingControls({onTool,view,onChange,sidebar,metadata,onSidebar,onMetadata,document:currentDocument,onDocument,onEqualWidth,mobile=false,pane=currentDocument,layout='columns',onLayout,onResetSizes,editionId,editionChoices,onEdition}:Props){
   const [open,setOpen]=useState(false);
   const menu=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);
   const swipe=useRef<MenuSwipe|null>(null),swipeMoved=useRef(false),suppressClick=useRef(false);
@@ -42,6 +42,7 @@ export default function ReadingControls({onTool,view,onChange,sidebar,metadata,o
       <button className="reading-view-trigger" ref={trigger} aria-expanded={open} aria-controls="reading-view-options" onClick={()=>setOpen(!open)}>보기</button>
     </div>
     {open&&<div className="reading-view-options" id="reading-view-options" role="dialog" aria-label="화면 보기 설정">
+      {onEdition&&editionChoices&&<fieldset className="reading-layout-options"><legend>원고 선택</legend><div>{editionChoices.map(({id,label})=><button key={id} aria-pressed={editionId===id} onClick={()=>{onEdition(id);close();}}>{label}</button>)}</div></fieldset>}
       <button className="reading-focus-toggle" aria-pressed={view.focus} onClick={()=>{onChange(withReadingFocus(view,!view.focus));close();}}>{view.focus?'메뉴 펼치기':'메뉴 접기'}</button>
       <button className="reading-equal-width" onClick={()=>{onEqualWidth();close();}}>{layout==='rows'&&!mobile?'논문·원전 같은 높이':'논문·원전 같은 폭'}</button>
       {onLayout&&!mobile&&<fieldset className="reading-layout-options"><legend>논문·원전 배치</legend><div>{[['columns','좌우'],['rows','상하']].map(([id,label])=><button key={id} aria-pressed={layout===id} onClick={()=>{onLayout(id as 'columns'|'rows');close();}}>{label}</button>)}</div></fieldset>}
