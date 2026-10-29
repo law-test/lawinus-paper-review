@@ -1,7 +1,7 @@
 import {createContext,useContext,type ReactNode} from 'react';
 
-export type ManuscriptEditionId='human77'|'v112';
-const EditionContext=createContext<ManuscriptEditionId>('human77');
+export type ManuscriptEditionId='human80'|'v120';
+const EditionContext=createContext<ManuscriptEditionId>('human80');
 export function ManuscriptEditionProvider({edition,children}:{edition:ManuscriptEditionId;children:ReactNode}){
  return <EditionContext.Provider value={edition}>{children}</EditionContext.Provider>;
 }

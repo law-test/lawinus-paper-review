@@ -3,22 +3,20 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {currentTocId,visibleToc} from '../src/thesis-toc-model.ts';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
-const human=read('../src/thesis-toc-data.json'),applied=read('../src/thesis-toc-data-v112.json');
+const release=read('./fixtures/edition-release280.json');
+const human=read('../src/thesis-toc-data.json'),applied=read('../src/thesis-toc-data-v120.json');
 test('both contents catalogs are bound to their exact PDF editions and real paragraph locations',()=>{
- for(const [toc,suffix,pages] of [[human,'',262],[applied,'-v112',269]]){
+ for(const [toc,suffix,pages] of [[human,'',release.human80.pages],[applied,'-v120',release.v120.pages]]){
   const catalog=read(`../src/paragraph-catalog${suffix}.json`),paragraphs=new Map(catalog.paragraphs.map(p=>[p.id,p]));
   assert.equal(toc.pageCount,pages);assert.equal(toc.pdfSha256,catalog.pdfSha256);assert.equal(new Set(toc.entries.map(e=>e.id)).size,toc.entries.length);
   for(const e of toc.entries){assert.ok(e.page>=1&&e.page<=pages);if(e.paragraphId)assert.equal(e.page,paragraphs.get(e.paragraphId)?.page,e.title);}
   for(let i=1;i<toc.entries.length;i++)assert.ok(toc.entries[i].page>=toc.entries[i-1].page);
  }
- assert.equal(applied.pdfSha256,'5aea4b86669ad1b58052b57c719956d88ae3285f98b8c5510fb1202705b5f655');
+ assert.equal(applied.pdfSha256,release.v120.pdfSha256);assert.equal(human.pdfSha256,release.human80.pdfSha256);
 });
 test('same title routes to each edition own pagination, including native front matter',()=>{
  const heading=(toc,title)=>toc.entries.find(e=>e.title===title);
- assert.equal(heading(human,'제1장 서론').page,20);assert.equal(heading(applied,'제1장 서론').page,19);
- assert.equal(heading(human,'세부목차').page,12);assert.equal(heading(applied,'세부목차').page,11);
- assert.equal(heading(human,'일러두기').page,19);assert.equal(heading(applied,'일러두기').page,18);
- assert.ok(heading(applied,'제5장 결론').page>heading(human,'제5장 결론').page);
+ for(const [ed,toc] of [['human80',human],['v120',applied]])for(const [title,page] of Object.entries(release[ed].frontPages))assert.equal(heading(toc,title).page,page,ed+':'+title);
 });
 test('search preserves ancestors and details while the short contents mode stays compact',()=>{
  for(const toc of [human,applied]){

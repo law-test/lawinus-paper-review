@@ -4,7 +4,7 @@ import editionContextData from './manuscript-legal-contexts.json' with {type:'js
 export type LegalStatus='current'|'proposal'|'historical'|'foreign'|'unresolved';
 export type LegalRelated={label:string;href:string;lawId?:string;article?:string};
 export type LegalMention={start:number;end:number;label:string;lawId?:string;lawName?:string;article?:string;paragraph?:string;href:string;related:LegalRelated[];status:LegalStatus;reason?:string;articleText?:string};
-export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human77'|'v112'|'legacy1021'};
+export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human80'|'v120'|'legacy1021'};
 export type LegalArticle={title:string;text:string;paragraphs?:string[]};
 export type LegalLaw={id:string;name:string;aliases:string[];status?:LegalStatus;href:string;lsiSeq?:string;effectiveDate?:string;effectiveLabel?:string;articleNumbers?:string[];articles?:Record<string,LegalArticle>;relatedLawIds?:string[];relatedArticleMap?:Record<string,{lawId:string;article:string}[]>;relatedNote?:string};
 type ContextRecord={defaultLawId?:string;lawId?:string;status?:LegalStatus;proposalHref?:string;source?:string;textHash?:string;excludedSpans?:{start:number;label:string}[];mentions?:{article:string;lawId:string;status?:LegalStatus;start?:number}[];auditedSpans?:{start:number;label:string;article:string;lawId:string;status:LegalStatus}[]};
@@ -42,7 +42,7 @@ function contextRecord(context:string|LegalContext|undefined,text:string):Contex
  const scope=explanation?Object.entries(citationExplanationScopes).find(([key])=>key.endsWith(':'+explanation[2]))?.[1]:undefined;
  if(scope)return {defaultLawId:o.defaultLawId||(scope.textHash===legalTextFingerprint(text)?scope.lawId:undefined)};
  const plain=explanation?.[1]||id.replace(/^(paragraph|note|faq):/,'');
- const scoped=o.edition==='legacy1021'?legalCatalog:(editionContextData as unknown as Record<string,{contexts:Record<string,ContextRecord>;contextOverrides:Record<string,ContextRecord>}>)[o.edition||'human77'];
+ const scoped=o.edition==='legacy1021'?legalCatalog:(editionContextData as unknown as Record<string,{contexts:Record<string,ContextRecord>;contextOverrides:Record<string,ContextRecord>}>)[o.edition||'human80'];
  const base=scoped.contexts[id]||scoped.contexts[plain]||{};
  const extra=scoped.contextOverrides[id]||scoped.contextOverrides[plain]||{};
  return {...base,...extra,...(o.defaultLawId?{defaultLawId:o.defaultLawId}:{})};

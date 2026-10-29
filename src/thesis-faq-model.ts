@@ -1,5 +1,5 @@
 export type FaqSource={label:string;href:string};
-export type FaqItem={id:string;category:string;question:string;answer:string[];sources:FaqSource[];defaultLawId?:string};
+export type FaqItem={id:string;category:string;question:string;answer:string[];sources:FaqSource[];defaultLawId?:string;answerLabel?:string;followup?:string;status?:string};
 
 export function proposalAnnotation(search:string,proposal:{id:string;after:string}|undefined):{number:string;text:string}|null{
  const params=new URLSearchParams(search),number=params.get('annotation');

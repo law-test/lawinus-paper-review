@@ -1,7 +1,7 @@
 import type {PdfTarget} from './pdf-viewer-model';
 
-export type ProposalPriority='반드시 수정'|'필수'|'연동 필수'|'강하게 권고'|'권고'|'권장'|'권장 수정'|'권고·명확화'|'권고·요건명확화'|'권고·탐색성'|'권장·명확화'|'선택적'|'선택·이미 반영 유지';
-export type ProposalIndicator={priority:ProposalPriority;tone:'required'|'recommended'|'optional';shortLabel:'필수'|'권고'|'선택';proposalIds:string[];primaryProposalId:string};
+export type ProposalPriority='반드시 수정'|'필수'|'연동 필수'|'강하게 권고'|'권고'|'권장'|'권장 수정'|'권고·명확화'|'권고·요건명확화'|'권고·탐색성'|'권장·명확화'|'선택적'|'선택·이미 반영 유지'|'검토';
+export type ProposalIndicator={priority:ProposalPriority;tone:'required'|'recommended'|'optional';shortLabel:'필수'|'권고'|'선택'|'검토';proposalIds:string[];primaryProposalId:string};
 type Proposal={id:string;priority:string;before:string;page:number;page_end?:number;anchorId?:string;paragraphIds?:string[];targetNoteId?:string};
 type Paragraph={id:string;text:string;page:number;kind:string};
 const PRIORITIES:Record<ProposalPriority,{rank:number;tone:ProposalIndicator['tone'];shortLabel:ProposalIndicator['shortLabel']}>= {
@@ -11,6 +11,7 @@ const PRIORITIES:Record<ProposalPriority,{rank:number;tone:ProposalIndicator['to
  '권장 수정':{rank:2,tone:'recommended',shortLabel:'권고'},
  '권고·명확화':{rank:2,tone:'recommended',shortLabel:'권고'},'권고·요건명확화':{rank:2,tone:'recommended',shortLabel:'권고'},'권고·탐색성':{rank:2,tone:'recommended',shortLabel:'권고'},'권장·명확화':{rank:2,tone:'recommended',shortLabel:'권고'},
  '선택·이미 반영 유지':{rank:1,tone:'optional',shortLabel:'선택'},
+ '검토':{rank:0,tone:'optional',shortLabel:'검토'},
 };
 const normalize=(value:string)=>value.replace(/\s+/g,' ').trim();
 export function proposalLabel(indicator:ProposalIndicator){return `수정제안 있음 · ${indicator.priority}${indicator.proposalIds.length>1?` · ${indicator.proposalIds.length}건`:''}`;}

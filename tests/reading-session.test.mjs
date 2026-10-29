@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {defaultReadingSession,readReadingSession,validateReadingSession,saveReadingSession,readingSessionKey,sourceReadingPosition} from '../src/reading-session.ts';
 const catalog={pageCount:279,sources:[{id:'a',pages:220},{id:'b',pages:48}],noteIds:['fn-001','fn-210'],paragraphIds:['P0283'],proposalIds:['P0283','FN1'],defaultSourceId:'a',defaultSourcePage:27};
 function storage(){const values=new Map(),writes=[];return {values,writes,getItem:key=>values.get(key)||null,setItem:(key,value)=>{writes.push({key,value});values.set(key,value);}};}
-test('first-time human77 and v112 readers open their distinct body starts without overriding saved pages',()=>{
- for(const [datasetId,start] of [['human-1028-2105',20],['applied-v112-human77',19]]){
+test('first-time human80 and v120 readers open their distinct body starts without overriding saved pages',()=>{
+ for(const [datasetId,start] of [['human-1029-1629',20],['applied-v120-human80',19]]){
   const local=storage(),editionCatalog={...catalog,defaultThesisPage:start};
   assert.equal(readReadingSession(local,datasetId,editionCatalog).session.thesis.page,start);
   saveReadingSession(local,{...defaultReadingSession(datasetId,editionCatalog),thesis:{page:77,zoom:1}});

@@ -15,35 +15,35 @@
     "pagesUrl": "https://law-test.github.io/lawinus-paper-review/"
   },
   "domain": "paper.lawinus.org",
-  "datasetId": "human-1028-2105",
+  "datasetId": "human-1029-1629",
   "state": "deployed",
   "editions": {
-    "human77": {
-      "datasetId": "human-1028-2105",
-      "pages": 262,
-      "footnotes": 348
+    "human80": {
+      "datasetId": "human-1029-1629",
+      "pages": 266,
+      "footnotes": 444
     },
-    "v112": {
-      "datasetId": "applied-v112-human77",
-      "pages": 269,
-      "footnotes": 349
+    "v120": {
+      "datasetId": "applied-v120-human80",
+      "pages": 253,
+      "footnotes": 444
     }
   },
   "revisionGuide": {
-    "version": "v112",
-    "items": 120,
-    "baseline": "human77"
+    "version": "v120",
+    "items": 452,
+    "baseline": "human80"
   },
   "aiEnabled": false,
   "previousVerifiedDeployment": {
-    "sourceCommit": "7d9479c450be99f034fd3f1ebf6c51738390fd99",
-    "pagesCommit": "d1d8e592cb99fac4f9a8576dff94568542b232e5",
-    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40616876346",
+    "sourceCommit": "422d1ef04c9a943d4b867b70ddf8c5622d643b68",
+    "pagesCommit": "d5d02f16acb0bc9a64a79c868d34b8e85be3a060",
+    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40743995892",
     "pagesBuildConclusion": "success",
-    "sourceFiles": 454,
-    "pagesFiles": 248
+    "sourceFiles": 472,
+    "pagesFiles": 259
   },
-  "release": "manuscripts-277",
+  "release": "human80-v120-ui280",
   "deploymentHistory": [
     {
       "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
@@ -62,6 +62,53 @@
       "pagesBuildConclusion": "success",
       "sourceFiles": 422,
       "pagesFiles": 235
+    },
+    {
+      "sourceCommit": "7d9479c450be99f034fd3f1ebf6c51738390fd99",
+      "pagesCommit": "d1d8e592cb99fac4f9a8576dff94568542b232e5",
+      "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40616876346",
+      "pagesBuildConclusion": "success",
+      "sourceFiles": 454,
+      "pagesFiles": 248
+    },
+    {
+      "sourceCommit": "422d1ef04c9a943d4b867b70ddf8c5622d643b68",
+      "pagesCommit": "d5d02f16acb0bc9a64a79c868d34b8e85be3a060",
+      "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/40743995892",
+      "pagesBuildConclusion": "success",
+      "sourceFiles": 472,
+      "pagesFiles": 259
     }
-  ]
+  ],
+  "archivedEditions": {
+    "human77": {
+      "datasetId": "human-1028-2105",
+      "pages": 262,
+      "footnotes": 348
+    },
+    "v112": {
+      "datasetId": "applied-v112-human77",
+      "pages": 269,
+      "footnotes": 349
+    },
+    "human80": {
+      "datasetId": "human-1029-1629",
+      "pages": 266,
+      "footnotes": 444
+    },
+    "v120": {
+      "datasetId": "applied-v120-human80",
+      "pages": 253,
+      "footnotes": 444
+    }
+  },
+  "examinerUpdate": {
+    "replaced": "최우진",
+    "current": "김규완",
+    "publicWorks": 28,
+    "bookFamilies": 7,
+    "practiceQuestions": 20,
+    "asOf": "2026-10-30",
+    "fullTextReviewed": 0
+  }
 }

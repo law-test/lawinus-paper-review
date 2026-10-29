@@ -18,7 +18,7 @@ test('a missing final page, duplicate page, wrong source, or empty translation i
 test('published Korean translations are not misrepresented as German or Japanese originals',()=>{
  assert.equal(registry.sources.some(e=>e.sourceId==='s-92ee28b9ae50b4f6'),false);
  assert.equal(registry.sources.some(e=>e.sourceId==='s-ecd25c043c28790b'),false);
- assert.deepEqual(registry.sources.find(e=>e.language==='de').noteIds,['fn-317']);
+ assert.deepEqual(registry.sources.find(e=>e.language==='de').noteIds,['fn-412']);
 });
 test('continuous translation scroll finds the current page including the final page',()=>{
  const tops=[{page:1,top:0},{page:2,top:730},{page:3,top:1990}];

@@ -27,5 +27,13 @@
 .faq-evidence a{display:block;padding:7px 0;color:#810126;text-decoration:underline;text-underline-offset:3px;font-size:calc(11px * var(--review-font-scale,1.5));line-height:1.65;overflow-wrap:anywhere}
 .faq-evidence a:hover{color:#4d0017}
 .faq-empty{padding:22px 0;font-size:calc(12px * var(--review-font-scale,1.5));line-height:1.8;color:#655b60}
+.reviewer-research{margin:0 0 24px;border:1px solid #d9c7ce;border-radius:5px;background:#faf6f7;font-size:calc(11px * var(--review-font-scale,1.5));line-height:1.8}
+.reviewer-research>summary{padding:15px;cursor:pointer;color:#62001d}
+.reviewer-research-body{padding:0 15px 18px}.reviewer-research-body h3{font-size:1.05em;margin:22px 0 10px}
+.reviewer-research-body p{margin:8px 0}.reviewer-scope{color:#706269;font-size:.94em}
+.reviewer-work{padding:12px 0;border-top:1px solid #e4d9dd}.reviewer-work>a,.reviewer-work-list a{font-weight:600;color:#810126;text-underline-offset:3px}
+.reviewer-research-body details{margin:14px 0}.reviewer-research-body summary{cursor:pointer;min-height:40px;padding:4px 0}
+.reviewer-work-list{padding-left:22px}.reviewer-work-list li{padding:10px 0}.reviewer-work-list small{color:#706269}
+.reviewer-source-links{display:flex;flex-wrap:wrap;gap:8px 18px}.reviewer-source-links a{color:#810126;min-height:36px}
 @media(max-width:1199px){.thesis-faq-panel{padding:24px 20px 48px}.faq-question{min-height:60px}.faq-evidence a{min-height:44px;box-sizing:border-box;display:flex;align-items:center}}
 @media(max-width:420px){.thesis-faq-panel{padding:22px 16px 40px}.faq-question{gap:8px}.faq-evidence{padding:12px}.faq-evidence a{display:block}}

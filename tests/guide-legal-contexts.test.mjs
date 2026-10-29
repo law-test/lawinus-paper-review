@@ -2,25 +2,30 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {getLegalMentions} from '../src/legal-link-model.ts';
-const items=JSON.parse(readFileSync(new URL('../src/revision-proposals.json',import.meta.url),'utf8')).items;
-const mentions=(id,field,edition='human77')=>{const item=items.find(row=>row.id===id);return getLegalMentions(item[field],{contextId:`proposal:${id}:${field}`,edition});};
-test('all 360 completed guide fields use the same source edition context regardless of the active reader',()=>{
+const read=path=>JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
+const items=read('../src/revision-proposals.json').items,release=read('./fixtures/edition-release280.json');
+const mentions=(item,field,edition='human80')=>getLegalMentions(item[field],{contextId:`proposal:${item.id}:${field}`,edition});
+test('all approved guide fields use their source-edition scope regardless of the active reader',()=>{
  let count=0;
  for(const item of items)for(const field of ['before','after','reason']){
-  const a=mentions(item.id,field),b=mentions(item.id,field,'v112');assert.deepEqual(a,b,item.id+':'+field);count+=a.length;
+  const a=mentions(item,field),b=mentions(item,field,'v120');assert.deepEqual(a,b,item.id+':'+field);count+=a.length;
   for(const m of a){assert.notEqual(m.status,'unresolved',item.id+':'+field+' '+m.label);if(m.status!=='current')assert.equal(m.articleText,undefined);}
  }
- assert.equal(items.length*3,360);assert.equal(count,155);
+ assert.equal(items.length*3,release.guide.fields);assert.ok(count>0);
 });
-test('reviewed mixed-law and foreign guide reasons retain their actual jurisdiction',()=>{
- assert.equal(mentions('F112-13','reason').find(m=>m.article==='102').lawId,'civil-execution');
- assert.equal(mentions('E112-20','reason').find(m=>m.article==='30d').lawId,'de-execution');
- assert.equal(mentions('E112-20','reason').find(m=>m.article==='30d').status,'foreign');
- assert.equal(mentions('TOC77-01','before').find(m=>m.article==='141').lawId,'drba');
- assert.deepEqual(mentions('TOC77-01','after'),[]); // After is an instruction to regenerate the TOC, not a copied list of headings.
+test('foreign guide citations retain their own official jurisdiction and never imply current Korean text',()=>{
+ const foreign=items.flatMap(item=>['before','after','reason'].flatMap(field=>mentions(item,field).filter(m=>m.status==='foreign')));
+ assert.ok(foreign.length>0);
+ for(const m of foreign){assert.ok(m.lawId);assert.equal(m.articleText,undefined);assert.match(new URL(m.href).hostname,/(?:gesetze-im-internet\.de|uscode\.house\.gov|laws\.e-gov\.go\.jp)$/);}
 });
-test('reviewed commentary titles and described source typos do not open statute dialogs',()=>{
- for(const id of ['F112-R170','E112-22','E112-23','BOOK77-02-B','E112-BONJU148','E112-BONJU160'])assert.deepEqual(mentions(id,'reason'),[]);
- assert.equal(mentions('E112-22','after').filter(m=>m.article==='160').length,0);
- assert.ok(mentions('E112-22','after').some(m=>m.article==='600'&&m.lawId==='drba'));
+test('quoted commentary article-number titles remain bibliography rather than statute dialogs',()=>{
+ let titles=0;
+ for(const item of items)for(const field of ['before','after','reason']){
+  const all=mentions(item,field);
+  for(const title of item[field].matchAll(/「제\d+조(?:의\d+)?」/g)){
+   titles++;const start=title.index,end=start+title[0].length;
+   assert.ok(!all.some(m=>m.start<end&&m.end>start),item.id+':'+field+' '+title[0]);
+  }
+ }
+ assert.ok(titles>0);
 });

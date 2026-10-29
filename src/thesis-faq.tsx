@@ -3,6 +3,7 @@ import faqData from './thesis-faq.json';
 import {filterFaq,type FaqItem} from './thesis-faq-model';
 import './thesis-faq.css';
 import {LegalText} from './legal-links';
+import ReviewerResearch from './reviewer-research';
 
 const items=faqData.items as FaqItem[];
 
@@ -19,8 +20,11 @@ function FaqQuestion({item,index,searching,onQuestion}:{item:FaqItem;index:numbe
   </button></h3>
   <div id={`${item.id}-answer`} className="faq-answer" hidden={!open}>
    <span className="faq-category">{item.category}</span>
+   {item.status&&<p className="reviewer-scope">{item.status}</p>}
+   {item.answerLabel&&<h4>{item.answerLabel}</h4>}
    {item.answer.map((paragraph,i)=><p key={i}><LegalText text={paragraph} contextId={`faq:${item.id}`} defaultLawId={item.defaultLawId}/></p>)}
-   <div className="faq-evidence"><h4>답변의 근거</h4><ul>{answerSources.map(source=><li key={source.href+source.label}>
+   {item.followup&&<p><strong>이어질 질문:</strong> {item.followup}</p>}
+   <div className="faq-evidence"><h4>{item.answerLabel?'준비에 참고할 근거':'답변의 근거'}</h4><ul>{answerSources.map(source=><li key={source.href+source.label}>
     <a href={source.href} target="_blank" rel="noopener noreferrer" aria-label={`${source.label} (새 창에서 열기)`}>{source.label}<span aria-hidden="true"> ↗</span></a>
    </li>)}</ul>{researchSources.length>0&&<><h4>질문의 관점에 참고한 연구</h4><ul>{researchSources.map(source=><li key={source.href+source.label}><a href={source.href} target="_blank" rel="noopener noreferrer">{source.label}<span aria-hidden="true"> ↗</span></a></li>)}</ul></>}</div>
    {onQuestion&&<button className="faq-chat-question" onClick={()=>onQuestion(item)}>이 답변을 대화창에서 보기</button>}
@@ -37,7 +41,9 @@ export default function ThesisFaq({onQuestion}:{onQuestion?:(item:FaqItem)=>void
  return <div className="scroll-panel thesis-faq-panel">
   <div className="panel-heading"><span className="section-eyebrow">FAQ</span><h2>논문에 관한 질문과 답변</h2>
    <p>논문의 핵심 주장, 예상 반론, 미국·일본·독일의 비교법과 문헌 연구방법을 주제별로 모았습니다. 각 답변에서 논문·각주·법령·문헌 근거를 열어볼 수 있습니다.</p>
+   <p className="reviewer-scope">김규완 교수 관련 20개 질문은 인간80 심사본 기준입니다. 기존 문답은 각 근거에 표시된 이전 판본의 문안과 연결됩니다.</p>
   </div>
+  <ReviewerResearch/>
   <label className="faq-search-label" htmlFor="thesis-faq-category">주제별 보기</label>
   <select id="thesis-faq-category" value={category} onChange={event=>setCategory(event.target.value)} style={{width:'100%',padding:'10px',marginBottom:'12px',border:'1px solid #bbc9c1',borderRadius:'6px',background:'white',font:'inherit'}}><option>전체</option>{categories.map(value=><option key={value}>{value}</option>)}</select>
   <label className="faq-search-label" htmlFor="thesis-faq-search">질문·답변·근거 검색</label>
