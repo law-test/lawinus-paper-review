@@ -1,7 +1,7 @@
 {
-  "version": "v121",
+  "version": "v122",
   "baseline": "human-1029-1629",
-  "appliedBaseline": "applied-v121-human80",
+  "appliedBaseline": "applied-v122-human80",
   "items": [
     {
       "id": "V120-P0047",
@@ -1069,9 +1069,9 @@
         39,
         40
       ],
-      "appliedPage": 37,
+      "appliedPage": 38,
       "appliedPages": [
-        37
+        38
       ],
       "originalParagraphIds": [
         "P0354"
@@ -1102,9 +1102,8 @@
         40,
         41
       ],
-      "appliedPage": 37,
+      "appliedPage": 38,
       "appliedPages": [
-        37,
         38
       ],
       "originalParagraphIds": [
@@ -1137,7 +1136,8 @@
       ],
       "appliedPage": 38,
       "appliedPages": [
-        38
+        38,
+        39
       ],
       "originalParagraphIds": [
         "P0356"
@@ -1168,9 +1168,8 @@
         42,
         43
       ],
-      "appliedPage": 39,
+      "appliedPage": 40,
       "appliedPages": [
-        39,
         40
       ],
       "originalParagraphIds": [
@@ -1203,7 +1202,8 @@
       ],
       "appliedPage": 40,
       "appliedPages": [
-        40
+        40,
+        41
       ],
       "originalParagraphIds": [
         "P0370"
@@ -1235,7 +1235,8 @@
       ],
       "appliedPage": 41,
       "appliedPages": [
-        41
+        41,
+        42
       ],
       "originalParagraphIds": [
         "P0374"
@@ -1265,9 +1266,9 @@
       "humanPages": [
         44
       ],
-      "appliedPage": 41,
+      "appliedPage": 42,
       "appliedPages": [
-        41
+        42
       ],
       "originalParagraphIds": [
         "P0375"
@@ -1297,9 +1298,9 @@
       "humanPages": [
         45
       ],
-      "appliedPage": 41,
+      "appliedPage": 42,
       "appliedPages": [
-        41
+        42
       ],
       "originalParagraphIds": [
         "P0377"
@@ -1363,7 +1364,8 @@
       ],
       "appliedPage": 42,
       "appliedPages": [
-        42
+        42,
+        43
       ],
       "originalParagraphIds": [
         "P0379"
@@ -1425,9 +1427,9 @@
       "humanPages": [
         47
       ],
-      "appliedPage": 43,
+      "appliedPage": 44,
       "appliedPages": [
-        43
+        44
       ],
       "originalParagraphIds": [
         "P0384"
@@ -1444,10 +1446,10 @@
       "id": "V120-P0385",
       "kind": "paragraph",
       "target": "P0385",
-      "title": "추상적인 대비·예고를 줄이고 당사자의 행위와 법률효과를 직접 서술한다.",
+      "title": "임차권 양도·전대와 반환채권 분리양도의 구별",
       "before": "반환채권이 이전되었다고 하여 원임차인의 우선변제권까지 당연히 승계되는 것은 아니다. 우선변제권의 이전 여부는 반환채권을 취득한 법적 근거에 따라 달라진다. 대법원 2010. 5. 27. 판결도 임차권과 분리하여 보증금반환채권만을 양수한 일반 채권자는 원임차인의 우선변제권을 행사할 수 없다고 판단하였다.[^89] 반면 주택임대차보호법 제3조의2 제7항은 법률에서 정한 금융기관 등이 우선변제권 있는 반환채권을 계약으로 양수한 경우, 양수금액의 범위에서 우선변제권도 승계하도록 규정한다. 이는 일반적인 채권양도와 달리 특정한 양수인과 요건에 대하여 법률이 우선변제권의 승계효과를 인정한 경우이다. 따라서 이 규정에 따른 보호범위는 양수인의 법정 자격, 채권양도의 요건 및 취득한 채권액을 기준으로 판단하여야 한다.[^90]",
-      "after": "반환채권만 양수한 일반 채권자는 원임차인의 우선변제권을 행사할 수 없다는 것이 대법원 2010. 5. 27. 판결의 입장이다.[^89] 다만 주택임대차보호법 제3조의2 제7항의 금융기관 등이 우선변제권 있는 반환채권을 계약으로 양수하면 양수금액의 범위에서 우선변제권도 승계한다. 따라서 양수인의 법정 자격과 양도요건을 확인한 뒤, 그가 취득한 채권액에 맞추어 우선배당 범위를 정한다.[^90]",
-      "reason": "추상적인 대비·예고를 줄이고 당사자의 행위와 법률효과를 직접 서술한다.",
+      "after": "반환채권만 양수한 일반 채권자는 원임차인의 우선변제권을 행사할 수 없다는 것이 대법원 2010. 5. 27. 판결의 입장이다. 반면 대항력과 우선변제권을 갖춘 임차인이 임대인의 동의를 얻어 적법하게 임차권을 양도하거나 전대한 경우에는 그 지위의 승계를 따로 살펴야 한다. 양수인 또는 전차인이 점유를 승계하고 주민등록이 단절된 것으로 볼 수 없는 기간 내에 전입신고를 마쳤다면, 양수인은 원임차인의 우선변제권을 행사하고 전차인은 이를 대위행사할 수 있다.[^89] 반환채권만 양수하는 경우에도 주택임대차보호법 제3조의2 제7항의 금융기관 등이 우선변제권 있는 반환채권을 계약으로 양수하면 양수금액의 범위에서 우선변제권도 승계한다. 따라서 양수인의 법정 자격과 양도요건을 확인한 뒤, 그가 취득한 채권액에 맞추어 우선배당 범위를 정한다.[^90]",
+      "reason": "반환채권 분리양수와 임차권의 적법한 양도·전대를 구별하여 우선변제권 행사주체의 차이를 구체화한다. 금융기관의 법정 승계 예외는 그대로 보존한다.",
       "order": 45,
       "priority": "검토",
       "page": 47,
@@ -1457,9 +1459,9 @@
       "humanPages": [
         47
       ],
-      "appliedPage": 43,
+      "appliedPage": 44,
       "appliedPages": [
-        43
+        44
       ],
       "originalParagraphIds": [
         "P0385"
@@ -1470,7 +1472,7 @@
       "applied": true,
       "originalParagraphId": "P0385",
       "appliedParagraphId": "P0395",
-      "applyText": "반환채권만 양수한 일반 채권자는 원임차인의 우선변제권을 행사할 수 없다는 것이 대법원 2010. 5. 27. 판결의 입장이다.[^89] 다만 주택임대차보호법 제3조의2 제7항의 금융기관 등이 우선변제권 있는 반환채권을 계약으로 양수하면 양수금액의 범위에서 우선변제권도 승계한다. 따라서 양수인의 법정 자격과 양도요건을 확인한 뒤, 그가 취득한 채권액에 맞추어 우선배당 범위를 정한다.[^90]"
+      "applyText": "반환채권만 양수한 일반 채권자는 원임차인의 우선변제권을 행사할 수 없다는 것이 대법원 2010. 5. 27. 판결의 입장이다. 반면 대항력과 우선변제권을 갖춘 임차인이 임대인의 동의를 얻어 적법하게 임차권을 양도하거나 전대한 경우에는 그 지위의 승계를 따로 살펴야 한다. 양수인 또는 전차인이 점유를 승계하고 주민등록이 단절된 것으로 볼 수 없는 기간 내에 전입신고를 마쳤다면, 양수인은 원임차인의 우선변제권을 행사하고 전차인은 이를 대위행사할 수 있다.[^89] 반환채권만 양수하는 경우에도 주택임대차보호법 제3조의2 제7항의 금융기관 등이 우선변제권 있는 반환채권을 계약으로 양수하면 양수금액의 범위에서 우선변제권도 승계한다. 따라서 양수인의 법정 자격과 양도요건을 확인한 뒤, 그가 취득한 채권액에 맞추어 우선배당 범위를 정한다.[^90]"
     },
     {
       "id": "V120-P0399",
@@ -1489,9 +1491,9 @@
       "humanPages": [
         49
       ],
-      "appliedPage": 46,
+      "appliedPage": 47,
       "appliedPages": [
-        46
+        47
       ],
       "originalParagraphIds": [
         "P0399"
@@ -1521,9 +1523,9 @@
       "humanPages": [
         49
       ],
-      "appliedPage": 46,
+      "appliedPage": 47,
       "appliedPages": [
-        46
+        47
       ],
       "originalParagraphIds": [
         "P0400"
@@ -1554,9 +1556,10 @@
         49,
         50
       ],
-      "appliedPage": 46,
+      "appliedPage": 47,
       "appliedPages": [
-        46
+        47,
+        48
       ],
       "originalParagraphIds": [
         "P0401"
@@ -1586,10 +1589,9 @@
       "humanPages": [
         51
       ],
-      "appliedPage": 47,
+      "appliedPage": 49,
       "appliedPages": [
-        47,
-        48
+        49
       ],
       "originalParagraphIds": [
         "P0404"
@@ -1619,9 +1621,9 @@
       "humanPages": [
         51
       ],
-      "appliedPage": 48,
+      "appliedPage": 49,
       "appliedPages": [
-        48
+        49
       ],
       "originalParagraphIds": [
         "P0406"
@@ -1651,9 +1653,9 @@
       "humanPages": [
         52
       ],
-      "appliedPage": 48,
+      "appliedPage": 50,
       "appliedPages": [
-        48
+        50
       ],
       "originalParagraphIds": [
         "P0408"
@@ -1683,9 +1685,9 @@
       "humanPages": [
         52
       ],
-      "appliedPage": 49,
+      "appliedPage": 50,
       "appliedPages": [
-        49
+        50
       ],
       "originalParagraphIds": [
         "P0410"
@@ -1715,9 +1717,9 @@
       "humanPages": [
         52
       ],
-      "appliedPage": 49,
+      "appliedPage": 50,
       "appliedPages": [
-        49
+        50
       ],
       "originalParagraphIds": [
         "P0412"
@@ -1747,10 +1749,10 @@
       "humanPages": [
         53
       ],
-      "appliedPage": 49,
+      "appliedPage": 50,
       "appliedPages": [
-        49,
-        50
+        50,
+        51
       ],
       "originalParagraphIds": [
         "P0413"
@@ -1780,9 +1782,9 @@
       "humanPages": [
         53
       ],
-      "appliedPage": 50,
+      "appliedPage": 51,
       "appliedPages": [
-        50
+        51
       ],
       "originalParagraphIds": [
         "P0416"
@@ -1812,9 +1814,9 @@
       "humanPages": [
         54
       ],
-      "appliedPage": 51,
+      "appliedPage": 52,
       "appliedPages": [
-        51
+        52
       ],
       "originalParagraphIds": [
         "P0432"
@@ -1844,9 +1846,9 @@
       "humanPages": [
         56
       ],
-      "appliedPage": 53,
+      "appliedPage": 54,
       "appliedPages": [
-        53
+        54
       ],
       "originalParagraphIds": [
         "P0450"
@@ -1876,9 +1878,9 @@
       "humanPages": [
         57
       ],
-      "appliedPage": 54,
+      "appliedPage": 55,
       "appliedPages": [
-        54
+        55
       ],
       "originalParagraphIds": [
         "P0455"
@@ -1908,9 +1910,9 @@
       "humanPages": [
         58
       ],
-      "appliedPage": 55,
+      "appliedPage": 56,
       "appliedPages": [
-        55
+        56
       ],
       "originalParagraphIds": [
         "P0460"
@@ -1941,9 +1943,9 @@
         58,
         59
       ],
-      "appliedPage": 55,
+      "appliedPage": 56,
       "appliedPages": [
-        55
+        56
       ],
       "originalParagraphIds": [
         "P0461"
@@ -1974,9 +1976,9 @@
         59,
         60
       ],
-      "appliedPage": 56,
+      "appliedPage": 57,
       "appliedPages": [
-        56
+        57
       ],
       "originalParagraphIds": [
         "P0463"
@@ -2006,9 +2008,9 @@
       "humanPages": [
         60
       ],
-      "appliedPage": 56,
+      "appliedPage": 57,
       "appliedPages": [
-        56
+        57
       ],
       "originalParagraphIds": [
         "P0464"
@@ -2038,9 +2040,9 @@
       "humanPages": [
         60
       ],
-      "appliedPage": 56,
+      "appliedPage": 57,
       "appliedPages": [
-        56
+        57
       ],
       "originalParagraphIds": [
         "P0466"
@@ -2071,9 +2073,9 @@
         60,
         61
       ],
-      "appliedPage": 57,
+      "appliedPage": 58,
       "appliedPages": [
-        57
+        58
       ],
       "originalParagraphIds": [
         "P0468"
@@ -2103,9 +2105,9 @@
       "humanPages": [
         61
       ],
-      "appliedPage": 57,
+      "appliedPage": 58,
       "appliedPages": [
-        57
+        58
       ],
       "originalParagraphIds": [
         "P0469"
@@ -2136,9 +2138,9 @@
         61,
         62
       ],
-      "appliedPage": 58,
+      "appliedPage": 59,
       "appliedPages": [
-        58
+        59
       ],
       "originalParagraphIds": [
         "P0471"
@@ -2155,10 +2157,10 @@
       "id": "V120-P0473",
       "kind": "paragraph",
       "target": "P0473",
-      "title": "추상적인 대비·예고를 줄이고 당사자의 행위와 법률효과를 직접 서술한다.",
+      "title": "배당요구종기까지 대항요건 유지와 등기 예외",
       "before": "별도의 배당요구가 필요한 임차인은 배당요구 종기까지 자신이 행사하려는 반환채권의 원인과 금액을 특정하여 배당을 요구하여야 한다.[^114] 이는 해당 경매절차에서 배당을 받을 채권의 존재와 범위를 확정하기 위한 것이다. 그러나 배당요구를 통하여 반환채권을 절차에 편입시키는 것과 그 채권에 인정되는 우선변제자격을 소명하는 것은 구별된다.[^115] 배당요구는 매각대금에서 만족을 구할 채권을 특정하는 행위이고, 임대차계약서·확정일자·대항요건에 관한 자료는 그 채권이 우선변제권의 보호를 받는지와 그 순위를 확인하는 자료이기 때문이다. 이 구별은 종기 이후에 서면이 제출된 경우에 드러난다(제4절).",
-      "after": "배당요구가 필요한 임차인은 종기까지 반환채권의 원인과 금액을 특정하여야 한다.[^114] 이로써 그 경매에서 만족을 구할 채권이 정해진다. 그 채권을 우선배당할지는 임대차계약서·확정일자·대항요건에 관한 자료로 따로 확인한다.[^115] 종기 후 제출한 자료도 이 순서로 심사한다. 종기 전에 요구한 채권의 자격을 증명하는 것인지, 당초 요구하지 않은 채권이나 금액을 추가하는 것인지에 따라 허용 여부가 갈린다(제4절).",
-      "reason": "추상적인 대비·예고를 줄이고 당사자의 행위와 법률효과를 직접 서술한다.",
+      "after": "배당요구가 필요한 임차인은 종기까지 반환채권의 원인과 금액을 특정하여야 한다.[^114] 우선배당을 받을 자격은 임대차계약서·확정일자·대항요건에 관한 자료로 따로 확인한다. 대항요건은 배당요구종기까지, 종기가 연기되면 연기된 종기까지 유지되어야 한다. 다만 임차권등기에 따라 취득하거나 보전한 대항력·우선변제권은 등기 후 대항요건을 상실하더라도 유지된다.[^115] 종기 후 제출한 자료는 종전에 요구한 채권의 자격을 증명하는 것인지, 당초 요구하지 않은 채권이나 금액을 추가하는 것인지에 따라 허용 여부가 갈린다(제4절).",
+      "reason": "배당요구서 제출과 우선변제권의 존속요건은 별개다. 배당요구종기까지 대항요건을 유지할 필요와 종기 연기 시 기준일을 명시하되, 임차권등기로 취득한 권리를 보전하는 예외를 함께 둔다. 기존 각주 115 표지만 보충한 문장 뒤로 이동하고 새 각주·분할은 추가하지 않는다. 등기로 새로 취득한 권리도 포함하고, 기존 중복 연결문 두 개를 덜어 문단의 초점을 유지한다.",
       "order": 67,
       "priority": "검토",
       "page": 62,
@@ -2168,9 +2170,9 @@
       "humanPages": [
         62
       ],
-      "appliedPage": 58,
+      "appliedPage": 59,
       "appliedPages": [
-        58
+        59
       ],
       "originalParagraphIds": [
         "P0473"
@@ -2181,7 +2183,7 @@
       "applied": true,
       "originalParagraphId": "P0473",
       "appliedParagraphId": "P0483",
-      "applyText": "배당요구가 필요한 임차인은 종기까지 반환채권의 원인과 금액을 특정하여야 한다.[^114] 이로써 그 경매에서 만족을 구할 채권이 정해진다. 그 채권을 우선배당할지는 임대차계약서·확정일자·대항요건에 관한 자료로 따로 확인한다.[^115] 종기 후 제출한 자료도 이 순서로 심사한다. 종기 전에 요구한 채권의 자격을 증명하는 것인지, 당초 요구하지 않은 채권이나 금액을 추가하는 것인지에 따라 허용 여부가 갈린다(제4절)."
+      "applyText": "배당요구가 필요한 임차인은 종기까지 반환채권의 원인과 금액을 특정하여야 한다.[^114] 우선배당을 받을 자격은 임대차계약서·확정일자·대항요건에 관한 자료로 따로 확인한다. 대항요건은 배당요구종기까지, 종기가 연기되면 연기된 종기까지 유지되어야 한다. 다만 임차권등기에 따라 취득하거나 보전한 대항력·우선변제권은 등기 후 대항요건을 상실하더라도 유지된다.[^115] 종기 후 제출한 자료는 종전에 요구한 채권의 자격을 증명하는 것인지, 당초 요구하지 않은 채권이나 금액을 추가하는 것인지에 따라 허용 여부가 갈린다(제4절)."
     },
     {
       "id": "V120-P0474",
@@ -2200,10 +2202,10 @@
       "humanPages": [
         62
       ],
-      "appliedPage": 58,
+      "appliedPage": 59,
       "appliedPages": [
-        58,
-        59
+        59,
+        60
       ],
       "originalParagraphIds": [
         "P0474"
@@ -2234,10 +2236,10 @@
         63,
         64
       ],
-      "appliedPage": 59,
+      "appliedPage": 60,
       "appliedPages": [
-        59,
-        60
+        60,
+        61
       ],
       "originalParagraphIds": [
         "P0479"
@@ -2267,9 +2269,9 @@
       "humanPages": [
         64
       ],
-      "appliedPage": 60,
+      "appliedPage": 61,
       "appliedPages": [
-        60
+        61
       ],
       "originalParagraphIds": [
         "P0480"
@@ -2299,10 +2301,9 @@
       "humanPages": [
         65
       ],
-      "appliedPage": 60,
+      "appliedPage": 62,
       "appliedPages": [
-        60,
-        61
+        62
       ],
       "originalParagraphIds": [
         "P0483"
@@ -2332,9 +2333,9 @@
       "humanPages": [
         66
       ],
-      "appliedPage": 62,
+      "appliedPage": 63,
       "appliedPages": [
-        62
+        63
       ],
       "originalParagraphIds": [
         "P0489"
@@ -2365,9 +2366,10 @@
         67,
         68
       ],
-      "appliedPage": 63,
+      "appliedPage": 64,
       "appliedPages": [
-        63
+        64,
+        65
       ],
       "originalParagraphIds": [
         "P0493"
@@ -2397,9 +2399,9 @@
       "humanPages": [
         68
       ],
-      "appliedPage": 64,
+      "appliedPage": 65,
       "appliedPages": [
-        64
+        65
       ],
       "originalParagraphIds": [
         "P0496"
@@ -2430,9 +2432,9 @@
         68,
         69
       ],
-      "appliedPage": 64,
+      "appliedPage": 65,
       "appliedPages": [
-        64
+        65
       ],
       "originalParagraphIds": [
         "P0497"
@@ -2463,9 +2465,9 @@
         69,
         70
       ],
-      "appliedPage": 65,
+      "appliedPage": 66,
       "appliedPages": [
-        65
+        66
       ],
       "originalParagraphIds": [
         "P0500"
@@ -2495,9 +2497,10 @@
       "humanPages": [
         70
       ],
-      "appliedPage": 65,
+      "appliedPage": 66,
       "appliedPages": [
-        65
+        66,
+        67
       ],
       "originalParagraphIds": [
         "P0502"
@@ -2527,10 +2530,10 @@
       "humanPages": [
         71
       ],
-      "appliedPage": 66,
+      "appliedPage": 67,
       "appliedPages": [
-        66,
-        67
+        67,
+        68
       ],
       "originalParagraphIds": [
         "P0505"
@@ -2560,9 +2563,9 @@
       "humanPages": [
         71
       ],
-      "appliedPage": 67,
+      "appliedPage": 68,
       "appliedPages": [
-        67
+        68
       ],
       "originalParagraphIds": [
         "P0506"
@@ -2592,9 +2595,9 @@
       "humanPages": [
         72
       ],
-      "appliedPage": 68,
+      "appliedPage": 69,
       "appliedPages": [
-        68
+        69
       ],
       "originalParagraphIds": [
         "P0508"
@@ -2624,9 +2627,9 @@
       "humanPages": [
         72
       ],
-      "appliedPage": 68,
+      "appliedPage": 69,
       "appliedPages": [
-        68
+        69
       ],
       "originalParagraphIds": [
         "P0509"
@@ -2656,9 +2659,9 @@
       "humanPages": [
         73
       ],
-      "appliedPage": 68,
+      "appliedPage": 69,
       "appliedPages": [
-        68
+        69
       ],
       "originalParagraphIds": [
         "P0511"
@@ -2688,9 +2691,9 @@
       "humanPages": [
         73
       ],
-      "appliedPage": 69,
+      "appliedPage": 70,
       "appliedPages": [
-        69
+        70
       ],
       "originalParagraphIds": [
         "P0514"
@@ -2721,9 +2724,9 @@
         73,
         74
       ],
-      "appliedPage": 69,
+      "appliedPage": 70,
       "appliedPages": [
-        69
+        70
       ],
       "originalParagraphIds": [
         "P0515"
@@ -2753,10 +2756,10 @@
       "humanPages": [
         74
       ],
-      "appliedPage": 69,
+      "appliedPage": 70,
       "appliedPages": [
-        69,
-        70
+        70,
+        71
       ],
       "originalParagraphIds": [
         "P0516"
@@ -2786,9 +2789,9 @@
       "humanPages": [
         74
       ],
-      "appliedPage": 70,
+      "appliedPage": 71,
       "appliedPages": [
-        70
+        71
       ],
       "originalParagraphIds": [
         "P0517"
@@ -2819,9 +2822,9 @@
         74,
         75
       ],
-      "appliedPage": 70,
+      "appliedPage": 71,
       "appliedPages": [
-        70
+        71
       ],
       "originalParagraphIds": [
         "P0518"
@@ -2852,10 +2855,9 @@
         76,
         77
       ],
-      "appliedPage": 71,
+      "appliedPage": 73,
       "appliedPages": [
-        71,
-        72
+        73
       ],
       "originalParagraphIds": [
         "P0530"
@@ -2886,9 +2888,10 @@
         77,
         78
       ],
-      "appliedPage": 72,
+      "appliedPage": 73,
       "appliedPages": [
-        72
+        73,
+        74
       ],
       "originalParagraphIds": [
         "P0534"
@@ -2918,9 +2921,9 @@
       "humanPages": [
         78
       ],
-      "appliedPage": 73,
+      "appliedPage": 74,
       "appliedPages": [
-        73
+        74
       ],
       "originalParagraphIds": [
         "P0542"
@@ -2950,9 +2953,9 @@
       "humanPages": [
         79
       ],
-      "appliedPage": 74,
+      "appliedPage": 75,
       "appliedPages": [
-        74
+        75
       ],
       "originalParagraphIds": [
         "P0545"
@@ -2982,9 +2985,9 @@
       "humanPages": [
         79
       ],
-      "appliedPage": 74,
+      "appliedPage": 75,
       "appliedPages": [
-        74
+        75
       ],
       "originalParagraphIds": [
         "P0546"
@@ -3015,9 +3018,9 @@
         79,
         80
       ],
-      "appliedPage": 74,
+      "appliedPage": 75,
       "appliedPages": [
-        74
+        75
       ],
       "originalParagraphIds": [
         "P0547"
@@ -3047,9 +3050,9 @@
       "humanPages": [
         80
       ],
-      "appliedPage": 75,
+      "appliedPage": 76,
       "appliedPages": [
-        75
+        76
       ],
       "originalParagraphIds": [
         "P0550"
@@ -3080,9 +3083,9 @@
         80,
         81
       ],
-      "appliedPage": 75,
+      "appliedPage": 76,
       "appliedPages": [
-        75
+        76
       ],
       "originalParagraphIds": [
         "P0551"
@@ -3112,10 +3115,10 @@
       "humanPages": [
         81
       ],
-      "appliedPage": 75,
+      "appliedPage": 76,
       "appliedPages": [
-        75,
-        76
+        76,
+        77
       ],
       "originalParagraphIds": [
         "P0552"
@@ -3146,9 +3149,9 @@
         81,
         82
       ],
-      "appliedPage": 76,
+      "appliedPage": 77,
       "appliedPages": [
-        76
+        77
       ],
       "originalParagraphIds": [
         "P0556"
@@ -3178,9 +3181,9 @@
       "humanPages": [
         82
       ],
-      "appliedPage": 77,
+      "appliedPage": 78,
       "appliedPages": [
-        77
+        78
       ],
       "originalParagraphIds": [
         "P0559"
@@ -3211,9 +3214,9 @@
         82,
         83
       ],
-      "appliedPage": 77,
+      "appliedPage": 78,
       "appliedPages": [
-        77
+        78
       ],
       "originalParagraphIds": [
         "P0561"
@@ -3243,9 +3246,9 @@
       "humanPages": [
         83
       ],
-      "appliedPage": 78,
+      "appliedPage": 79,
       "appliedPages": [
-        78
+        79
       ],
       "originalParagraphIds": [
         "P0563"
@@ -3275,10 +3278,10 @@
       "humanPages": [
         84
       ],
-      "appliedPage": 78,
+      "appliedPage": 79,
       "appliedPages": [
-        78,
-        79
+        79,
+        80
       ],
       "originalParagraphIds": [
         "P0568"
@@ -3308,9 +3311,9 @@
       "humanPages": [
         84
       ],
-      "appliedPage": 79,
+      "appliedPage": 80,
       "appliedPages": [
-        79
+        80
       ],
       "originalParagraphIds": [
         "P0570"
@@ -3340,9 +3343,9 @@
       "humanPages": [
         85
       ],
-      "appliedPage": 80,
+      "appliedPage": 81,
       "appliedPages": [
-        80
+        81
       ],
       "originalParagraphIds": [
         "P0576"
@@ -3372,9 +3375,9 @@
       "humanPages": [
         86
       ],
-      "appliedPage": 80,
+      "appliedPage": 81,
       "appliedPages": [
-        80
+        81
       ],
       "originalParagraphIds": [
         "P0577"
@@ -3404,10 +3407,10 @@
       "humanPages": [
         86
       ],
-      "appliedPage": 80,
+      "appliedPage": 81,
       "appliedPages": [
-        80,
-        81
+        81,
+        82
       ],
       "originalParagraphIds": [
         "P0580"
@@ -3438,9 +3441,9 @@
         86,
         87
       ],
-      "appliedPage": 81,
+      "appliedPage": 82,
       "appliedPages": [
-        81
+        82
       ],
       "originalParagraphIds": [
         "P0581"
@@ -3471,9 +3474,9 @@
       "humanPages": [
         87
       ],
-      "appliedPage": 81,
+      "appliedPage": 82,
       "appliedPages": [
-        81
+        82
       ],
       "originalParagraphIds": [
         "P0582"
@@ -3503,9 +3506,9 @@
       "humanPages": [
         88
       ],
-      "appliedPage": 82,
+      "appliedPage": 83,
       "appliedPages": [
-        82
+        83
       ],
       "originalParagraphIds": [
         "P0586"
@@ -3522,10 +3525,10 @@
       "id": "V120-P0590",
       "kind": "paragraph",
       "target": "P0590",
-      "title": "추상적인 대비·예고를 줄이고 당사자의 행위와 법률효과를 직접 서술한다.",
+      "title": "압류·추심명령 뒤 임차인의 인도거절항변",
       "before": "먼저 압류명령이 제3채무자인 임대인에게 송달되면 임차인의 채권처분과 영수 및 임대인의 임의지급이 제한된다(민사집행법 제227조). 그러나 압류는 채권을 집행의 대상으로 확보하는 처분이므로 반환채권은 여전히 임차인에게 귀속한다. 이와 달리 추심명령은 압류채권자에게 압류된 반환채권을 추심할 권능을 부여하는 만큼, 추심채권자는 법정 요건 아래 임대인에게 직접 지급을 청구할 수 있다.[^171] 다만 이 경우에도 추심명령만으로 반환채권 자체가 추심채권자에게 이전되는 것은 아니므로 채권의 실체법상 귀속과 추심권능의 귀속은 구별된다.",
-      "after": "압류와 추심명령은 반환채권을 임차인에게 남겨 두면서 그 행사를 제한하거나 제3자에게 맡긴다. 압류명령이 임대인에게 송달되면 임차인의 처분·영수와 임대인의 임의지급이 제한된다(민사집행법 제227조). 추심명령까지 있으면 압류채권자가 법정 요건 아래 임대인에게 직접 지급을 청구할 수 있다.[^171] 이때 이전되는 것은 채권 자체가 아니라 추심할 권능이다.",
-      "reason": "추상적인 대비·예고를 줄이고 당사자의 행위와 법률효과를 직접 서술한다.",
+      "after": "압류와 추심명령은 반환채권을 임차인에게 남겨 두면서 그 행사를 제한하거나 제3자에게 맡긴다. 압류명령이 임대인에게 송달되면 임차인의 처분·영수와 임대인의 임의지급이 제한된다(민사집행법 제227조). 추심명령까지 있으면 압류채권자가 법정 요건 아래 임대인에게 직접 지급을 청구할 수 있다. 채권 자체가 이전되는 것은 아니므로 임차인은 임대인의 주택인도청구에 대하여 보증금 반환과의 동시이행을 주장할 수 있다.[^171]",
+      "reason": "추심권능과 채권귀속이 다르다는 결론을 주택인도에 대한 동시이행항변으로 구체화한다. 기존 각주표지를 문단 끝으로 이동한다.",
       "order": 109,
       "priority": "검토",
       "page": 89,
@@ -3535,9 +3538,9 @@
       "humanPages": [
         89
       ],
-      "appliedPage": 83,
+      "appliedPage": 84,
       "appliedPages": [
-        83
+        84
       ],
       "originalParagraphIds": [
         "P0590"
@@ -3548,7 +3551,7 @@
       "applied": true,
       "originalParagraphId": "P0590",
       "appliedParagraphId": "P0601",
-      "applyText": "압류와 추심명령은 반환채권을 임차인에게 남겨 두면서 그 행사를 제한하거나 제3자에게 맡긴다. 압류명령이 임대인에게 송달되면 임차인의 처분·영수와 임대인의 임의지급이 제한된다(민사집행법 제227조). 추심명령까지 있으면 압류채권자가 법정 요건 아래 임대인에게 직접 지급을 청구할 수 있다.[^171] 이때 이전되는 것은 채권 자체가 아니라 추심할 권능이다."
+      "applyText": "압류와 추심명령은 반환채권을 임차인에게 남겨 두면서 그 행사를 제한하거나 제3자에게 맡긴다. 압류명령이 임대인에게 송달되면 임차인의 처분·영수와 임대인의 임의지급이 제한된다(민사집행법 제227조). 추심명령까지 있으면 압류채권자가 법정 요건 아래 임대인에게 직접 지급을 청구할 수 있다. 채권 자체가 이전되는 것은 아니므로 임차인은 임대인의 주택인도청구에 대하여 보증금 반환과의 동시이행을 주장할 수 있다.[^171]"
     },
     {
       "id": "V120-P0592",
@@ -3567,9 +3570,9 @@
       "humanPages": [
         89
       ],
-      "appliedPage": 84,
+      "appliedPage": 85,
       "appliedPages": [
-        84
+        85
       ],
       "originalParagraphIds": [
         "P0592"
@@ -3599,9 +3602,9 @@
       "humanPages": [
         90
       ],
-      "appliedPage": 84,
+      "appliedPage": 85,
       "appliedPages": [
-        84
+        85
       ],
       "originalParagraphIds": [
         "P0595"
@@ -3631,9 +3634,9 @@
       "humanPages": [
         90
       ],
-      "appliedPage": 84,
+      "appliedPage": 85,
       "appliedPages": [
-        84
+        85
       ],
       "originalParagraphIds": [
         "P0596"
@@ -3664,9 +3667,9 @@
         90,
         91
       ],
-      "appliedPage": 85,
+      "appliedPage": 86,
       "appliedPages": [
-        85
+        86
       ],
       "originalParagraphIds": [
         "P0598"
@@ -3696,9 +3699,9 @@
       "humanPages": [
         91
       ],
-      "appliedPage": 85,
+      "appliedPage": 86,
       "appliedPages": [
-        85
+        86
       ],
       "originalParagraphIds": [
         "P0599"
@@ -3729,10 +3732,9 @@
         91,
         92
       ],
-      "appliedPage": 85,
+      "appliedPage": 87,
       "appliedPages": [
-        85,
-        86
+        87
       ],
       "originalParagraphIds": [
         "P0601"
@@ -3762,9 +3764,9 @@
       "humanPages": [
         92
       ],
-      "appliedPage": 86,
+      "appliedPage": 87,
       "appliedPages": [
-        86
+        87
       ],
       "originalParagraphIds": [
         "P0602"
@@ -3794,9 +3796,9 @@
       "humanPages": [
         92
       ],
-      "appliedPage": 86,
+      "appliedPage": 87,
       "appliedPages": [
-        86
+        87
       ],
       "originalParagraphIds": [
         "P0603"
@@ -3826,9 +3828,9 @@
       "humanPages": [
         93
       ],
-      "appliedPage": 87,
+      "appliedPage": 88,
       "appliedPages": [
-        87
+        88
       ],
       "originalParagraphIds": [
         "P0607"
@@ -3858,9 +3860,9 @@
       "humanPages": [
         93
       ],
-      "appliedPage": 87,
+      "appliedPage": 88,
       "appliedPages": [
-        87
+        88
       ],
       "originalParagraphIds": [
         "P0608"
@@ -3890,9 +3892,9 @@
       "humanPages": [
         93
       ],
-      "appliedPage": 87,
+      "appliedPage": 89,
       "appliedPages": [
-        87
+        89
       ],
       "originalParagraphIds": [
         "P0609"
@@ -3922,9 +3924,9 @@
       "humanPages": [
         94
       ],
-      "appliedPage": 88,
+      "appliedPage": 89,
       "appliedPages": [
-        88
+        89
       ],
       "originalParagraphIds": [
         "P0612"
@@ -3954,9 +3956,10 @@
       "humanPages": [
         94
       ],
-      "appliedPage": 88,
+      "appliedPage": 89,
       "appliedPages": [
-        88
+        89,
+        90
       ],
       "originalParagraphIds": [
         "P0613"
@@ -3987,9 +3990,9 @@
         94,
         95
       ],
-      "appliedPage": 89,
+      "appliedPage": 90,
       "appliedPages": [
-        89
+        90
       ],
       "originalParagraphIds": [
         "P0614"
@@ -4020,10 +4023,10 @@
       "humanPages": [
         95
       ],
-      "appliedPage": 89,
+      "appliedPage": 90,
       "appliedPages": [
-        89,
-        90
+        90,
+        91
       ],
       "originalParagraphIds": [
         "P0615"
@@ -4053,9 +4056,9 @@
       "humanPages": [
         96
       ],
-      "appliedPage": 90,
+      "appliedPage": 91,
       "appliedPages": [
-        90
+        91
       ],
       "originalParagraphIds": [
         "P0617"
@@ -4085,9 +4088,9 @@
       "humanPages": [
         96
       ],
-      "appliedPage": 90,
+      "appliedPage": 91,
       "appliedPages": [
-        90
+        91
       ],
       "originalParagraphIds": [
         "P0618"
@@ -4117,10 +4120,10 @@
       "humanPages": [
         97
       ],
-      "appliedPage": 90,
+      "appliedPage": 91,
       "appliedPages": [
-        90,
-        91
+        91,
+        92
       ],
       "originalParagraphIds": [
         "P0619"
@@ -4150,9 +4153,9 @@
       "humanPages": [
         97
       ],
-      "appliedPage": 91,
+      "appliedPage": 92,
       "appliedPages": [
-        91
+        92
       ],
       "originalParagraphIds": [
         "P0620"
@@ -4182,9 +4185,9 @@
       "humanPages": [
         97
       ],
-      "appliedPage": 91,
+      "appliedPage": 92,
       "appliedPages": [
-        91
+        92
       ],
       "originalParagraphIds": [
         "P0621"
@@ -4214,9 +4217,9 @@
       "humanPages": [
         97
       ],
-      "appliedPage": 91,
+      "appliedPage": 92,
       "appliedPages": [
-        91
+        92
       ],
       "originalParagraphIds": [
         "P0622"
@@ -4246,9 +4249,9 @@
       "humanPages": [
         98
       ],
-      "appliedPage": 91,
+      "appliedPage": 92,
       "appliedPages": [
-        91
+        92
       ],
       "originalParagraphIds": [
         "P0624"
@@ -4279,9 +4282,9 @@
         98,
         99
       ],
-      "appliedPage": 92,
+      "appliedPage": 93,
       "appliedPages": [
-        92
+        93
       ],
       "originalParagraphIds": [
         "P0625"
@@ -4312,9 +4315,9 @@
       "humanPages": [
         99
       ],
-      "appliedPage": 92,
+      "appliedPage": 93,
       "appliedPages": [
-        92
+        93
       ],
       "originalParagraphIds": [
         "P0626"
@@ -4344,9 +4347,9 @@
       "humanPages": [
         99
       ],
-      "appliedPage": 93,
+      "appliedPage": 94,
       "appliedPages": [
-        93
+        94
       ],
       "originalParagraphIds": [
         "P0629"
@@ -4376,9 +4379,9 @@
       "humanPages": [
         100
       ],
-      "appliedPage": 93,
+      "appliedPage": 94,
       "appliedPages": [
-        93
+        94
       ],
       "originalParagraphIds": [
         "P0633"
@@ -4408,10 +4411,10 @@
       "humanPages": [
         101
       ],
-      "appliedPage": 94,
+      "appliedPage": 95,
       "appliedPages": [
-        94,
-        95
+        95,
+        96
       ],
       "originalParagraphIds": [
         "P0642"
@@ -4441,9 +4444,9 @@
       "humanPages": [
         101
       ],
-      "appliedPage": 95,
+      "appliedPage": 96,
       "appliedPages": [
-        95
+        96
       ],
       "originalParagraphIds": [
         "P0644"
@@ -4474,9 +4477,9 @@
         101,
         102
       ],
-      "appliedPage": 95,
+      "appliedPage": 96,
       "appliedPages": [
-        95
+        96
       ],
       "originalParagraphIds": [
         "P0645"
@@ -4506,9 +4509,9 @@
       "humanPages": [
         102
       ],
-      "appliedPage": 95,
+      "appliedPage": 96,
       "appliedPages": [
-        95
+        96
       ],
       "originalParagraphIds": [
         "P0646"
@@ -4538,10 +4541,10 @@
       "humanPages": [
         102
       ],
-      "appliedPage": 95,
+      "appliedPage": 96,
       "appliedPages": [
-        95,
-        96
+        96,
+        97
       ],
       "originalParagraphIds": [
         "P0647"
@@ -4571,9 +4574,9 @@
       "humanPages": [
         102
       ],
-      "appliedPage": 96,
+      "appliedPage": 97,
       "appliedPages": [
-        96
+        97
       ],
       "originalParagraphIds": [
         "P0649"
@@ -4604,9 +4607,9 @@
         102,
         103
       ],
-      "appliedPage": 96,
+      "appliedPage": 97,
       "appliedPages": [
-        96
+        97
       ],
       "originalParagraphIds": [
         "P0650"
@@ -4637,9 +4640,9 @@
       "humanPages": [
         103
       ],
-      "appliedPage": 97,
+      "appliedPage": 98,
       "appliedPages": [
-        97
+        98
       ],
       "originalParagraphIds": [
         "P0653"
@@ -4669,9 +4672,9 @@
       "humanPages": [
         103
       ],
-      "appliedPage": 97,
+      "appliedPage": 98,
       "appliedPages": [
-        97
+        98
       ],
       "originalParagraphIds": [
         "P0654"
@@ -4701,9 +4704,9 @@
       "humanPages": [
         104
       ],
-      "appliedPage": 97,
+      "appliedPage": 98,
       "appliedPages": [
-        97
+        98
       ],
       "originalParagraphIds": [
         "P0656"
@@ -4733,9 +4736,9 @@
       "humanPages": [
         104
       ],
-      "appliedPage": 98,
+      "appliedPage": 99,
       "appliedPages": [
-        98
+        99
       ],
       "originalParagraphIds": [
         "P0657"
@@ -4766,9 +4769,9 @@
         104,
         105
       ],
-      "appliedPage": 98,
+      "appliedPage": 99,
       "appliedPages": [
-        98
+        99
       ],
       "originalParagraphIds": [
         "P0658"
@@ -4798,9 +4801,9 @@
       "humanPages": [
         105
       ],
-      "appliedPage": 98,
+      "appliedPage": 99,
       "appliedPages": [
-        98
+        99
       ],
       "originalParagraphIds": [
         "P0661"
@@ -4830,9 +4833,9 @@
       "humanPages": [
         105
       ],
-      "appliedPage": 98,
+      "appliedPage": 99,
       "appliedPages": [
-        98
+        99
       ],
       "originalParagraphIds": [
         "P0662"
@@ -4862,9 +4865,9 @@
       "humanPages": [
         106
       ],
-      "appliedPage": 99,
+      "appliedPage": 100,
       "appliedPages": [
-        99
+        100
       ],
       "originalParagraphIds": [
         "P0665"
@@ -4894,9 +4897,9 @@
       "humanPages": [
         106
       ],
-      "appliedPage": 100,
+      "appliedPage": 101,
       "appliedPages": [
-        100
+        101
       ],
       "originalParagraphIds": [
         "P0667"
@@ -4927,9 +4930,9 @@
         106,
         107
       ],
-      "appliedPage": 100,
+      "appliedPage": 101,
       "appliedPages": [
-        100
+        101
       ],
       "originalParagraphIds": [
         "P0668"
@@ -4959,9 +4962,9 @@
       "humanPages": [
         107
       ],
-      "appliedPage": 100,
+      "appliedPage": 101,
       "appliedPages": [
-        100
+        101
       ],
       "originalParagraphIds": [
         "P0669"
@@ -4991,10 +4994,10 @@
       "humanPages": [
         107
       ],
-      "appliedPage": 100,
+      "appliedPage": 101,
       "appliedPages": [
-        100,
-        101
+        101,
+        102
       ],
       "originalParagraphIds": [
         "P0670"
@@ -5024,9 +5027,9 @@
       "humanPages": [
         107
       ],
-      "appliedPage": 101,
+      "appliedPage": 102,
       "appliedPages": [
-        101
+        102
       ],
       "originalParagraphIds": [
         "P0671"
@@ -5056,9 +5059,9 @@
       "humanPages": [
         108
       ],
-      "appliedPage": 101,
+      "appliedPage": 102,
       "appliedPages": [
-        101
+        102
       ],
       "originalParagraphIds": [
         "P0673"
@@ -5088,9 +5091,9 @@
       "humanPages": [
         108
       ],
-      "appliedPage": 101,
+      "appliedPage": 102,
       "appliedPages": [
-        101
+        102
       ],
       "originalParagraphIds": [
         "P0674"
@@ -5121,10 +5124,10 @@
         108,
         109
       ],
-      "appliedPage": 101,
+      "appliedPage": 102,
       "appliedPages": [
-        101,
-        102
+        102,
+        103
       ],
       "originalParagraphIds": [
         "P0675"
@@ -5154,9 +5157,9 @@
       "humanPages": [
         109
       ],
-      "appliedPage": 102,
+      "appliedPage": 103,
       "appliedPages": [
-        102
+        103
       ],
       "originalParagraphIds": [
         "P0676"
@@ -5186,9 +5189,9 @@
       "humanPages": [
         109
       ],
-      "appliedPage": 102,
+      "appliedPage": 103,
       "appliedPages": [
-        102
+        103
       ],
       "originalParagraphIds": [
         "P0679"
@@ -5218,9 +5221,9 @@
       "humanPages": [
         110
       ],
-      "appliedPage": 103,
+      "appliedPage": 104,
       "appliedPages": [
-        103
+        104
       ],
       "originalParagraphIds": [
         "P0681"
@@ -5250,9 +5253,9 @@
       "humanPages": [
         110
       ],
-      "appliedPage": 103,
+      "appliedPage": 104,
       "appliedPages": [
-        103
+        104
       ],
       "originalParagraphIds": [
         "P0682"
@@ -5283,9 +5286,9 @@
         110,
         111
       ],
-      "appliedPage": 103,
+      "appliedPage": 104,
       "appliedPages": [
-        103
+        104
       ],
       "originalParagraphIds": [
         "P0685"
@@ -5315,9 +5318,9 @@
       "humanPages": [
         111
       ],
-      "appliedPage": 104,
+      "appliedPage": 105,
       "appliedPages": [
-        104
+        105
       ],
       "originalParagraphIds": [
         "P0687"
@@ -5347,9 +5350,9 @@
       "humanPages": [
         111
       ],
-      "appliedPage": 104,
+      "appliedPage": 105,
       "appliedPages": [
-        104
+        105
       ],
       "originalParagraphIds": [
         "P0688"
@@ -5379,9 +5382,9 @@
       "humanPages": [
         111
       ],
-      "appliedPage": 104,
+      "appliedPage": 105,
       "appliedPages": [
-        104
+        105
       ],
       "originalParagraphIds": [
         "P0690"
@@ -5412,9 +5415,9 @@
         111,
         112
       ],
-      "appliedPage": 104,
+      "appliedPage": 105,
       "appliedPages": [
-        104
+        105
       ],
       "originalParagraphIds": [
         "P0691"
@@ -5444,9 +5447,9 @@
       "humanPages": [
         112
       ],
-      "appliedPage": 104,
+      "appliedPage": 105,
       "appliedPages": [
-        104
+        105
       ],
       "originalParagraphIds": [
         "P0692"
@@ -5476,9 +5479,9 @@
       "humanPages": [
         112
       ],
-      "appliedPage": 105,
+      "appliedPage": 106,
       "appliedPages": [
-        105
+        106
       ],
       "originalParagraphIds": [
         "P0693"
@@ -5508,9 +5511,9 @@
       "humanPages": [
         112
       ],
-      "appliedPage": 105,
+      "appliedPage": 106,
       "appliedPages": [
-        105
+        106
       ],
       "originalParagraphIds": [
         "P0694"
@@ -5540,9 +5543,9 @@
       "humanPages": [
         113
       ],
-      "appliedPage": 106,
+      "appliedPage": 107,
       "appliedPages": [
-        106
+        107
       ],
       "originalParagraphIds": [
         "P0702"
@@ -5573,10 +5576,10 @@
         113,
         114
       ],
-      "appliedPage": 106,
+      "appliedPage": 107,
       "appliedPages": [
-        106,
-        107
+        107,
+        108
       ],
       "originalParagraphIds": [
         "P0703"
@@ -5606,9 +5609,9 @@
       "humanPages": [
         114
       ],
-      "appliedPage": 107,
+      "appliedPage": 108,
       "appliedPages": [
-        107
+        108
       ],
       "originalParagraphIds": [
         "P0704"
@@ -5638,9 +5641,9 @@
       "humanPages": [
         115
       ],
-      "appliedPage": 108,
+      "appliedPage": 109,
       "appliedPages": [
-        108
+        109
       ],
       "originalParagraphIds": [
         "P0707"
@@ -5670,9 +5673,9 @@
       "humanPages": [
         115
       ],
-      "appliedPage": 108,
+      "appliedPage": 109,
       "appliedPages": [
-        108
+        109
       ],
       "originalParagraphIds": [
         "P0708"
@@ -5703,10 +5706,10 @@
         116,
         117
       ],
-      "appliedPage": 109,
+      "appliedPage": 110,
       "appliedPages": [
-        109,
-        110
+        110,
+        111
       ],
       "originalParagraphIds": [
         "P0713"
@@ -5737,9 +5740,9 @@
         117,
         118
       ],
-      "appliedPage": 110,
+      "appliedPage": 111,
       "appliedPages": [
-        110
+        111
       ],
       "originalParagraphIds": [
         "P0717"
@@ -5769,9 +5772,9 @@
       "humanPages": [
         118
       ],
-      "appliedPage": 111,
+      "appliedPage": 112,
       "appliedPages": [
-        111
+        112
       ],
       "originalParagraphIds": [
         "P0718"
@@ -5801,9 +5804,9 @@
       "humanPages": [
         118
       ],
-      "appliedPage": 111,
+      "appliedPage": 112,
       "appliedPages": [
-        111
+        112
       ],
       "originalParagraphIds": [
         "P0719"
@@ -5833,9 +5836,9 @@
       "humanPages": [
         119
       ],
-      "appliedPage": 111,
+      "appliedPage": 112,
       "appliedPages": [
-        111
+        112
       ],
       "originalParagraphIds": [
         "P0720"
@@ -5865,9 +5868,9 @@
       "humanPages": [
         119
       ],
-      "appliedPage": 112,
+      "appliedPage": 113,
       "appliedPages": [
-        112
+        113
       ],
       "originalParagraphIds": [
         "P0723"
@@ -5897,9 +5900,9 @@
       "humanPages": [
         120
       ],
-      "appliedPage": 112,
+      "appliedPage": 113,
       "appliedPages": [
-        112
+        113
       ],
       "originalParagraphIds": [
         "P0724"
@@ -5929,9 +5932,9 @@
       "humanPages": [
         121
       ],
-      "appliedPage": 113,
+      "appliedPage": 114,
       "appliedPages": [
-        113
+        114
       ],
       "originalParagraphIds": [
         "P0729"
@@ -5961,9 +5964,9 @@
       "humanPages": [
         123
       ],
-      "appliedPage": 115,
+      "appliedPage": 116,
       "appliedPages": [
-        115
+        116
       ],
       "originalParagraphIds": [
         "P0735"
@@ -5994,9 +5997,9 @@
         123,
         124
       ],
-      "appliedPage": 116,
+      "appliedPage": 117,
       "appliedPages": [
-        116
+        117
       ],
       "originalParagraphIds": [
         "P0738"
@@ -6026,9 +6029,9 @@
       "humanPages": [
         124
       ],
-      "appliedPage": 116,
+      "appliedPage": 117,
       "appliedPages": [
-        116
+        117
       ],
       "originalParagraphIds": [
         "P0740"
@@ -6058,9 +6061,9 @@
       "humanPages": [
         126
       ],
-      "appliedPage": 118,
+      "appliedPage": 119,
       "appliedPages": [
-        118
+        119
       ],
       "originalParagraphIds": [
         "P0746"
@@ -6090,10 +6093,10 @@
       "humanPages": [
         126
       ],
-      "appliedPage": 118,
+      "appliedPage": 119,
       "appliedPages": [
-        118,
-        119
+        119,
+        120
       ],
       "originalParagraphIds": [
         "P0748"
@@ -6123,9 +6126,9 @@
       "humanPages": [
         127
       ],
-      "appliedPage": 119,
+      "appliedPage": 120,
       "appliedPages": [
-        119
+        120
       ],
       "originalParagraphIds": [
         "P0753"
@@ -6155,9 +6158,9 @@
       "humanPages": [
         127
       ],
-      "appliedPage": 120,
+      "appliedPage": 121,
       "appliedPages": [
-        120
+        121
       ],
       "originalParagraphIds": [
         "P0754"
@@ -6187,9 +6190,9 @@
       "humanPages": [
         128
       ],
-      "appliedPage": 120,
+      "appliedPage": 121,
       "appliedPages": [
-        120
+        121
       ],
       "originalParagraphIds": [
         "P0757"
@@ -6219,9 +6222,9 @@
       "humanPages": [
         129
       ],
-      "appliedPage": 121,
+      "appliedPage": 122,
       "appliedPages": [
-        121
+        122
       ],
       "originalParagraphIds": [
         "P0762"
@@ -6251,9 +6254,9 @@
       "humanPages": [
         130
       ],
-      "appliedPage": 122,
+      "appliedPage": 123,
       "appliedPages": [
-        122
+        123
       ],
       "originalParagraphIds": [
         "P0765"
@@ -6283,9 +6286,9 @@
       "humanPages": [
         130
       ],
-      "appliedPage": 122,
+      "appliedPage": 123,
       "appliedPages": [
-        122
+        123
       ],
       "originalParagraphIds": [
         "P0767"
@@ -6315,9 +6318,9 @@
       "humanPages": [
         130
       ],
-      "appliedPage": 123,
+      "appliedPage": 124,
       "appliedPages": [
-        123
+        124
       ],
       "originalParagraphIds": [
         "P0768"
@@ -6347,9 +6350,9 @@
       "humanPages": [
         131
       ],
-      "appliedPage": 123,
+      "appliedPage": 124,
       "appliedPages": [
-        123
+        124
       ],
       "originalParagraphIds": [
         "P0772"
@@ -6380,9 +6383,9 @@
         131,
         132
       ],
-      "appliedPage": 124,
+      "appliedPage": 125,
       "appliedPages": [
-        124
+        125
       ],
       "originalParagraphIds": [
         "P0773"
@@ -6412,9 +6415,9 @@
       "humanPages": [
         132
       ],
-      "appliedPage": 124,
+      "appliedPage": 125,
       "appliedPages": [
-        124
+        125
       ],
       "originalParagraphIds": [
         "P0774"
@@ -6444,9 +6447,9 @@
       "humanPages": [
         132
       ],
-      "appliedPage": 124,
+      "appliedPage": 125,
       "appliedPages": [
-        124
+        125
       ],
       "originalParagraphIds": [
         "P0775"
@@ -6477,10 +6480,10 @@
         132,
         133
       ],
-      "appliedPage": 124,
+      "appliedPage": 125,
       "appliedPages": [
-        124,
-        125
+        125,
+        126
       ],
       "originalParagraphIds": [
         "P0777"
@@ -6510,9 +6513,9 @@
       "humanPages": [
         133
       ],
-      "appliedPage": 125,
+      "appliedPage": 126,
       "appliedPages": [
-        125
+        126
       ],
       "originalParagraphIds": [
         "P0778"
@@ -6542,9 +6545,9 @@
       "humanPages": [
         133
       ],
-      "appliedPage": 125,
+      "appliedPage": 126,
       "appliedPages": [
-        125
+        126
       ],
       "originalParagraphIds": [
         "P0779"
@@ -6574,9 +6577,9 @@
       "humanPages": [
         134
       ],
-      "appliedPage": 126,
+      "appliedPage": 127,
       "appliedPages": [
-        126
+        127
       ],
       "originalParagraphIds": [
         "P0781"
@@ -6606,9 +6609,9 @@
       "humanPages": [
         135
       ],
-      "appliedPage": 126,
+      "appliedPage": 127,
       "appliedPages": [
-        126
+        127
       ],
       "originalParagraphIds": [
         "P0783"
@@ -6638,9 +6641,9 @@
       "humanPages": [
         135
       ],
-      "appliedPage": 127,
+      "appliedPage": 128,
       "appliedPages": [
-        127
+        128
       ],
       "originalParagraphIds": [
         "P0786"
@@ -6671,10 +6674,10 @@
         135,
         136
       ],
-      "appliedPage": 127,
+      "appliedPage": 128,
       "appliedPages": [
-        127,
-        128
+        128,
+        129
       ],
       "originalParagraphIds": [
         "P0788"
@@ -6704,9 +6707,9 @@
       "humanPages": [
         136
       ],
-      "appliedPage": 128,
+      "appliedPage": 129,
       "appliedPages": [
-        128
+        129
       ],
       "originalParagraphIds": [
         "P0789"
@@ -6736,9 +6739,9 @@
       "humanPages": [
         136
       ],
-      "appliedPage": 128,
+      "appliedPage": 129,
       "appliedPages": [
-        128
+        129
       ],
       "originalParagraphIds": [
         "P0790"
@@ -6768,9 +6771,9 @@
       "humanPages": [
         139
       ],
-      "appliedPage": 131,
+      "appliedPage": 132,
       "appliedPages": [
-        131
+        132
       ],
       "originalParagraphIds": [
         "P0799"
@@ -6800,9 +6803,9 @@
       "humanPages": [
         141
       ],
-      "appliedPage": 133,
+      "appliedPage": 134,
       "appliedPages": [
-        133
+        134
       ],
       "originalParagraphIds": [
         "P0808"
@@ -6833,10 +6836,10 @@
         141,
         142
       ],
-      "appliedPage": 133,
+      "appliedPage": 134,
       "appliedPages": [
-        133,
-        134
+        134,
+        135
       ],
       "originalParagraphIds": [
         "P0809"
@@ -6866,9 +6869,9 @@
       "humanPages": [
         143
       ],
-      "appliedPage": 135,
+      "appliedPage": 136,
       "appliedPages": [
-        135
+        136
       ],
       "originalParagraphIds": [
         "P0813"
@@ -6899,9 +6902,9 @@
         143,
         144
       ],
-      "appliedPage": 135,
+      "appliedPage": 136,
       "appliedPages": [
-        135
+        136
       ],
       "originalParagraphIds": [
         "P0814"
@@ -6932,9 +6935,9 @@
         144,
         145
       ],
-      "appliedPage": 136,
+      "appliedPage": 137,
       "appliedPages": [
-        136
+        137
       ],
       "originalParagraphIds": [
         "P0819"
@@ -6964,9 +6967,9 @@
       "humanPages": [
         145
       ],
-      "appliedPage": 137,
+      "appliedPage": 138,
       "appliedPages": [
-        137
+        138
       ],
       "originalParagraphIds": [
         "P0822"
@@ -6996,9 +6999,9 @@
       "humanPages": [
         146
       ],
-      "appliedPage": 138,
+      "appliedPage": 139,
       "appliedPages": [
-        138
+        139
       ],
       "originalParagraphIds": [
         "P0827"
@@ -7028,9 +7031,9 @@
       "humanPages": [
         146
       ],
-      "appliedPage": 138,
+      "appliedPage": 139,
       "appliedPages": [
-        138
+        139
       ],
       "originalParagraphIds": [
         "P0828"
@@ -7060,10 +7063,10 @@
       "humanPages": [
         147
       ],
-      "appliedPage": 138,
+      "appliedPage": 139,
       "appliedPages": [
-        138,
-        139
+        139,
+        140
       ],
       "originalParagraphIds": [
         "P0829"
@@ -7093,9 +7096,9 @@
       "humanPages": [
         147
       ],
-      "appliedPage": 139,
+      "appliedPage": 140,
       "appliedPages": [
-        139
+        140
       ],
       "originalParagraphIds": [
         "P0830"
@@ -7125,9 +7128,9 @@
       "humanPages": [
         148
       ],
-      "appliedPage": 140,
+      "appliedPage": 141,
       "appliedPages": [
-        140
+        141
       ],
       "originalParagraphIds": [
         "P0832"
@@ -7157,9 +7160,9 @@
       "humanPages": [
         148
       ],
-      "appliedPage": 141,
+      "appliedPage": 142,
       "appliedPages": [
-        141
+        142
       ],
       "originalParagraphIds": [
         "P0833"
@@ -7189,9 +7192,9 @@
       "humanPages": [
         149
       ],
-      "appliedPage": 141,
+      "appliedPage": 142,
       "appliedPages": [
-        141
+        142
       ],
       "originalParagraphIds": [
         "P0834"
@@ -7221,10 +7224,10 @@
       "humanPages": [
         149
       ],
-      "appliedPage": 141,
+      "appliedPage": 142,
       "appliedPages": [
-        141,
-        142
+        142,
+        143
       ],
       "originalParagraphIds": [
         "P0835"
@@ -7255,9 +7258,9 @@
         149,
         150
       ],
-      "appliedPage": 142,
+      "appliedPage": 143,
       "appliedPages": [
-        142
+        143
       ],
       "originalParagraphIds": [
         "P0836"
@@ -7287,9 +7290,9 @@
       "humanPages": [
         150
       ],
-      "appliedPage": 143,
+      "appliedPage": 144,
       "appliedPages": [
-        143
+        144
       ],
       "originalParagraphIds": [
         "P0839"
@@ -7319,9 +7322,9 @@
       "humanPages": [
         151
       ],
-      "appliedPage": 143,
+      "appliedPage": 144,
       "appliedPages": [
-        143
+        144
       ],
       "originalParagraphIds": [
         "P0841"
@@ -7351,9 +7354,9 @@
       "humanPages": [
         151
       ],
-      "appliedPage": 143,
+      "appliedPage": 144,
       "appliedPages": [
-        143
+        144
       ],
       "originalParagraphIds": [
         "P0842"
@@ -7383,9 +7386,9 @@
       "humanPages": [
         152
       ],
-      "appliedPage": 144,
+      "appliedPage": 145,
       "appliedPages": [
-        144
+        145
       ],
       "originalParagraphIds": [
         "P0846"
@@ -7416,9 +7419,9 @@
         152,
         153
       ],
-      "appliedPage": 145,
+      "appliedPage": 146,
       "appliedPages": [
-        145
+        146
       ],
       "originalParagraphIds": [
         "P0849"
@@ -7448,9 +7451,9 @@
       "humanPages": [
         153
       ],
-      "appliedPage": 145,
+      "appliedPage": 146,
       "appliedPages": [
-        145
+        146
       ],
       "originalParagraphIds": [
         "P0850"
@@ -7480,9 +7483,9 @@
       "humanPages": [
         153
       ],
-      "appliedPage": 145,
+      "appliedPage": 146,
       "appliedPages": [
-        145
+        146
       ],
       "originalParagraphIds": [
         "P0852"
@@ -7512,9 +7515,9 @@
       "humanPages": [
         154
       ],
-      "appliedPage": 147,
+      "appliedPage": 148,
       "appliedPages": [
-        147
+        148
       ],
       "originalParagraphIds": [
         "P0855"
@@ -7545,9 +7548,9 @@
         154,
         155
       ],
-      "appliedPage": 147,
+      "appliedPage": 148,
       "appliedPages": [
-        147
+        148
       ],
       "originalParagraphIds": [
         "P0856"
@@ -7578,9 +7581,9 @@
         155,
         156
       ],
-      "appliedPage": 148,
+      "appliedPage": 149,
       "appliedPages": [
-        148
+        149
       ],
       "originalParagraphIds": [
         "P0858"
@@ -7611,10 +7614,10 @@
         156,
         157
       ],
-      "appliedPage": 148,
+      "appliedPage": 149,
       "appliedPages": [
-        148,
-        149
+        149,
+        150
       ],
       "originalParagraphIds": [
         "P0861"
@@ -7644,9 +7647,9 @@
       "humanPages": [
         157
       ],
-      "appliedPage": 149,
+      "appliedPage": 150,
       "appliedPages": [
-        149
+        150
       ],
       "originalParagraphIds": [
         "P0862"
@@ -7677,9 +7680,9 @@
         157,
         158
       ],
-      "appliedPage": 149,
+      "appliedPage": 150,
       "appliedPages": [
-        149
+        150
       ],
       "originalParagraphIds": [
         "P0863"
@@ -7709,9 +7712,9 @@
       "humanPages": [
         158
       ],
-      "appliedPage": 150,
+      "appliedPage": 151,
       "appliedPages": [
-        150
+        151
       ],
       "originalParagraphIds": [
         "P0864"
@@ -7741,9 +7744,9 @@
       "humanPages": [
         158
       ],
-      "appliedPage": 150,
+      "appliedPage": 151,
       "appliedPages": [
-        150
+        151
       ],
       "originalParagraphIds": [
         "P0866"
@@ -7774,10 +7777,10 @@
         158,
         159
       ],
-      "appliedPage": 150,
+      "appliedPage": 151,
       "appliedPages": [
-        150,
-        151
+        151,
+        152
       ],
       "originalParagraphIds": [
         "P0867"
@@ -7807,9 +7810,9 @@
       "humanPages": [
         159
       ],
-      "appliedPage": 151,
+      "appliedPage": 152,
       "appliedPages": [
-        151
+        152
       ],
       "originalParagraphIds": [
         "P0868"
@@ -7840,9 +7843,9 @@
         159,
         160
       ],
-      "appliedPage": 151,
+      "appliedPage": 152,
       "appliedPages": [
-        151
+        152
       ],
       "originalParagraphIds": [
         "P0869"
@@ -7872,10 +7875,10 @@
       "humanPages": [
         160
       ],
-      "appliedPage": 151,
+      "appliedPage": 152,
       "appliedPages": [
-        151,
-        152
+        152,
+        153
       ],
       "originalParagraphIds": [
         "P0870"
@@ -7905,9 +7908,9 @@
       "humanPages": [
         160
       ],
-      "appliedPage": 152,
+      "appliedPage": 153,
       "appliedPages": [
-        152
+        153
       ],
       "originalParagraphIds": [
         "P0871"
@@ -7937,9 +7940,9 @@
       "humanPages": [
         161
       ],
-      "appliedPage": 152,
+      "appliedPage": 153,
       "appliedPages": [
-        152
+        153
       ],
       "originalParagraphIds": [
         "P0872"
@@ -7970,9 +7973,9 @@
         161,
         162
       ],
-      "appliedPage": 154,
+      "appliedPage": 155,
       "appliedPages": [
-        154
+        155
       ],
       "originalParagraphIds": [
         "P0875"
@@ -8002,9 +8005,9 @@
       "humanPages": [
         163
       ],
-      "appliedPage": 155,
+      "appliedPage": 156,
       "appliedPages": [
-        155
+        156
       ],
       "originalParagraphIds": [
         "P0878"
@@ -8035,9 +8038,9 @@
         163,
         164
       ],
-      "appliedPage": 156,
+      "appliedPage": 157,
       "appliedPages": [
-        156
+        157
       ],
       "originalParagraphIds": [
         "P0880"
@@ -8068,10 +8071,10 @@
         164,
         165
       ],
-      "appliedPage": 156,
+      "appliedPage": 157,
       "appliedPages": [
-        156,
-        157
+        157,
+        158
       ],
       "originalParagraphIds": [
         "P0883"
@@ -8101,9 +8104,9 @@
       "humanPages": [
         165
       ],
-      "appliedPage": 157,
+      "appliedPage": 158,
       "appliedPages": [
-        157
+        158
       ],
       "originalParagraphIds": [
         "P0884"
@@ -8133,9 +8136,9 @@
       "humanPages": [
         165
       ],
-      "appliedPage": 157,
+      "appliedPage": 158,
       "appliedPages": [
-        157
+        158
       ],
       "originalParagraphIds": [
         "P0885"
@@ -8165,10 +8168,10 @@
       "humanPages": [
         166
       ],
-      "appliedPage": 157,
+      "appliedPage": 158,
       "appliedPages": [
-        157,
-        158
+        158,
+        159
       ],
       "originalParagraphIds": [
         "P0886"
@@ -8198,9 +8201,9 @@
       "humanPages": [
         166
       ],
-      "appliedPage": 158,
+      "appliedPage": 159,
       "appliedPages": [
-        158
+        159
       ],
       "originalParagraphIds": [
         "P0887"
@@ -8230,9 +8233,9 @@
       "humanPages": [
         167
       ],
-      "appliedPage": 159,
+      "appliedPage": 160,
       "appliedPages": [
-        159
+        160
       ],
       "originalParagraphIds": [
         "P0888"
@@ -8263,9 +8266,9 @@
         167,
         168
       ],
-      "appliedPage": 159,
+      "appliedPage": 160,
       "appliedPages": [
-        159
+        160
       ],
       "originalParagraphIds": [
         "P0889"
@@ -8295,10 +8298,10 @@
       "humanPages": [
         168
       ],
-      "appliedPage": 159,
+      "appliedPage": 160,
       "appliedPages": [
-        159,
-        160
+        160,
+        161
       ],
       "originalParagraphIds": [
         "P0890"
@@ -8328,10 +8331,10 @@
       "humanPages": [
         169
       ],
-      "appliedPage": 160,
+      "appliedPage": 161,
       "appliedPages": [
-        160,
-        161
+        161,
+        162
       ],
       "originalParagraphIds": [
         "P0893"
@@ -8361,9 +8364,9 @@
       "humanPages": [
         169
       ],
-      "appliedPage": 161,
+      "appliedPage": 162,
       "appliedPages": [
-        161
+        162
       ],
       "originalParagraphIds": [
         "P0894"
@@ -8394,9 +8397,9 @@
         169,
         170
       ],
-      "appliedPage": 161,
+      "appliedPage": 162,
       "appliedPages": [
-        161
+        162
       ],
       "originalParagraphIds": [
         "P0895"
@@ -8426,9 +8429,9 @@
       "humanPages": [
         170
       ],
-      "appliedPage": 162,
+      "appliedPage": 163,
       "appliedPages": [
-        162
+        163
       ],
       "originalParagraphIds": [
         "P0897"
@@ -8459,9 +8462,9 @@
         170,
         171
       ],
-      "appliedPage": 162,
+      "appliedPage": 163,
       "appliedPages": [
-        162
+        163
       ],
       "originalParagraphIds": [
         "P0898"
@@ -8491,10 +8494,10 @@
       "humanPages": [
         171
       ],
-      "appliedPage": 162,
+      "appliedPage": 163,
       "appliedPages": [
-        162,
-        163
+        163,
+        164
       ],
       "originalParagraphIds": [
         "P0899"
@@ -8524,9 +8527,9 @@
       "humanPages": [
         172
       ],
-      "appliedPage": 163,
+      "appliedPage": 164,
       "appliedPages": [
-        163
+        164
       ],
       "originalParagraphIds": [
         "P0903"
@@ -8556,9 +8559,9 @@
       "humanPages": [
         173
       ],
-      "appliedPage": 164,
+      "appliedPage": 165,
       "appliedPages": [
-        164
+        165
       ],
       "originalParagraphIds": [
         "P0905"
@@ -8588,10 +8591,10 @@
       "humanPages": [
         173
       ],
-      "appliedPage": 164,
+      "appliedPage": 165,
       "appliedPages": [
-        164,
-        165
+        165,
+        166
       ],
       "originalParagraphIds": [
         "P0906"
@@ -8622,9 +8625,9 @@
         173,
         174
       ],
-      "appliedPage": 165,
+      "appliedPage": 166,
       "appliedPages": [
-        165
+        166
       ],
       "originalParagraphIds": [
         "P0907"
@@ -8654,10 +8657,10 @@
       "humanPages": [
         174
       ],
-      "appliedPage": 165,
+      "appliedPage": 166,
       "appliedPages": [
-        165,
-        166
+        166,
+        167
       ],
       "originalParagraphIds": [
         "P0908"
@@ -8689,9 +8692,9 @@
         174,
         175
       ],
-      "appliedPage": 166,
+      "appliedPage": 167,
       "appliedPages": [
-        166
+        167
       ],
       "originalParagraphIds": [
         "P0909"
@@ -8721,9 +8724,9 @@
       "humanPages": [
         175
       ],
-      "appliedPage": 167,
+      "appliedPage": 168,
       "appliedPages": [
-        167
+        168
       ],
       "originalParagraphIds": [
         "P0911"
@@ -8755,9 +8758,9 @@
         175,
         176
       ],
-      "appliedPage": 168,
+      "appliedPage": 169,
       "appliedPages": [
-        168
+        169
       ],
       "originalParagraphIds": [
         "P0913"
@@ -8787,9 +8790,9 @@
       "humanPages": [
         176
       ],
-      "appliedPage": 168,
+      "appliedPage": 169,
       "appliedPages": [
-        168
+        169
       ],
       "originalParagraphIds": [
         "P0914"
@@ -8819,10 +8822,10 @@
       "humanPages": [
         176
       ],
-      "appliedPage": 168,
+      "appliedPage": 169,
       "appliedPages": [
-        168,
-        169
+        169,
+        170
       ],
       "originalParagraphIds": [
         "P0915"
@@ -8853,9 +8856,9 @@
         176,
         177
       ],
-      "appliedPage": 169,
+      "appliedPage": 170,
       "appliedPages": [
-        169
+        170
       ],
       "originalParagraphIds": [
         "P0916"
@@ -8885,9 +8888,9 @@
       "humanPages": [
         177
       ],
-      "appliedPage": 169,
+      "appliedPage": 170,
       "appliedPages": [
-        169
+        170
       ],
       "originalParagraphIds": [
         "P0918"
@@ -8917,9 +8920,9 @@
       "humanPages": [
         178
       ],
-      "appliedPage": 170,
+      "appliedPage": 171,
       "appliedPages": [
-        170
+        171
       ],
       "originalParagraphIds": [
         "P0921"
@@ -8949,9 +8952,9 @@
       "humanPages": [
         178
       ],
-      "appliedPage": 171,
+      "appliedPage": 172,
       "appliedPages": [
-        171
+        172
       ],
       "originalParagraphIds": [
         "P0922"
@@ -8982,9 +8985,9 @@
         178,
         179
       ],
-      "appliedPage": 171,
+      "appliedPage": 172,
       "appliedPages": [
-        171
+        172
       ],
       "originalParagraphIds": [
         "P0923"
@@ -9015,10 +9018,10 @@
         179,
         180
       ],
-      "appliedPage": 171,
+      "appliedPage": 172,
       "appliedPages": [
-        171,
-        172
+        172,
+        173
       ],
       "originalParagraphIds": [
         "P0925"
@@ -9048,9 +9051,9 @@
       "humanPages": [
         180
       ],
-      "appliedPage": 172,
+      "appliedPage": 173,
       "appliedPages": [
-        172
+        173
       ],
       "originalParagraphIds": [
         "P0926"
@@ -9080,9 +9083,9 @@
       "humanPages": [
         180
       ],
-      "appliedPage": 172,
+      "appliedPage": 173,
       "appliedPages": [
-        172
+        173
       ],
       "originalParagraphIds": [
         "P0927"
@@ -9112,9 +9115,9 @@
       "humanPages": [
         181
       ],
-      "appliedPage": 173,
+      "appliedPage": 174,
       "appliedPages": [
-        173
+        174
       ],
       "originalParagraphIds": [
         "P0929"
@@ -9145,9 +9148,9 @@
         181,
         182
       ],
-      "appliedPage": 173,
+      "appliedPage": 174,
       "appliedPages": [
-        173
+        174
       ],
       "originalParagraphIds": [
         "P0930"
@@ -9178,9 +9181,9 @@
       "humanPages": [
         182
       ],
-      "appliedPage": 174,
+      "appliedPage": 175,
       "appliedPages": [
-        174
+        175
       ],
       "originalParagraphIds": [
         "P0932"
@@ -9210,10 +9213,10 @@
       "humanPages": [
         183
       ],
-      "appliedPage": 174,
+      "appliedPage": 175,
       "appliedPages": [
-        174,
-        175
+        175,
+        176
       ],
       "originalParagraphIds": [
         "P0934"
@@ -9244,9 +9247,9 @@
         183,
         184
       ],
-      "appliedPage": 175,
+      "appliedPage": 176,
       "appliedPages": [
-        175
+        176
       ],
       "originalParagraphIds": [
         "P0937"
@@ -9276,9 +9279,9 @@
       "humanPages": [
         184
       ],
-      "appliedPage": 176,
+      "appliedPage": 177,
       "appliedPages": [
-        176
+        177
       ],
       "originalParagraphIds": [
         "P0941"
@@ -9308,9 +9311,9 @@
       "humanPages": [
         185
       ],
-      "appliedPage": 177,
+      "appliedPage": 178,
       "appliedPages": [
-        177
+        178
       ],
       "originalParagraphIds": [
         "P0945"
@@ -9341,9 +9344,9 @@
         185,
         186
       ],
-      "appliedPage": 177,
+      "appliedPage": 178,
       "appliedPages": [
-        177
+        178
       ],
       "originalParagraphIds": [
         "P0946"
@@ -9373,10 +9376,10 @@
       "humanPages": [
         186
       ],
-      "appliedPage": 177,
+      "appliedPage": 178,
       "appliedPages": [
-        177,
-        178
+        178,
+        179
       ],
       "originalParagraphIds": [
         "P0947"
@@ -9407,9 +9410,9 @@
         186,
         187
       ],
-      "appliedPage": 178,
+      "appliedPage": 179,
       "appliedPages": [
-        178
+        179
       ],
       "originalParagraphIds": [
         "P0948"
@@ -9439,9 +9442,9 @@
       "humanPages": [
         187
       ],
-      "appliedPage": 179,
+      "appliedPage": 180,
       "appliedPages": [
-        179
+        180
       ],
       "originalParagraphIds": [
         "P0949"
@@ -9471,10 +9474,10 @@
       "humanPages": [
         188
       ],
-      "appliedPage": 179,
+      "appliedPage": 180,
       "appliedPages": [
-        179,
-        180
+        180,
+        181
       ],
       "originalParagraphIds": [
         "P0951"
@@ -9505,9 +9508,9 @@
         188,
         189
       ],
-      "appliedPage": 180,
+      "appliedPage": 181,
       "appliedPages": [
-        180
+        181
       ],
       "originalParagraphIds": [
         "P0953"
@@ -9537,9 +9540,9 @@
       "humanPages": [
         190
       ],
-      "appliedPage": 182,
+      "appliedPage": 183,
       "appliedPages": [
-        182
+        183
       ],
       "originalParagraphIds": [
         "P0958"
@@ -9570,9 +9573,9 @@
         191,
         192
       ],
-      "appliedPage": 183,
+      "appliedPage": 184,
       "appliedPages": [
-        183
+        184
       ],
       "originalParagraphIds": [
         "P0963"
@@ -9603,9 +9606,9 @@
         192,
         193
       ],
-      "appliedPage": 184,
+      "appliedPage": 185,
       "appliedPages": [
-        184
+        185
       ],
       "originalParagraphIds": [
         "P0966"
@@ -9635,10 +9638,10 @@
       "humanPages": [
         193
       ],
-      "appliedPage": 184,
+      "appliedPage": 185,
       "appliedPages": [
-        184,
-        185
+        185,
+        186
       ],
       "originalParagraphIds": [
         "P0967"
@@ -9668,9 +9671,9 @@
       "humanPages": [
         194
       ],
-      "appliedPage": 185,
+      "appliedPage": 186,
       "appliedPages": [
-        185
+        186
       ],
       "originalParagraphIds": [
         "P0970"
@@ -9701,9 +9704,9 @@
         194,
         195
       ],
-      "appliedPage": 186,
+      "appliedPage": 187,
       "appliedPages": [
-        186
+        187
       ],
       "originalParagraphIds": [
         "P0973"
@@ -9733,10 +9736,10 @@
       "humanPages": [
         195
       ],
-      "appliedPage": 186,
+      "appliedPage": 187,
       "appliedPages": [
-        186,
-        187
+        187,
+        188
       ],
       "originalParagraphIds": [
         "P0974"
@@ -9768,9 +9771,9 @@
         195,
         196
       ],
-      "appliedPage": 187,
+      "appliedPage": 188,
       "appliedPages": [
-        187
+        188
       ],
       "originalParagraphIds": [
         "P0976"
@@ -9801,9 +9804,9 @@
         196,
         197
       ],
-      "appliedPage": 188,
+      "appliedPage": 189,
       "appliedPages": [
-        188
+        189
       ],
       "originalParagraphIds": [
         "P0980"
@@ -9833,9 +9836,9 @@
       "humanPages": [
         197
       ],
-      "appliedPage": 188,
+      "appliedPage": 189,
       "appliedPages": [
-        188
+        189
       ],
       "originalParagraphIds": [
         "P0981"
@@ -9865,9 +9868,9 @@
       "humanPages": [
         199
       ],
-      "appliedPage": 190,
+      "appliedPage": 191,
       "appliedPages": [
-        190
+        191
       ],
       "originalParagraphIds": [
         "P0987"
@@ -9897,9 +9900,9 @@
       "humanPages": [
         199
       ],
-      "appliedPage": 190,
+      "appliedPage": 191,
       "appliedPages": [
-        190
+        191
       ],
       "originalParagraphIds": [
         "P0988"
@@ -9929,9 +9932,9 @@
       "humanPages": [
         200
       ],
-      "appliedPage": 191,
+      "appliedPage": 192,
       "appliedPages": [
-        191
+        192
       ],
       "originalParagraphIds": [
         "P0996"
@@ -9961,9 +9964,9 @@
       "humanPages": [
         200
       ],
-      "appliedPage": 192,
+      "appliedPage": 193,
       "appliedPages": [
-        192
+        193
       ],
       "originalParagraphIds": [
         "P0997"
@@ -9993,9 +9996,9 @@
       "humanPages": [
         201
       ],
-      "appliedPage": 192,
+      "appliedPage": 193,
       "appliedPages": [
-        192
+        193
       ],
       "originalParagraphIds": [
         "P0999"
@@ -10026,9 +10029,9 @@
         201,
         202
       ],
-      "appliedPage": 193,
+      "appliedPage": 194,
       "appliedPages": [
-        193
+        194
       ],
       "originalParagraphIds": [
         "P1002"
@@ -10059,10 +10062,10 @@
         202,
         203
       ],
-      "appliedPage": 193,
+      "appliedPage": 194,
       "appliedPages": [
-        193,
-        194
+        194,
+        195
       ],
       "originalParagraphIds": [
         "P1003"
@@ -10092,9 +10095,9 @@
       "humanPages": [
         203
       ],
-      "appliedPage": 194,
+      "appliedPage": 195,
       "appliedPages": [
-        194
+        195
       ],
       "originalParagraphIds": [
         "P1004"
@@ -10125,10 +10128,10 @@
         203,
         204
       ],
-      "appliedPage": 194,
+      "appliedPage": 195,
       "appliedPages": [
-        194,
-        195
+        195,
+        196
       ],
       "originalParagraphIds": [
         "P1007"
@@ -10158,9 +10161,9 @@
       "humanPages": [
         204
       ],
-      "appliedPage": 195,
+      "appliedPage": 196,
       "appliedPages": [
-        195
+        196
       ],
       "originalParagraphIds": [
         "P1008"
@@ -10190,9 +10193,9 @@
       "humanPages": [
         205
       ],
-      "appliedPage": 196,
+      "appliedPage": 197,
       "appliedPages": [
-        196
+        197
       ],
       "originalParagraphIds": [
         "P1012"
@@ -10222,9 +10225,9 @@
       "humanPages": [
         206
       ],
-      "appliedPage": 197,
+      "appliedPage": 198,
       "appliedPages": [
-        197
+        198
       ],
       "originalParagraphIds": [
         "P1017"
@@ -10255,10 +10258,10 @@
         206,
         207
       ],
-      "appliedPage": 197,
+      "appliedPage": 198,
       "appliedPages": [
-        197,
-        198
+        198,
+        199
       ],
       "originalParagraphIds": [
         "P1018"
@@ -10288,9 +10291,9 @@
       "humanPages": [
         207
       ],
-      "appliedPage": 198,
+      "appliedPage": 199,
       "appliedPages": [
-        198
+        199
       ],
       "originalParagraphIds": [
         "P1019"
@@ -10321,10 +10324,10 @@
         207,
         208
       ],
-      "appliedPage": 198,
+      "appliedPage": 199,
       "appliedPages": [
-        198,
-        199
+        199,
+        200
       ],
       "originalParagraphIds": [
         "P1021"
@@ -10356,9 +10359,9 @@
         208,
         209
       ],
-      "appliedPage": 199,
+      "appliedPage": 200,
       "appliedPages": [
-        199
+        200
       ],
       "originalParagraphIds": [
         "P1023"
@@ -10388,9 +10391,9 @@
       "humanPages": [
         209
       ],
-      "appliedPage": 199,
+      "appliedPage": 200,
       "appliedPages": [
-        199
+        200
       ],
       "originalParagraphIds": [
         "P1024"
@@ -10420,9 +10423,9 @@
       "humanPages": [
         210
       ],
-      "appliedPage": 200,
+      "appliedPage": 201,
       "appliedPages": [
-        200
+        201
       ],
       "originalParagraphIds": [
         "P1027"
@@ -10455,10 +10458,10 @@
         210,
         211
       ],
-      "appliedPage": 200,
+      "appliedPage": 201,
       "appliedPages": [
-        200,
-        201
+        201,
+        202
       ],
       "originalParagraphIds": [
         "P1028"
@@ -10488,9 +10491,9 @@
       "humanPages": [
         211
       ],
-      "appliedPage": 201,
+      "appliedPage": 202,
       "appliedPages": [
-        201
+        202
       ],
       "originalParagraphIds": [
         "P1029"
@@ -10521,10 +10524,10 @@
         211,
         212
       ],
-      "appliedPage": 201,
+      "appliedPage": 202,
       "appliedPages": [
-        201,
-        202
+        202,
+        203
       ],
       "originalParagraphIds": [
         "P1031"
@@ -10556,9 +10559,9 @@
       "humanPages": [
         212
       ],
-      "appliedPage": 202,
+      "appliedPage": 203,
       "appliedPages": [
-        202
+        203
       ],
       "originalParagraphIds": [
         "P1032"
@@ -10588,9 +10591,9 @@
       "humanPages": [
         212
       ],
-      "appliedPage": 202,
+      "appliedPage": 203,
       "appliedPages": [
-        202
+        203
       ],
       "originalParagraphIds": [
         "P1033"
@@ -10620,10 +10623,10 @@
       "humanPages": [
         213
       ],
-      "appliedPage": 202,
+      "appliedPage": 203,
       "appliedPages": [
-        202,
-        203
+        203,
+        204
       ],
       "originalParagraphIds": [
         "P1035"
@@ -10654,9 +10657,9 @@
         213,
         214
       ],
-      "appliedPage": 203,
+      "appliedPage": 204,
       "appliedPages": [
-        203
+        204
       ],
       "originalParagraphIds": [
         "P1036"
@@ -10686,9 +10689,9 @@
       "humanPages": [
         215
       ],
-      "appliedPage": 205,
+      "appliedPage": 206,
       "appliedPages": [
-        205
+        206
       ],
       "originalParagraphIds": [
         "P1042"
@@ -10719,10 +10722,10 @@
         215,
         216
       ],
-      "appliedPage": 205,
+      "appliedPage": 206,
       "appliedPages": [
-        205,
-        206
+        206,
+        207
       ],
       "originalParagraphIds": [
         "P1045"
@@ -10752,9 +10755,9 @@
       "humanPages": [
         216
       ],
-      "appliedPage": 206,
+      "appliedPage": 207,
       "appliedPages": [
-        206
+        207
       ],
       "originalParagraphIds": [
         "P1046"
@@ -10785,9 +10788,9 @@
         216,
         217
       ],
-      "appliedPage": 206,
+      "appliedPage": 207,
       "appliedPages": [
-        206
+        207
       ],
       "originalParagraphIds": [
         "P1047"
@@ -10817,10 +10820,10 @@
       "humanPages": [
         217
       ],
-      "appliedPage": 206,
+      "appliedPage": 207,
       "appliedPages": [
-        206,
-        207
+        207,
+        208
       ],
       "originalParagraphIds": [
         "P1050"
@@ -10851,9 +10854,9 @@
         217,
         218
       ],
-      "appliedPage": 207,
+      "appliedPage": 208,
       "appliedPages": [
-        207
+        208
       ],
       "originalParagraphIds": [
         "P1051"
@@ -10883,9 +10886,9 @@
       "humanPages": [
         218
       ],
-      "appliedPage": 207,
+      "appliedPage": 208,
       "appliedPages": [
-        207
+        208
       ],
       "originalParagraphIds": [
         "P1052"
@@ -10915,10 +10918,10 @@
       "humanPages": [
         219
       ],
-      "appliedPage": 208,
+      "appliedPage": 209,
       "appliedPages": [
-        208,
-        209
+        209,
+        210
       ],
       "originalParagraphIds": [
         "P1057"
@@ -10949,9 +10952,9 @@
         219,
         220
       ],
-      "appliedPage": 209,
+      "appliedPage": 210,
       "appliedPages": [
-        209
+        210
       ],
       "originalParagraphIds": [
         "P1058"
@@ -10982,10 +10985,10 @@
         220,
         221
       ],
-      "appliedPage": 209,
+      "appliedPage": 210,
       "appliedPages": [
-        209,
-        210
+        210,
+        211
       ],
       "originalParagraphIds": [
         "P1059"
@@ -11015,9 +11018,9 @@
       "humanPages": [
         221
       ],
-      "appliedPage": 210,
+      "appliedPage": 211,
       "appliedPages": [
-        210
+        211
       ],
       "originalParagraphIds": [
         "P1060"
@@ -11047,10 +11050,10 @@
       "humanPages": [
         222
       ],
-      "appliedPage": 210,
+      "appliedPage": 211,
       "appliedPages": [
-        210,
-        211
+        211,
+        212
       ],
       "originalParagraphIds": [
         "P1061"
@@ -11081,9 +11084,9 @@
       "humanPages": [
         223
       ],
-      "appliedPage": 211,
+      "appliedPage": 212,
       "appliedPages": [
-        211
+        212
       ],
       "originalParagraphIds": [
         "P1064"
@@ -11114,9 +11117,9 @@
         223,
         224
       ],
-      "appliedPage": 212,
+      "appliedPage": 213,
       "appliedPages": [
-        212
+        213
       ],
       "originalParagraphIds": [
         "P1068"
@@ -11148,9 +11151,9 @@
         224,
         225
       ],
-      "appliedPage": 213,
+      "appliedPage": 214,
       "appliedPages": [
-        213
+        214
       ],
       "originalParagraphIds": [
         "P1072"
@@ -11180,9 +11183,9 @@
       "humanPages": [
         225
       ],
-      "appliedPage": 213,
+      "appliedPage": 214,
       "appliedPages": [
-        213
+        214
       ],
       "originalParagraphIds": [
         "P1073"
@@ -11213,10 +11216,10 @@
         225,
         226
       ],
-      "appliedPage": 213,
+      "appliedPage": 214,
       "appliedPages": [
-        213,
-        214
+        214,
+        215
       ],
       "originalParagraphIds": [
         "P1075"
@@ -11247,9 +11250,9 @@
       "humanPages": [
         226
       ],
-      "appliedPage": 214,
+      "appliedPage": 215,
       "appliedPages": [
-        214
+        215
       ],
       "originalParagraphIds": [
         "P1077"
@@ -11279,9 +11282,9 @@
       "humanPages": [
         227
       ],
-      "appliedPage": 215,
+      "appliedPage": 216,
       "appliedPages": [
-        215
+        216
       ],
       "originalParagraphIds": [
         "P1079"
@@ -11311,9 +11314,9 @@
       "humanPages": [
         227
       ],
-      "appliedPage": 215,
+      "appliedPage": 216,
       "appliedPages": [
-        215
+        216
       ],
       "originalParagraphIds": [
         "P1080"
@@ -11345,10 +11348,10 @@
         227,
         228
       ],
-      "appliedPage": 215,
+      "appliedPage": 216,
       "appliedPages": [
-        215,
-        216
+        216,
+        217
       ],
       "originalParagraphIds": [
         "P1081"
@@ -11380,9 +11383,9 @@
       "humanPages": [
         228
       ],
-      "appliedPage": 216,
+      "appliedPage": 217,
       "appliedPages": [
-        216
+        217
       ],
       "originalParagraphIds": [
         "P1082"
@@ -11415,10 +11418,10 @@
         228,
         229
       ],
-      "appliedPage": 216,
+      "appliedPage": 217,
       "appliedPages": [
-        216,
-        217
+        217,
+        218
       ],
       "originalParagraphIds": [
         "P1083"
@@ -11449,9 +11452,9 @@
       "humanPages": [
         229
       ],
-      "appliedPage": 217,
+      "appliedPage": 218,
       "appliedPages": [
-        217
+        218
       ],
       "originalParagraphIds": [
         "P1084"
@@ -11482,10 +11485,10 @@
         229,
         230
       ],
-      "appliedPage": 217,
+      "appliedPage": 218,
       "appliedPages": [
-        217,
-        218
+        218,
+        219
       ],
       "originalParagraphIds": [
         "P1085"
@@ -11516,9 +11519,9 @@
       "humanPages": [
         230
       ],
-      "appliedPage": 218,
+      "appliedPage": 219,
       "appliedPages": [
-        218
+        219
       ],
       "originalParagraphIds": [
         "P1086"
@@ -11549,10 +11552,10 @@
       "humanPages": [
         230
       ],
-      "appliedPage": 218,
+      "appliedPage": 219,
       "appliedPages": [
-        218,
-        219
+        219,
+        220
       ],
       "originalParagraphIds": [
         "P1087"
@@ -11583,9 +11586,9 @@
       "humanPages": [
         231
       ],
-      "appliedPage": 219,
+      "appliedPage": 220,
       "appliedPages": [
-        219
+        220
       ],
       "originalParagraphIds": [
         "P1088"
@@ -11616,20 +11619,20 @@
         249,
         250
       ],
-      "appliedPage": 237,
+      "appliedPage": 238,
       "appliedPages": [
-        237,
-        238
+        238,
+        239
       ],
       "originalParagraphIds": [
         "P1249"
       ],
       "appliedParagraphIds": [
-        "P1289"
+        "P1291"
       ],
       "applied": true,
       "originalParagraphId": "P1249",
-      "appliedParagraphId": "P1289",
+      "appliedParagraphId": "P1291",
       "applyText": "< 신설 > | 제415조의3(파산재단에 속하는 임차주택의 경매신청 허가) ① 제415조 제1항 또는 제2항에 따른 우선변제권을 가진 주택임차인 또는 그 권리를 적법하게 취득한 자는 임대차가 종료되고 보증금반환채권의 이행기가 도래한 경우 파산법원에 파산재단에 속하는 해당 주택과 대지의 경매신청 허가를 구할 수 있다. 제425조의 변제기 도래 의제만으로는 이 항의 요건을 충족하지 아니한다. 목적물 인도 또는 그 제공은 신청요건으로 하지 아니한다. ② 신청인은 반환채권의 현재 금액과 귀속, 임대차 종료와 이행기, 우선변제권의 요건, 목적물과 선순위권리, 예상매각대금 및 비용을 소명하여야 한다. 신청인이 다른 권리자의 채권잔액·순위 또는 파산관재인의 처분계획에 관한 자료를 직접 제출하기 어려운 사유와 그 자료를 보유한 자를 밝힌 경우, 법원은 해당 주택에 관한 허가심사에 필요한 범위에서 파산관재인 또는 해당 권리자에게 그 자료의 제출을 명할 수 있다. 법원은 자료의 부족을 이유로 신청을 기각하기 전에 보완할 기회를 주어야 한다. 다른 권리자의 자료 미제출만으로 그 권리가 존재하지 아니하거나 신청요건이 충족된 것으로 보아서는 아니 된다. 법원은 채무자·파산관재인·선순위권리자·다른 임차인 및 결정으로 직접 영향을 받는 자에게 신청자료를 송달하고 2주 이상의 의견제출기간을 주어야 한다. 자료를 보완한 경우 법원은 판단의 기초가 되는 추가자료에 관하여 관계인에게 의견을 제출할 기회를 주어야 한다. 법원은 최초 의견제출기간이 끝난 날부터 7일 이내에 허가 여부를 결정하여야 한다. 추가자료의 제출이나 그에 대한 의견청취만으로 결정기간을 새로 기산하지 아니한다. 필요한 자료보완이나 이해관계인의 심문을 그 기간 안에 마치기 어려운 경우에는 그 이유와 결정예정일을 고지하고 한 차례에 한하여 7일의 범위에서 결정기간을 연장할 수 있다. ③ 법원은 파산관재인의 처분이나 기존 경매로 합리적인 기간 안에 신청인의 우선변제권을 실현하기 어렵고, 비용과 선순위권리를 공제한 뒤 신청인에게 배당될 금액이 있을 것으로 인정되면 신청을 허가한다. 파산관재인이 경매보다 유리한 처분을 구체적으로 진행하고 있음을 소명하면 법원은 주요 이행기한을 정하여 한 차례 결정을 유예할 수 있다. 파산관재인이 제시한 처분계획의 이행이 불가능해지거나 정한 주요 이행기한을 지키지 않은 때에는 유예기한이 끝나기 전이라도 지체 없이 허가 여부를 결정하여야 한다. 유예기한까지 처분이 이행되지 않은 때에도 같다. ④ 권리에 다툼이 있는 경우 법원은 제출자료로 소명된 범위에서 신청요건을 심사한다. 다툼 없는 부분만으로 요건이 충족되면 그 범위에서 허가할 수 있다. 결정은 반환채권액이나 우선순위를 확정하지 아니한다. ⑤ 결정에는 목적물, 신청인, 청구금액의 한도, 허가 또는 기각의 이유, 기존 처분과의 조정방법을 적어야 한다. 결정으로 직접적인 권리상 불이익을 받는 자는 즉시항고할 수 있다. 허가결정이 확정되면 제415조의4에 따라 경매를 신청할 수 있다. ⑥ 법원은 신청 중 목적물 처분으로 권리행사가 곤란해질 우려가 있으면 이해관계인의 신청으로 필요한 보전처분을 할 수 있다. 금융기관등의 임대차 해지에는 「주택임대차보호법」 제3조의2 제9항을 적용한다."
     },
     {
@@ -12159,9 +12162,9 @@
       "humanPages": [
         45
       ],
-      "appliedPage": 41,
+      "appliedPage": 42,
       "appliedPages": [
-        41
+        42
       ],
       "originalParagraphIds": [
         "P0377"
@@ -12193,9 +12196,9 @@
       "humanPages": [
         52
       ],
-      "appliedPage": 48,
+      "appliedPage": 50,
       "appliedPages": [
-        48
+        50
       ],
       "originalParagraphIds": [
         "P0408"
@@ -12227,9 +12230,9 @@
       "humanPages": [
         53
       ],
-      "appliedPage": 49,
+      "appliedPage": 51,
       "appliedPages": [
-        49
+        51
       ],
       "originalParagraphIds": [
         "P0413"
@@ -12261,9 +12264,9 @@
       "humanPages": [
         57
       ],
-      "appliedPage": 54,
+      "appliedPage": 55,
       "appliedPages": [
-        54
+        55
       ],
       "originalParagraphIds": [
         "P0455"
@@ -12282,10 +12285,10 @@
       "id": "V120-FN115",
       "kind": "footnote",
       "target": "115",
-      "title": "각주 115의 출처·설명·재인용 정리",
+      "title": "대항요건 존속에 관한 실무제요·판례 근거",
       "before": "사집행법 제88조 제1항; 민사집행규칙 제48조. 배당요구서에는 채권의 원인과 액수를 적고, 배당요구의 자격을 소명하는 서면을 붙여야 한다.",
-      "after": "민사집행법 제88조 제1항; 민사집행규칙 제48조. 배당요구서에는 채권의 원인과 액수를 적고, 배당요구의 자격을 소명하는 서면을 붙여야 한다.",
-      "reason": "법률명 첫 글자 “민”이 빠진 오탈자를 복원한다.",
+      "after": "민사집행법 제88조 제1항; 민사집행규칙 제48조; 사법연수원, 『법원실무제요 민사집행 [Ⅲ]―부동산집행(2)』, 2020, 59·64·84~85면; 대법원 2007. 6. 14. 선고 2007다17475 판결; 주택임대차보호법 제3조의3 제5항·제3조의4 제1항.",
+      "reason": "배당요구의 방식·자격 소명 근거를 유지하고, 대항요건 존속 및 임차권등기 예외에 관한 출처를 기존 각주에 합친다. 서지와 법령·판례 중심으로 쓰며 같은 절차를 장문으로 다시 설명하지 않는다. 현재 FN159에 같은 책의 정식서지가 있으나, 뒤 각주의 번호·재인용을 일괄 바꿀 필요는 없으므로 이번 후보에는 포함하지 않는다.",
       "order": 377,
       "priority": "검토",
       "page": 62,
@@ -12295,9 +12298,9 @@
       "humanPages": [
         62
       ],
-      "appliedPage": 58,
+      "appliedPage": 59,
       "appliedPages": [
-        58
+        59
       ],
       "originalParagraphIds": [
         "P0473"
@@ -12310,7 +12313,7 @@
       "appliedParagraphId": "P0483",
       "originalNoteId": "fn-115",
       "appliedNoteId": "fn-115",
-      "applyText": "민사집행법 제88조 제1항; 민사집행규칙 제48조. 배당요구서에는 채권의 원인과 액수를 적고, 배당요구의 자격을 소명하는 서면을 붙여야 한다."
+      "applyText": "민사집행법 제88조 제1항; 민사집행규칙 제48조; 사법연수원, 『법원실무제요 민사집행 [Ⅲ]―부동산집행(2)』, 2020, 59·64·84~85면; 대법원 2007. 6. 14. 선고 2007다17475 판결; 주택임대차보호법 제3조의3 제5항·제3조의4 제1항."
     },
     {
       "id": "V120-FN127",
@@ -12329,9 +12332,9 @@
       "humanPages": [
         67
       ],
-      "appliedPage": 63,
+      "appliedPage": 64,
       "appliedPages": [
-        63
+        64
       ],
       "originalParagraphIds": [
         "P0493"
@@ -12363,9 +12366,9 @@
       "humanPages": [
         69
       ],
-      "appliedPage": 65,
+      "appliedPage": 66,
       "appliedPages": [
-        65
+        66
       ],
       "originalParagraphIds": [
         "P0498"
@@ -12397,9 +12400,9 @@
       "humanPages": [
         71
       ],
-      "appliedPage": 67,
+      "appliedPage": 68,
       "appliedPages": [
-        67
+        68
       ],
       "originalParagraphIds": [
         "P0506"
@@ -12431,9 +12434,9 @@
       "humanPages": [
         72
       ],
-      "appliedPage": 68,
+      "appliedPage": 69,
       "appliedPages": [
-        68
+        69
       ],
       "originalParagraphIds": [
         "P0508"
@@ -12465,9 +12468,9 @@
       "humanPages": [
         74
       ],
-      "appliedPage": 69,
+      "appliedPage": 70,
       "appliedPages": [
-        69
+        70
       ],
       "originalParagraphIds": [
         "P0515"
@@ -12499,9 +12502,9 @@
       "humanPages": [
         80
       ],
-      "appliedPage": 74,
+      "appliedPage": 75,
       "appliedPages": [
-        74
+        75
       ],
       "originalParagraphIds": [
         "P0547"
@@ -12533,9 +12536,9 @@
       "humanPages": [
         82
       ],
-      "appliedPage": 77,
+      "appliedPage": 78,
       "appliedPages": [
-        77
+        78
       ],
       "originalParagraphIds": [
         "P0560"
@@ -12567,9 +12570,9 @@
       "humanPages": [
         88
       ],
-      "appliedPage": 82,
+      "appliedPage": 83,
       "appliedPages": [
-        82
+        83
       ],
       "originalParagraphIds": [
         "P0587"
@@ -12601,9 +12604,9 @@
       "humanPages": [
         88
       ],
-      "appliedPage": 83,
+      "appliedPage": 84,
       "appliedPages": [
-        83
+        84
       ],
       "originalParagraphIds": [
         "P0588"
@@ -12635,9 +12638,9 @@
       "humanPages": [
         96
       ],
-      "appliedPage": 90,
+      "appliedPage": 91,
       "appliedPages": [
-        90
+        91
       ],
       "originalParagraphIds": [
         "P0617"
@@ -12669,9 +12672,9 @@
       "humanPages": [
         97
       ],
-      "appliedPage": 91,
+      "appliedPage": 92,
       "appliedPages": [
-        91
+        92
       ],
       "originalParagraphIds": [
         "P0621"
@@ -12703,9 +12706,9 @@
       "humanPages": [
         98
       ],
-      "appliedPage": 92,
+      "appliedPage": 93,
       "appliedPages": [
-        92
+        93
       ],
       "originalParagraphIds": [
         "P0625"
@@ -12737,9 +12740,9 @@
       "humanPages": [
         104
       ],
-      "appliedPage": 97,
+      "appliedPage": 98,
       "appliedPages": [
-        97
+        98
       ],
       "originalParagraphIds": [
         "P0656"
@@ -12771,9 +12774,9 @@
       "humanPages": [
         107
       ],
-      "appliedPage": 100,
+      "appliedPage": 101,
       "appliedPages": [
-        100
+        101
       ],
       "originalParagraphIds": [
         "P0670"
@@ -12805,9 +12808,9 @@
       "humanPages": [
         118
       ],
-      "appliedPage": 111,
+      "appliedPage": 112,
       "appliedPages": [
-        111
+        112
       ],
       "originalParagraphIds": [
         "P0719"
@@ -12839,9 +12842,9 @@
       "humanPages": [
         121
       ],
-      "appliedPage": 113,
+      "appliedPage": 114,
       "appliedPages": [
-        113
+        114
       ],
       "originalParagraphIds": [
         "P0729"
@@ -12873,9 +12876,9 @@
       "humanPages": [
         122
       ],
-      "appliedPage": 114,
+      "appliedPage": 115,
       "appliedPages": [
-        114
+        115
       ],
       "originalParagraphIds": [
         "P0732"
@@ -12907,9 +12910,9 @@
       "humanPages": [
         123
       ],
-      "appliedPage": 116,
+      "appliedPage": 117,
       "appliedPages": [
-        116
+        117
       ],
       "originalParagraphIds": [
         "P0736"
@@ -12941,9 +12944,9 @@
       "humanPages": [
         124
       ],
-      "appliedPage": 117,
+      "appliedPage": 118,
       "appliedPages": [
-        117
+        118
       ],
       "originalParagraphIds": [
         "P0741"
@@ -12975,9 +12978,9 @@
       "humanPages": [
         127
       ],
-      "appliedPage": 119,
+      "appliedPage": 120,
       "appliedPages": [
-        119
+        120
       ],
       "originalParagraphIds": [
         "P0753"
@@ -13009,9 +13012,9 @@
       "humanPages": [
         131
       ],
-      "appliedPage": 123,
+      "appliedPage": 124,
       "appliedPages": [
-        123
+        124
       ],
       "originalParagraphIds": [
         "P0772"
@@ -13043,9 +13046,9 @@
       "humanPages": [
         136
       ],
-      "appliedPage": 127,
+      "appliedPage": 128,
       "appliedPages": [
-        127
+        128
       ],
       "originalParagraphIds": [
         "P0788"
@@ -13077,9 +13080,9 @@
       "humanPages": [
         136
       ],
-      "appliedPage": 128,
+      "appliedPage": 129,
       "appliedPages": [
-        128
+        129
       ],
       "originalParagraphIds": [
         "P0788"
@@ -13111,9 +13114,9 @@
       "humanPages": [
         137
       ],
-      "appliedPage": 129,
+      "appliedPage": 130,
       "appliedPages": [
-        129
+        130
       ],
       "originalParagraphIds": [
         "P0791"
@@ -13145,9 +13148,9 @@
       "humanPages": [
         137
       ],
-      "appliedPage": 129,
+      "appliedPage": 130,
       "appliedPages": [
-        129
+        130
       ],
       "originalParagraphIds": [
         "P0791"
@@ -13179,9 +13182,9 @@
       "humanPages": [
         139
       ],
-      "appliedPage": 131,
+      "appliedPage": 132,
       "appliedPages": [
-        131
+        132
       ],
       "originalParagraphIds": [
         "P0797"
@@ -13213,9 +13216,9 @@
       "humanPages": [
         143
       ],
-      "appliedPage": 135,
+      "appliedPage": 136,
       "appliedPages": [
-        135
+        136
       ],
       "originalParagraphIds": [
         "P0812"
@@ -13247,9 +13250,9 @@
       "humanPages": [
         143
       ],
-      "appliedPage": 135,
+      "appliedPage": 136,
       "appliedPages": [
-        135
+        136
       ],
       "originalParagraphIds": [
         "P0812"
@@ -13281,9 +13284,9 @@
       "humanPages": [
         145
       ],
-      "appliedPage": 137,
+      "appliedPage": 138,
       "appliedPages": [
-        137
+        138
       ],
       "originalParagraphIds": [
         "P0820"
@@ -13315,9 +13318,9 @@
       "humanPages": [
         146
       ],
-      "appliedPage": 138,
+      "appliedPage": 139,
       "appliedPages": [
-        138
+        139
       ],
       "originalParagraphIds": [
         "P0826"
@@ -13349,9 +13352,9 @@
       "humanPages": [
         149
       ],
-      "appliedPage": 141,
+      "appliedPage": 142,
       "appliedPages": [
-        141
+        142
       ],
       "originalParagraphIds": [
         "P0834"
@@ -13383,9 +13386,9 @@
       "humanPages": [
         153
       ],
-      "appliedPage": 145,
+      "appliedPage": 146,
       "appliedPages": [
-        145
+        146
       ],
       "originalParagraphIds": [
         "P0850"
@@ -13417,9 +13420,9 @@
       "humanPages": [
         153
       ],
-      "appliedPage": 145,
+      "appliedPage": 146,
       "appliedPages": [
-        145
+        146
       ],
       "originalParagraphIds": [
         "P0852"
@@ -13451,9 +13454,9 @@
       "humanPages": [
         154
       ],
-      "appliedPage": 147,
+      "appliedPage": 148,
       "appliedPages": [
-        147
+        148
       ],
       "originalParagraphIds": [
         "P0855"
@@ -13485,9 +13488,9 @@
       "humanPages": [
         155
       ],
-      "appliedPage": 147,
+      "appliedPage": 148,
       "appliedPages": [
-        147
+        148
       ],
       "originalParagraphIds": [
         "P0857"
@@ -13519,9 +13522,9 @@
       "humanPages": [
         157
       ],
-      "appliedPage": 149,
+      "appliedPage": 150,
       "appliedPages": [
-        149
+        150
       ],
       "originalParagraphIds": [
         "P0861"
@@ -13553,9 +13556,9 @@
       "humanPages": [
         159
       ],
-      "appliedPage": 151,
+      "appliedPage": 152,
       "appliedPages": [
-        151
+        152
       ],
       "originalParagraphIds": [
         "P0868"
@@ -13587,9 +13590,9 @@
       "humanPages": [
         160
       ],
-      "appliedPage": 151,
+      "appliedPage": 152,
       "appliedPages": [
-        151
+        152
       ],
       "originalParagraphIds": [
         "P0869"
@@ -13621,9 +13624,9 @@
       "humanPages": [
         168
       ],
-      "appliedPage": 160,
+      "appliedPage": 161,
       "appliedPages": [
-        160
+        161
       ],
       "originalParagraphIds": [
         "P0892"
@@ -13655,9 +13658,9 @@
       "humanPages": [
         169
       ],
-      "appliedPage": 161,
+      "appliedPage": 162,
       "appliedPages": [
-        161
+        162
       ],
       "originalParagraphIds": [
         "P0894"
@@ -13689,9 +13692,9 @@
       "humanPages": [
         171
       ],
-      "appliedPage": 162,
+      "appliedPage": 163,
       "appliedPages": [
-        162
+        163
       ],
       "originalParagraphIds": [
         "P0899"
@@ -13723,9 +13726,9 @@
       "humanPages": [
         171
       ],
-      "appliedPage": 163,
+      "appliedPage": 164,
       "appliedPages": [
-        163
+        164
       ],
       "originalParagraphIds": [
         "P0899"
@@ -13757,9 +13760,9 @@
       "humanPages": [
         172
       ],
-      "appliedPage": 164,
+      "appliedPage": 165,
       "appliedPages": [
-        164
+        165
       ],
       "originalParagraphIds": [
         "P0904"
@@ -13791,9 +13794,9 @@
       "humanPages": [
         172
       ],
-      "appliedPage": 164,
+      "appliedPage": 165,
       "appliedPages": [
-        164
+        165
       ],
       "originalParagraphIds": [
         "P0904"
@@ -13825,9 +13828,9 @@
       "humanPages": [
         173
       ],
-      "appliedPage": 164,
+      "appliedPage": 165,
       "appliedPages": [
-        164
+        165
       ],
       "originalParagraphIds": [
         "P0905"
@@ -13859,9 +13862,9 @@
       "humanPages": [
         173
       ],
-      "appliedPage": 165,
+      "appliedPage": 166,
       "appliedPages": [
-        165
+        166
       ],
       "originalParagraphIds": [
         "P0907"
@@ -13893,9 +13896,9 @@
       "humanPages": [
         174
       ],
-      "appliedPage": 166,
+      "appliedPage": 167,
       "appliedPages": [
-        166
+        167
       ],
       "originalParagraphIds": [
         "P0908"
@@ -13927,9 +13930,9 @@
       "humanPages": [
         174
       ],
-      "appliedPage": 166,
+      "appliedPage": 167,
       "appliedPages": [
-        166
+        167
       ],
       "originalParagraphIds": [
         "P0909"
@@ -13961,9 +13964,9 @@
       "humanPages": [
         178
       ],
-      "appliedPage": 170,
+      "appliedPage": 171,
       "appliedPages": [
-        170
+        171
       ],
       "originalParagraphIds": [
         "P0921"
@@ -13995,9 +13998,9 @@
       "humanPages": [
         179
       ],
-      "appliedPage": 171,
+      "appliedPage": 172,
       "appliedPages": [
-        171
+        172
       ],
       "originalParagraphIds": [
         "P0925"
@@ -14029,9 +14032,9 @@
       "humanPages": [
         181
       ],
-      "appliedPage": 173,
+      "appliedPage": 174,
       "appliedPages": [
-        173
+        174
       ],
       "originalParagraphIds": [
         "P0930"
@@ -14063,9 +14066,9 @@
       "humanPages": [
         182
       ],
-      "appliedPage": 173,
+      "appliedPage": 174,
       "appliedPages": [
-        173
+        174
       ],
       "originalParagraphIds": [
         "P0930"
@@ -14097,9 +14100,9 @@
       "humanPages": [
         186
       ],
-      "appliedPage": 177,
+      "appliedPage": 178,
       "appliedPages": [
-        177
+        178
       ],
       "originalParagraphIds": [
         "P0946"
@@ -14131,9 +14134,9 @@
       "humanPages": [
         186
       ],
-      "appliedPage": 177,
+      "appliedPage": 178,
       "appliedPages": [
-        177
+        178
       ],
       "originalParagraphIds": [
         "P0947"
@@ -14165,9 +14168,9 @@
       "humanPages": [
         186
       ],
-      "appliedPage": 178,
+      "appliedPage": 179,
       "appliedPages": [
-        178
+        179
       ],
       "originalParagraphIds": [
         "P0948"
@@ -14199,9 +14202,9 @@
       "humanPages": [
         187
       ],
-      "appliedPage": 178,
+      "appliedPage": 179,
       "appliedPages": [
-        178
+        179
       ],
       "originalParagraphIds": [
         "P0948"
@@ -14233,9 +14236,9 @@
       "humanPages": [
         187
       ],
-      "appliedPage": 179,
+      "appliedPage": 180,
       "appliedPages": [
-        179
+        180
       ],
       "originalParagraphIds": [
         "P0949"
@@ -14267,9 +14270,9 @@
       "humanPages": [
         189
       ],
-      "appliedPage": 180,
+      "appliedPage": 181,
       "appliedPages": [
-        180
+        181
       ],
       "originalParagraphIds": [
         "P0953"
@@ -14301,9 +14304,9 @@
       "humanPages": [
         195
       ],
-      "appliedPage": 186,
+      "appliedPage": 187,
       "appliedPages": [
-        186
+        187
       ],
       "originalParagraphIds": [
         "P0974"
@@ -14335,9 +14338,9 @@
       "humanPages": [
         198
       ],
-      "appliedPage": 189,
+      "appliedPage": 190,
       "appliedPages": [
-        189
+        190
       ],
       "originalParagraphIds": [
         "P0984"
@@ -14369,9 +14372,9 @@
       "humanPages": [
         200
       ],
-      "appliedPage": 191,
+      "appliedPage": 192,
       "appliedPages": [
-        191
+        192
       ],
       "originalParagraphIds": [
         "P0996"
@@ -14403,9 +14406,9 @@
       "humanPages": [
         200
       ],
-      "appliedPage": 192,
+      "appliedPage": 193,
       "appliedPages": [
-        192
+        193
       ],
       "originalParagraphIds": [
         "P0997"
@@ -14437,9 +14440,9 @@
       "humanPages": [
         203
       ],
-      "appliedPage": 194,
+      "appliedPage": 195,
       "appliedPages": [
-        194
+        195
       ],
       "originalParagraphIds": [
         "P1007"
@@ -14471,9 +14474,9 @@
       "humanPages": [
         204
       ],
-      "appliedPage": 195,
+      "appliedPage": 196,
       "appliedPages": [
-        195
+        196
       ],
       "originalParagraphIds": [
         "P1007"
@@ -14505,9 +14508,9 @@
       "humanPages": [
         206
       ],
-      "appliedPage": 197,
+      "appliedPage": 198,
       "appliedPages": [
-        197
+        198
       ],
       "originalParagraphIds": [
         "P1017"
@@ -14539,9 +14542,9 @@
       "humanPages": [
         220
       ],
-      "appliedPage": 209,
+      "appliedPage": 210,
       "appliedPages": [
-        209
+        210
       ],
       "originalParagraphIds": [
         "P1058"
@@ -14573,9 +14576,9 @@
       "humanPages": [
         223
       ],
-      "appliedPage": 211,
+      "appliedPage": 212,
       "appliedPages": [
-        211
+        212
       ],
       "originalParagraphIds": [
         "P1064"
@@ -14607,9 +14610,9 @@
       "humanPages": [
         226
       ],
-      "appliedPage": 214,
+      "appliedPage": 215,
       "appliedPages": [
-        214
+        215
       ],
       "originalParagraphIds": [
         "P1077"
@@ -14641,9 +14644,9 @@
       "humanPages": [
         232
       ],
-      "appliedPage": 220,
+      "appliedPage": 221,
       "appliedPages": [
-        220
+        221
       ],
       "originalParagraphIds": [
         "P1097"
@@ -14673,19 +14676,19 @@
       "humanPages": [
         233
       ],
-      "appliedPage": 221,
+      "appliedPage": 222,
       "appliedPages": [
-        221
+        222
       ],
       "originalParagraphIds": [
         "P1109"
       ],
       "appliedParagraphIds": [
-        "P1146"
+        "P1147"
       ],
       "applied": true,
       "originalParagraphId": "P1109",
-      "appliedParagraphId": "P1146",
+      "appliedParagraphId": "P1147",
       "applyUnsupportedReason": "문단 구조·목차 또는 배치 변경을 포함합니다. 대응 위치를 함께 확인해 주세요."
     },
     {
@@ -14705,19 +14708,19 @@
       "humanPages": [
         234
       ],
-      "appliedPage": 222,
+      "appliedPage": 223,
       "appliedPages": [
-        222
+        223
       ],
       "originalParagraphIds": [
         "P1116"
       ],
       "appliedParagraphIds": [
-        "P1154"
+        "P1155"
       ],
       "applied": true,
       "originalParagraphId": "P1116",
-      "appliedParagraphId": "P1154",
+      "appliedParagraphId": "P1155",
       "applyUnsupportedReason": "문단 구조·목차 또는 배치 변경을 포함합니다. 대응 위치를 함께 확인해 주세요."
     },
     {
@@ -14737,19 +14740,19 @@
       "humanPages": [
         234
       ],
-      "appliedPage": 222,
+      "appliedPage": 223,
       "appliedPages": [
-        222
+        223
       ],
       "originalParagraphIds": [
         "P1118"
       ],
       "appliedParagraphIds": [
-        "P1157"
+        "P1159"
       ],
       "applied": true,
       "originalParagraphId": "P1118",
-      "appliedParagraphId": "P1157",
+      "appliedParagraphId": "P1159",
       "applyUnsupportedReason": "문단 구조·목차 또는 배치 변경을 포함합니다. 대응 위치를 함께 확인해 주세요."
     },
     {
@@ -14769,19 +14772,19 @@
       "humanPages": [
         234
       ],
-      "appliedPage": 222,
+      "appliedPage": 223,
       "appliedPages": [
-        222
+        223
       ],
       "originalParagraphIds": [
         "P1118"
       ],
       "appliedParagraphIds": [
-        "P1158"
+        "P1160"
       ],
       "applied": true,
       "originalParagraphId": "P1118",
-      "appliedParagraphId": "P1158",
+      "appliedParagraphId": "P1160",
       "applyUnsupportedReason": "문단 구조·목차 또는 배치 변경을 포함합니다. 대응 위치를 함께 확인해 주세요."
     },
     {
@@ -15361,7 +15364,8 @@
         250,
         251,
         252,
-        253
+        253,
+        254
       ],
       "originalParagraphIds": [],
       "appliedParagraphIds": [],
@@ -15417,9 +15421,9 @@
       "humanPages": [
         53
       ],
-      "appliedPage": 50,
+      "appliedPage": 51,
       "appliedPages": [
-        50
+        51
       ],
       "originalParagraphIds": [
         "P0414"
@@ -15449,9 +15453,9 @@
       "humanPages": [
         56
       ],
-      "appliedPage": 53,
+      "appliedPage": 54,
       "appliedPages": [
-        53
+        54
       ],
       "originalParagraphIds": [
         "P0453"
@@ -15481,9 +15485,9 @@
       "humanPages": [
         65
       ],
-      "appliedPage": 61,
+      "appliedPage": 62,
       "appliedPages": [
-        61
+        62
       ],
       "originalParagraphIds": [
         "P0485"
@@ -15513,9 +15517,10 @@
       "humanPages": [
         67
       ],
-      "appliedPage": 62,
+      "appliedPage": 63,
       "appliedPages": [
-        62
+        63,
+        64
       ],
       "originalParagraphIds": [
         "P0491"
@@ -15545,10 +15550,9 @@
       "humanPages": [
         69
       ],
-      "appliedPage": 64,
+      "appliedPage": 66,
       "appliedPages": [
-        64,
-        65
+        66
       ],
       "originalParagraphIds": [
         "P0498"
@@ -15578,9 +15582,9 @@
       "humanPages": [
         70
       ],
-      "appliedPage": 66,
+      "appliedPage": 67,
       "appliedPages": [
-        66
+        67
       ],
       "originalParagraphIds": [
         "P0503"
@@ -15611,9 +15615,9 @@
         70,
         71
       ],
-      "appliedPage": 66,
+      "appliedPage": 67,
       "appliedPages": [
-        66
+        67
       ],
       "originalParagraphIds": [
         "P0504"
@@ -15643,9 +15647,9 @@
       "humanPages": [
         75
       ],
-      "appliedPage": 70,
+      "appliedPage": 72,
       "appliedPages": [
-        70
+        72
       ],
       "originalParagraphIds": [
         "P0520"
@@ -15675,10 +15679,10 @@
       "humanPages": [
         82
       ],
-      "appliedPage": 76,
+      "appliedPage": 77,
       "appliedPages": [
-        76,
-        77
+        77,
+        78
       ],
       "originalParagraphIds": [
         "P0557"
@@ -15708,9 +15712,9 @@
       "humanPages": [
         88
       ],
-      "appliedPage": 82,
+      "appliedPage": 83,
       "appliedPages": [
-        82
+        83
       ],
       "originalParagraphIds": [
         "P0587"
@@ -15740,9 +15744,9 @@
       "humanPages": [
         92
       ],
-      "appliedPage": 86,
+      "appliedPage": 88,
       "appliedPages": [
-        86
+        88
       ],
       "originalParagraphIds": [
         "P0604"
@@ -15773,9 +15777,9 @@
         105,
         106
       ],
-      "appliedPage": 99,
+      "appliedPage": 100,
       "appliedPages": [
-        99
+        100
       ],
       "originalParagraphIds": [
         "P0664"
@@ -15805,9 +15809,9 @@
       "humanPages": [
         193
       ],
-      "appliedPage": 185,
+      "appliedPage": 186,
       "appliedPages": [
-        185
+        186
       ],
       "originalParagraphIds": [
         "P0968"
@@ -15837,9 +15841,9 @@
       "humanPages": [
         198
       ],
-      "appliedPage": 189,
+      "appliedPage": 190,
       "appliedPages": [
-        189
+        190
       ],
       "originalParagraphIds": [
         "P0983"
@@ -15869,9 +15873,9 @@
       "humanPages": [
         226
       ],
-      "appliedPage": 214,
+      "appliedPage": 215,
       "appliedPages": [
-        214
+        215
       ],
       "originalParagraphIds": [
         "P1076"
@@ -15883,6 +15887,240 @@
       "originalParagraphId": "P1076",
       "appliedParagraphId": "P1102",
       "applyText": "제617조의3과 제611조 제1항 제4호는 시행 후 새로 이루어지는 배당·지급·정산과 변제계획안부터 적용하고, 제615조 제4항·제5항은 Ⅳ.1에서 본 이유로 시행 후 개인회생절차개시를 신청하는 사건부터 적용한다(부록 표 9 부칙 제4조). 시행 전에 인가된 변제계획은 새 규정의 시행만으로 변경되지 않는다. 시행 후의 실제 배당·지급 또는 처분결과는 기존 계획의 정산규정으로 처리할 수 있는지 먼저 확인하고, 권리내용을 변경할 필요가 있으면 변제가 완료되기 전에 제619조의 절차를 거쳐야 한다."
+    },
+    {
+      "id": "SRC122-FN089",
+      "kind": "footnote",
+      "target": "89",
+      "title": "임차권 양도·전대 판례와 교과서 근거",
+      "before": "대법원 2010. 5. 27. 선고 2010다10276 판결.",
+      "after": "대법원 2010. 5. 27. 선고 2010다10276 판결; 대법원 2010. 6. 10. 선고 2009다101275 판결, 이유 1.나; 이시윤·조관행, 앞의 책(주 16), 376~377면.",
+      "reason": "기존 반환채권 분리양도 판례를 보존하고 적법한 임차권 양도·전대 판시와 교과서 인쇄면을 보강한다.",
+      "order": 469,
+      "priority": "검토",
+      "page": 47,
+      "page_end": 47,
+      "printed": "28",
+      "humanPage": 47,
+      "humanPages": [
+        47
+      ],
+      "appliedPage": 44,
+      "appliedPages": [
+        44
+      ],
+      "originalParagraphIds": [
+        "P0385"
+      ],
+      "appliedParagraphIds": [
+        "P0395"
+      ],
+      "applied": true,
+      "originalParagraphId": "P0385",
+      "appliedParagraphId": "P0395",
+      "originalNoteId": "fn-089",
+      "appliedNoteId": "fn-089",
+      "applyText": "대법원 2010. 5. 27. 선고 2010다10276 판결; 대법원 2010. 6. 10. 선고 2009다101275 판결, 이유 1.나; 이시윤·조관행, 앞의 책(주 16), 376~377면."
+    },
+    {
+      "id": "SRC122-FN171",
+      "kind": "footnote",
+      "target": "171",
+      "title": "압류금지 범위·동시이행항변·최신 전합의 구별",
+      "before": "민사집행법 제229조 제2항. 추심명령이 있는 때에는 압류채권자는 대위절차 없이 압류채권을 추심할 수 있다.",
+      "after": "민사집행법 제229조 제2항, 제246조 제1항 제6호·제3항; 이시윤·조관행, 앞의 책(주 16), 447면·459면. 주택임대차보호법상 소액보증금 중 우선변제받을 수 있는 금액은 원칙적으로 압류가 금지된다. 압류·추심명령 뒤에도 임차인의 동시이행항변이 남는다는 점은 대법원 2001. 3. 9. 선고 2000다73490 판결 참조. 추심명령 뒤 채무자의 이행소송 당사자적격도 유지되지만 지급·영수 제한이 해제되는 것은 아니다(대법원 2025. 10. 23. 선고 2021다252977 전원합의체 판결; 지원림, 앞의 책(주 53), 966면).",
+      "reason": "압류대상 범위·실체법상 항변·이행소송 당사자적격을 구별한다. 지원림 담당의 전원합의체 최신화 후보를 한 각주로 통합하며 기존 본문과 중복된 제229조 설명만 정리한다.",
+      "order": 470,
+      "priority": "검토",
+      "page": 89,
+      "page_end": 89,
+      "printed": "70",
+      "humanPage": 89,
+      "humanPages": [
+        89
+      ],
+      "appliedPage": 84,
+      "appliedPages": [
+        84
+      ],
+      "originalParagraphIds": [
+        "P0590"
+      ],
+      "appliedParagraphIds": [
+        "P0601"
+      ],
+      "applied": true,
+      "originalParagraphId": "P0590",
+      "appliedParagraphId": "P0601",
+      "originalNoteId": "fn-171",
+      "appliedNoteId": "fn-171",
+      "applyText": "민사집행법 제229조 제2항, 제246조 제1항 제6호·제3항; 이시윤·조관행, 앞의 책(주 16), 447면·459면. 주택임대차보호법상 소액보증금 중 우선변제받을 수 있는 금액은 원칙적으로 압류가 금지된다. 압류·추심명령 뒤에도 임차인의 동시이행항변이 남는다는 점은 대법원 2001. 3. 9. 선고 2000다73490 판결 참조. 추심명령 뒤 채무자의 이행소송 당사자적격도 유지되지만 지급·영수 제한이 해제되는 것은 아니다(대법원 2025. 10. 23. 선고 2021다252977 전원합의체 판결; 지원림, 앞의 책(주 53), 966면)."
+    },
+    {
+      "id": "SRC122-FN065",
+      "kind": "footnote",
+      "target": "65",
+      "title": "등기 종류별 보증금 반환과 말소의 이행순서",
+      "before": "대법원 1977. 9. 28. 선고 77다1241·1242 전원합의체 판결; 대법원 2024. 2. 29. 선고 2023다289720 판결(매매계약상 동시이행항변과 이행지체에 관한 사건).",
+      "after": "대법원 1977. 9. 28. 선고 77다1241·1242 전원합의체 판결; 대법원 2024. 2. 29. 선고 2023다289720 판결(매매계약상 동시이행항변과 이행지체에 관한 사건). 민법 제621조에 따른 임차권등기에서는 다른 약정이 없는 한 보증금 반환과 등기말소가 동시이행관계에 있으므로, 지연손해금을 청구하려면 말소의무의 이행 또는 제공도 필요하다(대법원 2024. 12. 12. 선고 2024다261989 판결). 반면 주택임대차보호법 제3조의3의 등기명령에 따른 임차권등기는 보증금 반환이 그 말소보다 선이행되어야 한다(대법원 2005. 6. 9. 선고 2005다4529 판결). 지원림, 앞의 책(주 53), 1166면·1185면.",
+      "reason": "주택 인도와 보증금 반환의 일반 동시이행 설명은 유지하면서, 약정등기와 등기명령 말소의 상이한 이행순서를 기존 각주에서 한정한다. 다른 약정의 예외와 지연손해금 요건 보존. 본문·새각주 변경 없음.",
+      "order": 471,
+      "priority": "검토",
+      "page": 39,
+      "page_end": 39,
+      "printed": "20",
+      "humanPage": 39,
+      "humanPages": [
+        39
+      ],
+      "appliedPage": 37,
+      "appliedPages": [
+        37
+      ],
+      "originalParagraphIds": [
+        "P0353"
+      ],
+      "appliedParagraphIds": [
+        "P0363"
+      ],
+      "applied": true,
+      "originalParagraphId": "P0353",
+      "appliedParagraphId": "P0363",
+      "originalNoteId": "fn-065",
+      "appliedNoteId": "fn-065",
+      "applyText": "대법원 1977. 9. 28. 선고 77다1241·1242 전원합의체 판결; 대법원 2024. 2. 29. 선고 2023다289720 판결(매매계약상 동시이행항변과 이행지체에 관한 사건). 민법 제621조에 따른 임차권등기에서는 다른 약정이 없는 한 보증금 반환과 등기말소가 동시이행관계에 있으므로, 지연손해금을 청구하려면 말소의무의 이행 또는 제공도 필요하다(대법원 2024. 12. 12. 선고 2024다261989 판결). 반면 주택임대차보호법 제3조의3의 등기명령에 따른 임차권등기는 보증금 반환이 그 말소보다 선이행되어야 한다(대법원 2005. 6. 9. 선고 2005다4529 판결). 지원림, 앞의 책(주 53), 1166면·1185면."
+    },
+    {
+      "id": "SRC122-FN093",
+      "kind": "footnote",
+      "target": "93",
+      "title": "주택임대차분쟁 조정서의 집행력",
+      "before": "이시윤·조관행, 앞의 책(주 16), 550~551면 도표 3-1.",
+      "after": "이시윤·조관행, 앞의 책(주 16), 550~551면 도표 3-1. 주택임대차분쟁조정위원회의 조정서도 반환채무에 관한 강제집행 승낙의 합의가 기재된 정본이면 주택임대차보호법 제26조 제4항·제27조에 따라 집행력 있는 집행권원과 같은 효력을 가진다. 단순한 합의와 구별되며, 청구이의에는 민사집행법 제44조 제2항의 시적 제한이 적용되지 않는다. 박영호, 「제21조」, 『온주 주택임대차보호법』, 로앤비, 2021. 3. 2., 문단 10.",
+      "reason": "반환채권 집행권원의 취득경로에 특별법상 조정서의 집행력을 보완한다. 강제집행 승낙 요건과 청구이의의 범위를 함께 밝혀 법원 조정조서나 단순 합의와 혼동하지 않도록 한다.",
+      "order": 472,
+      "priority": "검토",
+      "page": 49,
+      "page_end": 49,
+      "printed": "30",
+      "humanPage": 49,
+      "humanPages": [
+        49
+      ],
+      "appliedPage": 47,
+      "appliedPages": [
+        47
+      ],
+      "originalParagraphIds": [
+        "P0399"
+      ],
+      "appliedParagraphIds": [
+        "P0409"
+      ],
+      "applied": true,
+      "originalParagraphId": "P0399",
+      "appliedParagraphId": "P0409",
+      "originalNoteId": "fn-093",
+      "appliedNoteId": "fn-093",
+      "applyText": "이시윤·조관행, 앞의 책(주 16), 550~551면 도표 3-1. 주택임대차분쟁조정위원회의 조정서도 반환채무에 관한 강제집행 승낙의 합의가 기재된 정본이면 주택임대차보호법 제26조 제4항·제27조에 따라 집행력 있는 집행권원과 같은 효력을 가진다. 단순한 합의와 구별되며, 청구이의에는 민사집행법 제44조 제2항의 시적 제한이 적용되지 않는다. 박영호, 「제21조」, 『온주 주택임대차보호법』, 로앤비, 2021. 3. 2., 문단 10."
+    },
+    {
+      "id": "SRC122-FN147",
+      "kind": "footnote",
+      "target": "147",
+      "title": "임차권등기 후 새 소액임차인의 보호 제한",
+      "before": "주택임대차보호법 제8조 제1항·제3항; 같은 법 시행령 제10조·제11조. 최우선변제되는 금액의 합계는 주택가액에 대지가액을 합한 금액의 2분의 1로 제한된다. 선행 담보물권자와의 관계에서 적용되는 소액보증금 기준과 최우선변제액은 해당 담보물권 취득 당시의 시행령과 개정 부칙의 경과규정에 따른다.",
+      "after": "주택임대차보호법 제8조 제1항·제3항; 같은 법 시행령 제10조·제11조. 다만 임차권등기명령에 따른 등기 또는 민법 제621조에 따른 주택임대차등기를 마친 뒤 그 주택을 새로 임차한 임차인에게는 제8조의 최우선변제권이 인정되지 않는다. 등기가 주택 일부에 관한 것이면 그 부분에 한정된다(같은 법 제3조의3 제6항·제3조의4 제1항). 정진아, 「제8조」, 『온주 주택임대차보호법』, 로앤비, 2021. 3. 2., 문단 7. 최우선변제되는 금액의 합계는 주택가액에 대지가액을 합한 금액의 2분의 1로 제한된다. 선행 담보물권자와의 관계에서 적용되는 소액보증금 기준과 최우선변제액은 해당 담보물권 취득 당시의 시행령과 개정 부칙의 경과규정에 따른다.",
+      "reason": "소액보증금의 금액 한도뿐 아니라 선행 임차권등기 후 새 임차인의 최우선변제 배제와 공간적 범위를 기존 각주에 보완한다. 일반 확정일자부 우선변제까지 배제하는 것으로 확대하지 않는다.",
+      "order": 473,
+      "priority": "검토",
+      "page": 74,
+      "page_end": 74,
+      "printed": "55",
+      "humanPage": 74,
+      "humanPages": [
+        74
+      ],
+      "appliedPage": 70,
+      "appliedPages": [
+        70
+      ],
+      "originalParagraphIds": [
+        "P0516"
+      ],
+      "appliedParagraphIds": [
+        "P0526"
+      ],
+      "applied": true,
+      "originalParagraphId": "P0516",
+      "appliedParagraphId": "P0526",
+      "originalNoteId": "fn-147",
+      "appliedNoteId": "fn-147",
+      "applyText": "주택임대차보호법 제8조 제1항·제3항; 같은 법 시행령 제10조·제11조. 다만 임차권등기명령에 따른 등기 또는 민법 제621조에 따른 주택임대차등기를 마친 뒤 그 주택을 새로 임차한 임차인에게는 제8조의 최우선변제권이 인정되지 않는다. 등기가 주택 일부에 관한 것이면 그 부분에 한정된다(같은 법 제3조의3 제6항·제3조의4 제1항). 정진아, 「제8조」, 『온주 주택임대차보호법』, 로앤비, 2021. 3. 2., 문단 7. 최우선변제되는 금액의 합계는 주택가액에 대지가액을 합한 금액의 2분의 1로 제한된다. 선행 담보물권자와의 관계에서 적용되는 소액보증금 기준과 최우선변제액은 해당 담보물권 취득 당시의 시행령과 개정 부칙의 경과규정에 따른다."
+    },
+    {
+      "id": "BIB122-01",
+      "kind": "bibliography_add",
+      "target": "P1097",
+      "title": "참고문헌 추가: 박영호",
+      "before": "문혜영, 『도산절차에서의 신탁의 법리』, 경인문화사, 2025.",
+      "after": "문혜영, 『도산절차에서의 신탁의 법리』, 경인문화사, 2025.\n박영호, 「제21조」, 『온주 주택임대차보호법』, 로앤비, 2021. 3. 2.",
+      "reason": "기존 각주에 직접 인용한 온주 해설을 참고문헌에 수록한다. 기존 문헌과 가나다순을 함께 유지한다.",
+      "order": 474,
+      "priority": "검토",
+      "page": 232,
+      "page_end": 232,
+      "printed": "213",
+      "humanPage": 232,
+      "humanPages": [
+        232
+      ],
+      "appliedPage": 221,
+      "appliedPages": [
+        221
+      ],
+      "originalParagraphIds": [
+        "P1097"
+      ],
+      "appliedParagraphIds": [
+        "P1134"
+      ],
+      "applied": true,
+      "originalParagraphId": "P1097",
+      "appliedParagraphId": "P1134",
+      "applyUnsupportedReason": "문단 구조·목차 또는 배치 변경을 포함합니다. 대응 위치를 함께 확인해 주세요."
+    },
+    {
+      "id": "BIB122-02",
+      "kind": "bibliography_add",
+      "target": "P1118",
+      "title": "참고문헌 추가: 정진아",
+      "before": "전대규, 『채무자회생법』 제10판 제1·2권, 법문사, 2026.",
+      "after": "전대규, 『채무자회생법』 제10판 제1·2권, 법문사, 2026.\n정진아, 「제8조」, 『온주 주택임대차보호법』, 로앤비, 2021. 3. 2.",
+      "reason": "기존 각주에 직접 인용한 온주 해설을 참고문헌에 수록한다. 기존 문헌과 가나다순을 함께 유지한다.",
+      "order": 475,
+      "priority": "검토",
+      "page": 234,
+      "page_end": 234,
+      "printed": "215",
+      "humanPage": 234,
+      "humanPages": [
+        234
+      ],
+      "appliedPage": 223,
+      "appliedPages": [
+        223
+      ],
+      "originalParagraphIds": [
+        "P1118"
+      ],
+      "appliedParagraphIds": [
+        "P1158"
+      ],
+      "applied": true,
+      "originalParagraphId": "P1118",
+      "appliedParagraphId": "P1158",
+      "applyUnsupportedReason": "문단 구조·목차 또는 배치 변경을 포함합니다. 대응 위치를 함께 확인해 주세요."
     }
   ]
 }

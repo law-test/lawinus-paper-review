@@ -1,0 +1,98 @@
+{
+  "human80": {
+    "pages": 266,
+    "notes": 444,
+    "catalog": 1046,
+    "pdfSha256": "b8910c26cbbdd77ab32f262bbc43afde99f37b18c8e8f279e5919edd60bccfe1",
+    "nativeExtractSha256": "7b34b9dec00392f9291b80e07af32bc942c8970973d79c5b2ad3f3be930b3260",
+    "frontPages": {
+      "제1장 서론": 20,
+      "세부목차": 12,
+      "일러두기": 19,
+      "제5장 결론": 227
+    },
+    "lastParagraphId": "P1273",
+    "lastParagraphPage": 265
+  },
+  "v120": {
+    "pages": 253,
+    "notes": 444,
+    "catalog": 1079,
+    "pdfSha256": "3bdeeccbf6a7dbaeffc030c64192de1d99f7ff1a054be963bd168a27599d0def",
+    "nativeExtractSha256": "e0c1717aa2569c0eb28f94e013031371dd996b70a71e2332b5995ea30d089426",
+    "frontPages": {
+      "제1장 서론": 19,
+      "세부목차": 11,
+      "일러두기": 18,
+      "제5장 결론": 215
+    },
+    "lastParagraphId": "P1311",
+    "lastParagraphPage": 252
+  },
+  "guide": {
+    "items": 475,
+    "fields": 1425,
+    "kinds": {
+      "paragraph": 373,
+      "footnote": 93,
+      "bibliography_add": 7,
+      "toc": 1,
+      "layout": 1
+    },
+    "sourceSha256": "3fb927274d13e1ee29c6625208a0cee8087a6dfc9fe7065de4b222f0910952bd"
+  },
+  "guideV120": {
+    "items": 452,
+    "fields": 1356,
+    "kinds": {
+      "bibliography_add": 5,
+      "paragraph": 357,
+      "layout": 1,
+      "footnote": 88,
+      "toc": 1
+    },
+    "sourceSha256": "9db919d3cb8324b0475696f2e54ad7213f44ad24e14c94d78e848310805e98a2"
+  },
+  "v121": {
+    "pages": 253,
+    "notes": 444,
+    "catalog": 1081,
+    "pdfSha256": "917744773ce18112ac1d7132a357cf6eb85ac7ee0f56af750da3bcdb46c821a6",
+    "nativeExtractSha256": "90a8bfedea4e47017bdf4be948ea52ed6d4802d5db84c80193262ee7672e7e29",
+    "frontPages": {
+      "제1장 서론": 19,
+      "세부목차": 11,
+      "일러두기": 18,
+      "제5장 결론": 215
+    },
+    "lastParagraphId": "P1313",
+    "lastParagraphPage": 252
+  },
+  "guideV121": {
+    "items": 468,
+    "fields": 1404,
+    "kinds": {
+      "paragraph": 373,
+      "footnote": 88,
+      "bibliography_add": 5,
+      "toc": 1,
+      "layout": 1
+    },
+    "sourceSha256": "e27e9c31c3c9a7597f53672d43be8e693f1e711180d6ba55baa4acab8fc3b421"
+  },
+  "v122": {
+    "pages": 254,
+    "notes": 444,
+    "catalog": 1083,
+    "pdfSha256": "b20627a1627bc9169c56b97474a9303f040849bb0f9c827ea3378ab0dffdb9ad",
+    "nativeExtractSha256": "f08507f2503cb5e968ef6a1d832a3a26a4405dce61db114b2fa72ce5ebbbc7de",
+    "frontPages": {
+      "제1장 서론": 19,
+      "세부목차": 11,
+      "일러두기": 18,
+      "제5장 결론": 216
+    },
+    "lastParagraphId": "P1315",
+    "lastParagraphPage": 253
+  }
+}

@@ -5,7 +5,7 @@ import {getCitationSegments,citationPdfTargets} from '../src/citation-link-model
 import {getLegalMentions} from '../src/legal-link-model.ts';
 import {targetAt,validRect,targetKey} from '../src/pdf-viewer-model.ts';
 const read=path=>JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
-const release=read('./fixtures/edition-release281.json');
+const release=read('./fixtures/edition-release282.json');
 test('v121 repeated citations to the same commentary retain every cited page',()=>{
  const pages=read('../src/citation-pages-v121.json'),manifest=read('../public/editions/v121/manifest.json');
  const sourceId='s-6b7a3fc8b161bc5d',source=manifest.sources.find(s=>s.id===sourceId);
@@ -17,7 +17,7 @@ test('v121 repeated citations to the same commentary retain every cited page',()
   assert.deepEqual(ref.scope.split('·').map(Number).sort((a,b)=>a-b),expected.map(x=>x[0]));
  }
 });
-for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121']]){
+for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121'],['v122','-v122']]){
  const {notes:count,pages:total}=release[edition];
  const citations=read(`../src/citation-links${suffix}.json`),pages=read(`../src/citation-pages${suffix}.json`),legal=read(`../src/legal-pdf-targets${suffix}.json`),paragraphs=read(`../src/paragraph-catalog${suffix}.json`),manifest=read(`../public/editions/${edition}/manifest.json`),translations=read(`../src/source-translations${suffix}.json`);
  test(`${edition}: all ${count} current footnotes retain bounded distinct citation spans and correct source membership`,()=>{
@@ -76,7 +76,12 @@ for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121']]
   }
  });
  test(`${edition}: existing public assets and translation IDs do not inherit old manuscript footnote numbers`,()=>{
-  for(const source of manifest.sources){assert.equal(source.storageDatasetId,'human-1021-1559');assert.ok(source.assetUrl.endsWith('/assets/'+source.id));assert.ok(source.noteIds.every(id=>citations.notes[id]));}
+  for(const source of manifest.sources){
+   if(edition==='v122'&&['s-61a1544db8a006d7','s-631717f62f824b53','s-8b043ecae2145ffe'].includes(source.id)){
+    assert.equal(source.storageDatasetId,'applied-v122-human80');assert.equal(source.assetUrl,`https://paper.lawinus.org/source-excerpts/v122/${source.id}.pdf`);assert.ok(existsSync(new URL(`../public/source-excerpts/v122/${source.id}.pdf`,import.meta.url)));
+   }else{assert.equal(source.storageDatasetId,'human-1021-1559');assert.ok(source.assetUrl.endsWith('/assets/'+source.id));}
+   assert.ok(source.noteIds.every(id=>citations.notes[id]));
+  }
   for(const translation of translations.sources)for(const id of translation.noteIds)assert.ok(citations.notes[id].segments.some(s=>s.sourceId===translation.sourceId));
   const german=translations.sources.find(s=>s.language==='de');
   const germanNotes=Object.entries(citations.notes).filter(([id,note])=>note.text.includes('Sven-Holger Undritz')).map(([id])=>id);
