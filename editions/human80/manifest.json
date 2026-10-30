@@ -45358,11 +45358,11 @@
     },
     "revisionGuide": {
       "url": "https://paper.lawinus.org/editions/human80/revision-guide.md",
-      "sha256": "bc6cd52f8d007d1f5cb5fb3ee986134d1123a97a16828b362ed625cd6440a962",
-      "bytes": 782873,
+      "sha256": "784397b495ab1a520593be8eb263f1144395c4dd6186b0c447c805112650008f",
+      "bytes": 950492,
       "variant": "original",
-      "sourceSha256": "bc6cd52f8d007d1f5cb5fb3ee986134d1123a97a16828b362ed625cd6440a962",
-      "sourceFilename": "gpt_6_수정제안_v123.md",
+      "sourceSha256": "784397b495ab1a520593be8eb263f1144395c4dd6186b0c447c805112650008f",
+      "sourceFilename": "gpt_6_수정제안_v124.md",
       "visibleTextUnchanged": true,
       "originalByteIdentical": true
     }
@@ -45382,9 +45382,10 @@
     },
     "appliedV120Tested": true,
     "fivePercentTargetVerified": false,
-    "scope": "사용자가 제공한 v120 PDF/HWPX 검사결과를 입력 형식별로 기록. v121·v122·v123 새 검사결과는 없음.",
+    "scope": "사용자가 제공한 v120 PDF 12%·HWPX 28%, v122 PDF 11%·HWPX 25%를 판본과 형식별로 기록. v123·v124 새 검사결과는 없음.",
     "providedV120Reports": [
       {
+        "edition": "v120",
         "report_number": "00379891341",
         "input_format": "PDF",
         "ai_percent": 12,
@@ -45399,6 +45400,7 @@
         "sha256": "4328239585942d15aee7bd0d4e37aca30132cb05f9985eeff3ffbccb5e452fae"
       },
       {
+        "edition": "v120",
         "report_number": "00379891376",
         "input_format": "HWPX",
         "ai_percent": 28,
@@ -45414,7 +45416,40 @@
       }
     ],
     "appliedV121Tested": false,
-    "appliedV122Tested": false,
-    "appliedV123Tested": false
+    "appliedV122Tested": true,
+    "appliedV123Tested": false,
+    "providedV122Reports": [
+      {
+        "edition": "v122",
+        "report_number": "00380057001",
+        "input_format": "HWPX",
+        "ai_percent": 25,
+        "total_regions": 290,
+        "suspected_regions": 143,
+        "high": 0,
+        "medium": 0,
+        "low": 143,
+        "examined_at": "2026-10-31 01:07",
+        "issued_at": "2026-10-31 01:59",
+        "input_document": "1030_박사논문_80차인간최종본기준_v122적용본_v001.hwpx",
+        "sha256": "10823c4b4076cc738ee76e5ac1f96b33255fe4b29f00441b7d44b61de61f3b4e"
+      },
+      {
+        "edition": "v122",
+        "report_number": "00380056843",
+        "input_format": "PDF",
+        "ai_percent": 11,
+        "total_regions": 388,
+        "suspected_regions": 55,
+        "high": 0,
+        "medium": 0,
+        "low": 55,
+        "examined_at": "2026-10-31 01:07",
+        "issued_at": "2026-10-31 01:59",
+        "input_document": "1030_박사논문_80차인간최종본기준_v122_검토용.pdf",
+        "sha256": "2bdc34390d3b01d75a2acab9c0336eb2309301d76bf3bcba58d3ec43ae6a90de"
+      }
+    ],
+    "appliedV124Tested": false
   }
 }
