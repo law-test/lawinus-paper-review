@@ -5,7 +5,7 @@ import {getCitationSegments,citationPdfTargets} from '../src/citation-link-model
 import {getLegalMentions} from '../src/legal-link-model.ts';
 import {targetAt,validRect,targetKey} from '../src/pdf-viewer-model.ts';
 const read=path=>JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
-const release=read('./fixtures/edition-release282.json');
+const release=read('./fixtures/edition-release283.json');
 test('v121 repeated citations to the same commentary retain every cited page',()=>{
  const pages=read('../src/citation-pages-v121.json'),manifest=read('../public/editions/v121/manifest.json');
  const sourceId='s-6b7a3fc8b161bc5d',source=manifest.sources.find(s=>s.id===sourceId);
@@ -17,7 +17,7 @@ test('v121 repeated citations to the same commentary retain every cited page',()
   assert.deepEqual(ref.scope.split('·').map(Number).sort((a,b)=>a-b),expected.map(x=>x[0]));
  }
 });
-for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121'],['v122','-v122']]){
+for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121'],['v122','-v122'],['v123','-v123']]){
  const {notes:count,pages:total}=release[edition];
  const citations=read(`../src/citation-links${suffix}.json`),pages=read(`../src/citation-pages${suffix}.json`),legal=read(`../src/legal-pdf-targets${suffix}.json`),paragraphs=read(`../src/paragraph-catalog${suffix}.json`),manifest=read(`../public/editions/${edition}/manifest.json`),translations=read(`../src/source-translations${suffix}.json`);
  test(`${edition}: all ${count} current footnotes retain bounded distinct citation spans and correct source membership`,()=>{
@@ -68,7 +68,7 @@ for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121'],
   const specialTitle=special.segments.find(s=>s.title.startsWith('박진수,')&&s.title.includes('특별해설'));
   assert.equal(specialTitle?.sourceId,'s-f95de22aae05230f');
   const restitution=Object.values(citations.notes).find(note=>note.text.includes('양형우,')&&note.text.includes('2020다277481'));
-  assert.ok(restitution.segments.some(s=>s.title.startsWith('양형우,')&&s.title.includes('2020다277481')&&s.sourceId==='s-b36c7120f0c98717'));
+  assert.ok(restitution.segments.some(s=>s.title.startsWith('양형우,')&&s.title.includes('대체적 환취권')&&s.sourceId==='s-b36c7120f0c98717'));
   assert.ok(restitution.segments.some(s=>s.title.startsWith('대법원')&&s.sourceId==='s-110ad3aca2ce76cb'));
   for(const note of Object.values(citations.notes))for(const segment of note.segments){
    if(segment.href?.includes('leekyung.kim'))assert.ok(segment.title.startsWith('김이경,'));
@@ -77,8 +77,11 @@ for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121'],
  });
  test(`${edition}: existing public assets and translation IDs do not inherit old manuscript footnote numbers`,()=>{
   for(const source of manifest.sources){
-   if(edition==='v122'&&['s-61a1544db8a006d7','s-631717f62f824b53','s-8b043ecae2145ffe'].includes(source.id)){
-    assert.equal(source.storageDatasetId,'applied-v122-human80');assert.equal(source.assetUrl,`https://paper.lawinus.org/source-excerpts/v122/${source.id}.pdf`);assert.ok(existsSync(new URL(`../public/source-excerpts/v122/${source.id}.pdf`,import.meta.url)));
+   if(['applied-v122-human80','applied-v123-human80'].includes(source.storageDatasetId)){
+    const excerptEdition=source.storageDatasetId.split('-')[1];
+    assert.ok(edition==='v122'||edition==='v123');
+    assert.equal(source.assetUrl,`https://paper.lawinus.org/source-excerpts/${excerptEdition}/${source.id}.pdf`);
+    assert.ok(existsSync(new URL(`../public/source-excerpts/${excerptEdition}/${source.id}.pdf`,import.meta.url)));
    }else{assert.equal(source.storageDatasetId,'human-1021-1559');assert.ok(source.assetUrl.endsWith('/assets/'+source.id));}
    assert.ok(source.noteIds.every(id=>citations.notes[id]));
   }

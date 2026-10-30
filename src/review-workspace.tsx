@@ -22,7 +22,8 @@ import ThesisContents from './thesis-contents';
 import ParallelSourceReader,{translationEntries as humanTranslationEntries} from './parallel-source-reader';
 import appliedTranslations from './source-translations-v120.json';
 import previousTranslations from './source-translations-v121.json';
-import latestTranslations from './source-translations-v122.json';
+import archived122Translations from './source-translations-v122.json';
+import latestTranslations from './source-translations-v123.json';
 import InspectionRecord from './inspection-record';
 import type {TranslationEntry} from './translation-model';
 import './review-mobile.css';
@@ -46,11 +47,14 @@ import appliedCitationPages from './citation-pages-v120.json';
 import appliedCitationExplanations from './citation-explanations-v120.json';
 import appliedLegalPdfData from './legal-pdf-targets-v120.json';
 import previousCitationPages from './citation-pages-v121.json';
-import latestCitationPages from './citation-pages-v122.json';
+import archived122CitationPages from './citation-pages-v122.json';
+import latestCitationPages from './citation-pages-v123.json';
 import previousCitationExplanations from './citation-explanations-v121.json';
-import latestCitationExplanations from './citation-explanations-v122.json';
+import archived122CitationExplanations from './citation-explanations-v122.json';
+import latestCitationExplanations from './citation-explanations-v123.json';
 import previousLegalPdfData from './legal-pdf-targets-v121.json';
-import latestLegalPdfData from './legal-pdf-targets-v122.json';
+import archived122LegalPdfData from './legal-pdf-targets-v122.json';
+import latestLegalPdfData from './legal-pdf-targets-v123.json';
 import SharedEditEditor from './shared-edit-editor';
 import {RevisionComparison} from './revision-copy';
 import {TextSizeControl} from './text-size-control';
@@ -90,11 +94,11 @@ export function ReviewWorkspaceEdition({edition,onEdition,toolPopups}:{edition:M
   const datasetId=edition.datasetId;
   const manuscript=useMemo(()=>editionParagraphs(edition.id),[edition.id]);
   const proposals=useMemo(()=>editionProposals(edition.id),[edition.id]);
-  const translationEntries=edition.id==='v122'?latestTranslations.sources as TranslationEntry[]:edition.id==='v121'?previousTranslations.sources as TranslationEntry[]:edition.id==='v120'?appliedTranslations.sources as TranslationEntry[]:humanTranslationEntries;
+  const translationEntries=edition.id==='v123'?latestTranslations.sources as TranslationEntry[]:edition.id==='v122'?archived122Translations.sources as TranslationEntry[]:edition.id==='v121'?previousTranslations.sources as TranslationEntry[]:edition.id==='v120'?appliedTranslations.sources as TranslationEntry[]:humanTranslationEntries;
   const proposalIndicators=useMemo(()=>buildProposalIndicators(proposals,manuscript),[proposals,manuscript]);
-  const citationPageMap=(edition.id==='v122'?latestCitationPages:edition.id==='v121'?previousCitationPages:edition.id==='v120'?appliedCitationPages:citationPageData) as CitationMap;
-  const legalPdfDataForEdition=edition.id==='v122'?latestLegalPdfData:edition.id==='v121'?previousLegalPdfData:edition.id==='v120'?appliedLegalPdfData:legalPdfData;
-  const citationExplanationsForEdition=edition.id==='v122'?latestCitationExplanations:edition.id==='v121'?previousCitationExplanations:edition.id==='v120'?appliedCitationExplanations:citationExplanations;
+  const citationPageMap=(edition.id==='v123'?latestCitationPages:edition.id==='v122'?archived122CitationPages:edition.id==='v121'?previousCitationPages:edition.id==='v120'?appliedCitationPages:citationPageData) as CitationMap;
+  const legalPdfDataForEdition=edition.id==='v123'?latestLegalPdfData:edition.id==='v122'?archived122LegalPdfData:edition.id==='v121'?previousLegalPdfData:edition.id==='v120'?appliedLegalPdfData:legalPdfData;
+  const citationExplanationsForEdition=edition.id==='v123'?latestCitationExplanations:edition.id==='v122'?archived122CitationExplanations:edition.id==='v121'?previousCitationExplanations:edition.id==='v120'?appliedCitationExplanations:citationExplanations;
   const alive=useRef(true);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
   const api=(path:string,init?:RequestInit)=>reviewApi(path,init,datasetId);
@@ -260,7 +264,7 @@ export function ReviewWorkspaceEdition({edition,onEdition,toolPopups}:{edition:M
   const headerHeight=workspaceLayout.headerHeight===null?undefined:boundedPanelHeight(workspaceLayout.headerHeight,viewportHeight,0,.4,132);
   const footerHeight=workspaceLayout.footerHeight===null?undefined:boundedPanelHeight(workspaceLayout.footerHeight,thesisPaneRef.current?.clientHeight||viewportHeight,0,.35,48);
   const menuHeight=workspaceLayout.sidebarMenuHeight===null?undefined:boundedPanelHeight(workspaceLayout.sidebarMenuHeight,sidebarRef.current?.clientHeight||viewportHeight,0,.7,250);
-  const readingControls=<ReadingControls editionId={edition.id} editionChoices={[{id:'human80',label:'인간80 심사본'},{id:'v122',label:'v122 수정본'},{id:'v121',label:'v121 이전 수정본'},{id:'v120',label:'v120 이전 수정본'}]} onEdition={id=>onEdition(id as ManuscriptEditionId)} onTool={toolPopups.openTool} mobile={compact} pane={shownPane} view={readingView} onChange={next=>{if(next.focus&&!readingView.focus)setPlacing(false);setReadingView(next);}} sidebar={sidebarOpen} metadata={metadataOpen} onSidebar={setSidebarVisibility} onMetadata={setMetadataVisibility} document={shownPane==='source'?'source':'thesis'} onDocument={setMobilePane} onEqualWidth={equalizeDocuments} layout={workspaceLayout.orientation} onLayout={orientation=>changeLayout({orientation})} onResetSizes={resetWorkspaceSizes}/>;
+  const readingControls=<ReadingControls editionId={edition.id} editionChoices={[{id:'human80',label:'인간80 심사본'},{id:'v123',label:'v123 수정본'},{id:'v122',label:'v122 이전 수정본'},{id:'v121',label:'v121 이전 수정본'},{id:'v120',label:'v120 이전 수정본'}]} onEdition={id=>onEdition(id as ManuscriptEditionId)} onTool={toolPopups.openTool} mobile={compact} pane={shownPane} view={readingView} onChange={next=>{if(next.focus&&!readingView.focus)setPlacing(false);setReadingView(next);}} sidebar={sidebarOpen} metadata={metadataOpen} onSidebar={setSidebarVisibility} onMetadata={setMetadataVisibility} document={shownPane==='source'?'source':'thesis'} onDocument={setMobilePane} onEqualWidth={equalizeDocuments} layout={workspaceLayout.orientation} onLayout={orientation=>changeLayout({orientation})} onResetSizes={resetWorkspaceSizes}/>;
   const restoreControls=(!visibleSurfaces.header||headerHeight===0)?readingControls:null;
   const restorePane=compact?shownPane:'thesis';
   return <div className={"review-app four-pane-app"+(AI_MINGYU_ENABLED&&tab==='ai-mingyu'&&aiWide&&visibleSurfaces.metadata?' mingyu-wide':'')+(rows?' documents-stacked':'')+" mobile-show-"+shownPane+(visibleSurfaces.metadata?" metadata-open":" metadata-collapsed")+(readingView.focus?" reading-focus":"")+(!visibleSurfaces.header?" view-hide-header":"")+(!visibleSurfaces.tools?" view-hide-tools":"")+(!visibleSurfaces.footnotes?" view-hide-footnotes":"")}>
@@ -304,7 +308,7 @@ export function ReviewWorkspaceEdition({edition,onEdition,toolPopups}:{edition:M
           {linkedAnnotation&&<aside className="revision-context-note" aria-label="연결된 수정안 각주"><b>수정지시서 {edition.guideVersion} · 각주 {linkedAnnotation.number}</b><p>{linkedAnnotation.text}</p><small>기존 심사본의 같은 번호 각주와 구별합니다.</small></aside>}
           {proposal&&<><RevisionComparison before={proposal.before} after={proposal.after} reason={proposal.reason} contextId={proposal.id}/>{proposal.applyUnsupportedReason&&<p className="revision-context-note">{proposal.applyUnsupportedReason}</p>}</>}
           {paragraph&&<SharedEditEditor datasetId={datasetId} key={paragraph.id} kind="paragraph" targetId={paragraph.id} proposalId={proposal?.id} originalText={paragraph.text} proposalBeforeText={edition.id==='human80'?proposal?.before:paragraph.text} proposalDisplayText={edition.id==='human80'?proposal?.after:undefined} proposalReason={edition.id==='human80'?proposal?.reason:undefined} proposalApplyText={proposal?.applyText} proposalUnsupportedReason={proposal?.applyUnsupportedReason} current={shared[paragraph.id]} onSaved={sharedSaved} onMemo={draft=>newMemo('thesis',{page:paragraph.page,quote:draft})}/>}
-        </>:<><h3>{edition.guideVersion} 수정지시서 · {proposals.length}항목</h3><p className="revision-context-note">{edition.label}의 위치에 연결됩니다. 변경 전 문안은 80차 원고 기준이며 변경 후 문안은 {edition.guideVersion}에 반영되었습니다.</p>{edition.guideVersion==='v122'&&<p className="revision-context-note">온주의 관련 해설, 지원림 제23판에서 116쪽, 이시윤·조관행 제9개정판에서 140쪽, 법원실무제요(2020) 5권에서 282쪽을 선별 검토했습니다. 전권 정독은 아닙니다. 임차권등기 말소 순서, 양도·전대, 압류·추심의 효과, 대항요건 존속 종기, 임차권등기 후 새 소액임차인의 최우선변제권 배제, 조정서의 집행력을 보완했습니다.</p>}<InspectionRecord/><input className="revision-list-filter" placeholder="본문·수정안·이유 검색" value={revisionQuery} onChange={e=>setRevisionQuery(e.target.value)}/><div className="revision-list">{proposals.filter(p=>!revisionQuery||[p.before,p.after,p.reason].join(' ').includes(revisionQuery)).map(p=><button key={p.id} onClick={()=>selectProposal(p.id)}><small>PDF {p.page}{p.page_end>p.page?`~${p.page_end}`:''}쪽 · {p.priority}</small>{p.before.slice(0,120)}{p.before.length>120?'…':''}</button>)}</div><button className="shared-export-button" onClick={()=>void downloadShared()}>공통 수정 이력 내려받기</button></>}
+        </>:<><h3>{edition.guideVersion} 수정지시서 · {proposals.length}항목</h3><p className="revision-context-note">{edition.label}의 위치에 연결됩니다. 변경 전 문안은 80차 원고 기준이며 변경 후 문안은 {edition.guideVersion}에 반영되었습니다.</p>{edition.guideVersion==='v122'&&<p className="revision-context-note">온주의 관련 해설, 지원림 제23판에서 116쪽, 이시윤·조관행 제9개정판에서 140쪽, 법원실무제요(2020) 5권에서 282쪽을 선별 검토했습니다. 전권 정독은 아닙니다. 임차권등기 말소 순서, 양도·전대, 압류·추심의 효과, 대항요건 존속 종기, 임차권등기 후 새 소액임차인의 최우선변제권 배제, 조정서의 집행력을 보완했습니다.</p>}{edition.guideVersion==='v123'&&<p className="revision-context-note">임대인 사망에 따른 소송·집행의 처리, 상속포기·한정승인과 상속재산파산을 보완했습니다. 클로드 검토의견을 실제 원고와 대조하여 반영하고, 각주 삭제·신설에 따른 번호와 재인용을 함께 맞췄습니다.</p>}<InspectionRecord/><input className="revision-list-filter" placeholder="본문·수정안·이유 검색" value={revisionQuery} onChange={e=>setRevisionQuery(e.target.value)}/><div className="revision-list">{proposals.filter(p=>!revisionQuery||[p.before,p.after,p.reason].join(' ').includes(revisionQuery)).map(p=><button key={p.id} onClick={()=>selectProposal(p.id)}><small>PDF {p.page}{p.page_end>p.page?`~${p.page_end}`:''}쪽 · {p.priority}</small>{p.before.slice(0,120)}{p.before.length>120?'…':''}</button>)}</div><button className="shared-export-button" onClick={()=>void downloadShared()}>공통 수정 이력 내려받기</button></>}
       </div>}
       {tab==='source'&&<div className={"source-panel"+(note?' resizable-metadata':'')} ref={metadataBodyRef} style={{'--metadata-rows':`minmax(0,${workspaceLayout.metadataSplit}fr) 8px minmax(0,${100-workspaceLayout.metadataSplit}fr)`} as React.CSSProperties} key={active}>{note?<><div className="citation-details-scroll">
         {!textTranslation&&source&&<><div className="source-caption"><div><span className="section-eyebrow">{effectiveShared[active]?'원문 연결자료':source.supplemental?'관련 자료':source.displayMode==='excerpt'?'인용면 발췌':'참고문헌'}</span><h2>{source.title}</h2></div><a href={assetUrl(sourceId)} target="_blank" rel="noreferrer" title="별도 창에서 원전 열기">↗</a></div>{source.kind==='pdf'&&<><div className="source-locators">{sourceCitedPages.map((l,i)=><button className={l.page===sourcePage?'selected':''} key={l.page} onClick={()=>{navigateSource(l.page);setMobilePane('source');}}>{citedPageLabel(l.printed)}</button>)}</div>{sourceCitedPages.length>0&&<div className="citation-highlight-key"><span><i/>인용면</span>{sourceHighlights.some(h=>h.kind==='exact-passage')&&<span><i className="exact"/>확인 문구</span>}</div>}</>}</>}
