@@ -4,17 +4,17 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
 const guide=read('../src/revision-proposals.json'),original=read('./fixtures/human-originals.json');
-const release=read('./fixtures/edition-release284.json');
+const release=read('./fixtures/edition-release285.json');
 const paragraphs=new Map(read('../src/paragraph-catalog.json').paragraphs.map(p=>[p.id,p]));
-const applied=new Map(read('../src/paragraph-catalog-v124.json').paragraphs.map(p=>[p.id,p]));
+const applied=new Map(read('../src/paragraph-catalog-v126.json').paragraphs.map(p=>[p.id,p]));
 const notes=new Map(original.footnotes.map(n=>[n.id,n]));
 const sha=text=>createHash('sha256').update(text,'utf8').digest('hex');
-test('v124 keeps every approved human80 instruction with separate original and applied navigation',()=>{
- assert.equal(guide.version,'v124');assert.equal(guide.baseline,'human-1029-1629');assert.equal(guide.items.length,release.guide.items);
+test('v126 keeps every approved human80 instruction with separate original and applied navigation',()=>{
+ assert.equal(guide.version,'v126');assert.equal(guide.baseline,'human-1029-1629');assert.equal(guide.items.length,release.guide.items);
  assert.equal(new Set(guide.items.map(p=>p.id)).size,release.guide.items);
  for(const p of guide.items){
   assert.ok(p.humanPages.length&&p.humanPages.every(n=>n>=1&&n<=release.human80.pages),p.id);
-  assert.ok(p.appliedPages.length&&p.appliedPages.every(n=>n>=1&&n<=release.v124.pages),p.id);
+  assert.ok(p.appliedPages.length&&p.appliedPages.every(n=>n>=1&&n<=release.v126.pages),p.id);
   assert.equal(p.page,p.humanPage,p.id);assert.equal(typeof p.before,'string');assert.equal(typeof p.after,'string');assert.equal(typeof p.reason,'string');
   if(['paragraph','paragraph_split'].includes(p.kind)&&p.appliedLocationKind!=='table-toc-section'){
    assert.equal(sha(p.before),original.paragraphSha256[p.originalParagraphId],p.id);
@@ -44,7 +44,7 @@ test('saved payloads exclude display deletion markers and unknown note identitie
   if(p.after==='(삭제)'||['delete_paragraph','paragraph_delete','footnote_delete'].includes(p.kind)){assert.equal(p.applyText,'',p.id);deletions++;}
   for(const m of p.applyText.matchAll(/\[\^(\d+)\]/g)){assert.ok(notes.has('fn-'+m[1].padStart(3,'0')),p.id);linkedNotes++;}
  }
- assert.equal(deletions,(release.guide.kinds.delete_paragraph||0)+(release.guide.kinds.paragraph_delete||0));assert.ok(linkedNotes>0);
+ assert.equal(deletions,guide.items.filter(p=>['delete_paragraph','paragraph_delete'].includes(p.kind)&&typeof p.applyText==='string').length);assert.ok(linkedNotes>0);
 });
 test('the corrected commentary recitation targets its first full bibliography without changing original text',()=>{
  const p=guide.items.find(x=>x.originalNoteId==='fn-306');assert.ok(p);

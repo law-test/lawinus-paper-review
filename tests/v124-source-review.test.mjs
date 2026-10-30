@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {getLegalMentions} from '../src/legal-link-model.ts';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
-const guide=read('../src/revision-proposals.json').items,manifest=read('../public/editions/v124/manifest.json');
+const guide=read('../src/revision-proposals-v124.json').items,manifest=read('../public/editions/v124/manifest.json');
 const links=read('../src/citation-links-v124.json'),pages=read('../src/citation-pages-v124.json');
 const catalog=read('../src/paragraph-catalog-v124.json').paragraphs;
 const noteFor=alias=>guide.find(p=>p.kind==='footnote_add'&&p.target===alias)?.appliedNoteId;
