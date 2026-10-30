@@ -37,7 +37,7 @@ test('v123 new note law references distinguish civil procedure, execution, civil
 });
 
 test('v123 death section is inserted after the recovery discussion with five prose paragraphs and notes112 through116',()=>{
- const catalog=read('../src/paragraph-catalog-v123.json').paragraphs,guide=read('../src/revision-proposals.json').items;
+ const catalog=read('../src/paragraph-catalog-v123.json').paragraphs,guide=read('../src/revision-proposals-v123.json').items;
  const add=guide.find(p=>p.id==='ADD123-DEATH');assert.equal(add.kind,'paragraph_add');assert.equal(add.appliedParagraphIds.length,6);assert.equal(add.originalParagraphId,'P0469');assert.equal(add.applyText,undefined);
  const selected=add.appliedParagraphIds.map(id=>catalog.find(p=>p.id===id));assert.equal(selected[0].text,'4. 임대인 사망에 따른 집행절차의 처리');
  assert.equal(add.after,selected.map(p=>p.text).join('\n'));

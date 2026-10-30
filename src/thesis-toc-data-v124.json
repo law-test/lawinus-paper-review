@@ -1,0 +1,1867 @@
+{
+  "baseline": "applied-v124-human80",
+  "pdfSha256": "18a58ae19d9efdf6867d9f8d264a442d71ba109168cda9e68378b7cc864b4c43",
+  "pageCount": 286,
+  "entries": [
+    {
+      "id": "toc-cover",
+      "title": "표지",
+      "page": 1,
+      "printedPage": null,
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-title",
+      "title": "속표지",
+      "page": 2,
+      "printedPage": null,
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-approval",
+      "title": "인준지",
+      "page": 3,
+      "printedPage": null,
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0044",
+      "paragraphId": "P0044",
+      "title": "국문초록",
+      "page": 4,
+      "printedPage": "i",
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0056",
+      "paragraphId": "P0056",
+      "title": "Abstract",
+      "page": 6,
+      "printedPage": "iii",
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0064",
+      "paragraphId": "P0064",
+      "title": "서문",
+      "page": 8,
+      "printedPage": "v",
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0074",
+      "paragraphId": "P0074",
+      "title": "대목차",
+      "page": 10,
+      "printedPage": "vii",
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0103",
+      "paragraphId": "P0103",
+      "title": "세부목차",
+      "page": 11,
+      "printedPage": "viii",
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0278",
+      "paragraphId": "P0278",
+      "title": "표 목차",
+      "page": 18,
+      "printedPage": "xv",
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0299",
+      "paragraphId": "P0299",
+      "title": "일러두기",
+      "page": 20,
+      "printedPage": "xvii",
+      "level": 1,
+      "kind": "front"
+    },
+    {
+      "id": "toc-P0308",
+      "paragraphId": "P0308",
+      "title": "제1장 서론",
+      "page": 21,
+      "printedPage": "1",
+      "level": 1,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0309",
+      "paragraphId": "P0309",
+      "title": "제1절 연구의 배경",
+      "page": 21,
+      "printedPage": "1",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0321",
+      "paragraphId": "P0321",
+      "title": "제2절 선행연구와 연구의 과제",
+      "page": 25,
+      "printedPage": "5",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0337",
+      "paragraphId": "P0337",
+      "title": "제3절 연구의 범위와 방법",
+      "page": 33,
+      "printedPage": "13",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0338",
+      "paragraphId": "P0338",
+      "title": "Ⅰ. 연구의 범위",
+      "page": 33,
+      "printedPage": "13",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0341",
+      "paragraphId": "P0341",
+      "title": "Ⅱ. 연구의 방법",
+      "page": 34,
+      "printedPage": "14",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0348",
+      "paragraphId": "P0348",
+      "title": "제2장 임차보증금반환채권과 우선변제권",
+      "page": 36,
+      "printedPage": "16",
+      "level": 1,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0349",
+      "paragraphId": "P0349",
+      "title": "제1절 보증금반환채권의 성립·범위와 귀속",
+      "page": 36,
+      "printedPage": "16",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0351",
+      "paragraphId": "P0351",
+      "title": "Ⅰ. 반환채권의 발생과 임대차 종료의 확인",
+      "page": 36,
+      "printedPage": "16",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0357",
+      "paragraphId": "P0357",
+      "title": "Ⅱ. 잔존 반환채권액의 확정",
+      "page": 38,
+      "printedPage": "18",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0363",
+      "paragraphId": "P0363",
+      "title": "Ⅲ. 반환채무자와 권리귀속의 확정",
+      "page": 40,
+      "printedPage": "20",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0364",
+      "paragraphId": "P0364",
+      "title": "1. 현재 반환채무자",
+      "page": 40,
+      "printedPage": "20",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0369",
+      "paragraphId": "P0369",
+      "title": "2. 현재의 권리귀속",
+      "page": 42,
+      "printedPage": "22",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0375",
+      "paragraphId": "P0375",
+      "title": "Ⅳ. 반환채권의 행사와 변제",
+      "page": 44,
+      "printedPage": "24",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0376",
+      "paragraphId": "P0376",
+      "title": "1. 이행기·동시이행·지체와 소멸시효",
+      "page": 44,
+      "printedPage": "24",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0384",
+      "paragraphId": "P0384",
+      "title": "2. 절차상 행사자와 수령권자",
+      "page": 47,
+      "printedPage": "27",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0386",
+      "paragraphId": "P0386",
+      "title": "[표 1] 반환채권의 금액·귀속과 행사권한",
+      "page": 48,
+      "printedPage": "28",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0394",
+      "paragraphId": "P0394",
+      "title": "제2절 대항력·우선변제권과 반환보증",
+      "page": 48,
+      "printedPage": "28",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0396",
+      "paragraphId": "P0396",
+      "title": "Ⅰ. 대항력과 제3자 관계",
+      "page": 49,
+      "printedPage": "29",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0400",
+      "paragraphId": "P0400",
+      "title": "Ⅱ. 우선변제권과 소액보증금의 최우선변제권",
+      "page": 50,
+      "printedPage": "30",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0403",
+      "paragraphId": "P0403",
+      "title": "Ⅲ. 임차권등기의 권리보전 효과",
+      "page": 50,
+      "printedPage": "30",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0409",
+      "paragraphId": "P0409",
+      "title": "[표 2] 이주 시점과 대항력·우선변제권의 유지",
+      "page": 52,
+      "printedPage": "32",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0418",
+      "paragraphId": "P0418",
+      "title": "Ⅳ. 반환보증의 지급효과와 보호지위의 승계",
+      "page": 53,
+      "printedPage": "33",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0425",
+      "paragraphId": "P0425",
+      "title": "[표 3] 임차보증금 보호제도의 법률효과와 한계",
+      "page": 57,
+      "printedPage": "37",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0433",
+      "paragraphId": "P0433",
+      "title": "Ⅴ. 미반환 후 지원절차와 집행권원의 확보",
+      "page": 58,
+      "printedPage": "38",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0445",
+      "paragraphId": "P0445",
+      "title": "제3절 우선변제권의 행사와 채권액·배당액의 산정",
+      "page": 63,
+      "printedPage": "43",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0447",
+      "paragraphId": "P0447",
+      "title": "Ⅰ. 경매신청의 근거와 우선변제권",
+      "page": 63,
+      "printedPage": "43",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0454",
+      "paragraphId": "P0454",
+      "title": "Ⅱ. 경매신청과 배당참가의 구별",
+      "page": 65,
+      "printedPage": "45",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0460",
+      "paragraphId": "P0460",
+      "title": "Ⅲ. 배당가능성과 도산절차의 집행제한",
+      "page": 66,
+      "printedPage": "46",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0466",
+      "paragraphId": "P0466",
+      "title": "Ⅳ. 권리변동의 기준시점과 채권액·배당액의 산정",
+      "page": 68,
+      "printedPage": "48",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0468",
+      "paragraphId": "P0468",
+      "title": "[표 4] 권리변동과 집행절차의 기준시점",
+      "page": 68,
+      "printedPage": "48",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0484",
+      "paragraphId": "P0484",
+      "title": "[표 5] 채권행사와 배당액 산정에 필요한 사항",
+      "page": 69,
+      "printedPage": "49",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0499",
+      "paragraphId": "P0499",
+      "title": "제3장 임대주택에 관한 개별집행절차",
+      "page": 70,
+      "printedPage": "50",
+      "level": 1,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0500",
+      "paragraphId": "P0500",
+      "title": "제1절 환가의 유형과 임차인의 지위",
+      "page": 70,
+      "printedPage": "50",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0502",
+      "paragraphId": "P0502",
+      "title": "Ⅰ. 임차인이 직접 강제경매를 신청하는 경우",
+      "page": 71,
+      "printedPage": "51",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0504",
+      "paragraphId": "P0504",
+      "title": "1. 강제경매신청과 우선변제권 행사의 관계",
+      "page": 71,
+      "printedPage": "51",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0509",
+      "paragraphId": "P0509",
+      "title": "2. 일부신청에 따른 우선배당 범위",
+      "page": 72,
+      "printedPage": "52",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0515",
+      "paragraphId": "P0515",
+      "title": "3. 첫 매각 뒤 남은 반환채권과 대항력",
+      "page": 74,
+      "printedPage": "54",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0520",
+      "paragraphId": "P0520",
+      "title": "4. 임대인 사망에 따른 집행절차의 처리",
+      "page": 75,
+      "printedPage": "55",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0526",
+      "paragraphId": "P0526",
+      "title": "Ⅱ. 다른 채권자가 개시한 경매에 임차인이 참가하는 경우",
+      "page": 78,
+      "printedPage": "58",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0528",
+      "paragraphId": "P0528",
+      "title": "1. 배당요구의 내용과 우선변제자격의 소명",
+      "page": 78,
+      "printedPage": "58",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0531",
+      "paragraphId": "P0531",
+      "title": "2. 임차권등기와 별도 배당요구의 필요성",
+      "page": 79,
+      "printedPage": "59",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0538",
+      "paragraphId": "P0538",
+      "title": "Ⅲ. 우선변제권이 미치는 환가대금의 범위",
+      "page": 81,
+      "printedPage": "61",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0540",
+      "paragraphId": "P0540",
+      "title": "1. 미등기 주택과 대지의 매각",
+      "page": 81,
+      "printedPage": "61",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0543",
+      "paragraphId": "P0543",
+      "title": "2. 여러 필지 중 일부의 매각",
+      "page": 82,
+      "printedPage": "62",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0546",
+      "paragraphId": "P0546",
+      "title": "3. 건물의 신축, 주거용 전환과 선행담보권",
+      "page": 83,
+      "printedPage": "63",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0550",
+      "paragraphId": "P0550",
+      "title": "4. 다가구주택에서 계약단위와 환가단위",
+      "page": 84,
+      "printedPage": "64",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0555",
+      "paragraphId": "P0555",
+      "title": "Ⅳ. 조세공매에서 임차인의 권리행사",
+      "page": 86,
+      "printedPage": "66",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0557",
+      "paragraphId": "P0557",
+      "title": "Ⅴ. 신탁재산의 환가와 책임재산의 귀속",
+      "page": 86,
+      "printedPage": "66",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0566",
+      "paragraphId": "P0566",
+      "title": "제2절 배당순위와 배당금의 수령",
+      "page": 89,
+      "printedPage": "69",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0568",
+      "paragraphId": "P0568",
+      "title": "Ⅰ. 법정 우선순위에 따른 배당액의 산정",
+      "page": 89,
+      "printedPage": "69",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0569",
+      "paragraphId": "P0569",
+      "title": "1. 경합채권의 우선변제 범위와 기준시점",
+      "page": 89,
+      "printedPage": "69",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0579",
+      "paragraphId": "P0579",
+      "title": "[표 6] 채권별 우선범위와 기준시점·요건",
+      "page": 93,
+      "printedPage": "73",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0585",
+      "paragraphId": "P0585",
+      "title": "2. 해당 재산 조세와 임차보증금의 순위조정",
+      "page": 93,
+      "printedPage": "73",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0593",
+      "paragraphId": "P0593",
+      "title": "[표 7] 2019년도분 보유세의 성립·법정기일·납기",
+      "page": 95,
+      "printedPage": "75",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0602",
+      "paragraphId": "P0602",
+      "title": "3. 순위조정에 따른 배당액 산정",
+      "page": 97,
+      "printedPage": "77",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0605",
+      "paragraphId": "P0605",
+      "title": "[표 8] 순위조정 적용 전후의 배당액",
+      "page": 98,
+      "printedPage": "78",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0612",
+      "paragraphId": "P0612",
+      "title": "Ⅱ. 배당오류와 배당표 확정의 법률효과",
+      "page": 98,
+      "printedPage": "78",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0613",
+      "paragraphId": "P0613",
+      "title": "1. 정당한 배당액과 실제 배당액의 차이",
+      "page": 98,
+      "printedPage": "78",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0620",
+      "paragraphId": "P0620",
+      "title": "2. 배당표의 확정과 임차권의 소멸시점",
+      "page": 100,
+      "printedPage": "80",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0624",
+      "paragraphId": "P0624",
+      "title": "Ⅲ. 배당금 지급과 주택인도의 관계",
+      "page": 101,
+      "printedPage": "81",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0625",
+      "paragraphId": "P0625",
+      "title": "1. 배당금 지급과 주택인도의 동시이행",
+      "page": 101,
+      "printedPage": "81",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0629",
+      "paragraphId": "P0629",
+      "title": "2. 주택인도 사실의 증명과 지급요건",
+      "page": 102,
+      "printedPage": "82",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0633",
+      "paragraphId": "P0633",
+      "title": "3. 반환보증의 인도·지급 관계와 비교",
+      "page": 103,
+      "printedPage": "83",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0637",
+      "paragraphId": "P0637",
+      "title": "Ⅳ. 매각 후 잔존 반환채권과 임차인의 점유권원",
+      "page": 104,
+      "printedPage": "84",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0638",
+      "paragraphId": "P0638",
+      "title": "1. 매수인의 반환채무 인수와 보증금 잔액",
+      "page": 104,
+      "printedPage": "84",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0642",
+      "paragraphId": "P0642",
+      "title": "2. 인도명령과 임차인의 점유권원",
+      "page": 105,
+      "printedPage": "85",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0646",
+      "paragraphId": "P0646",
+      "title": "Ⅴ. 임차인의 주택취득과 자금부담",
+      "page": 106,
+      "printedPage": "86",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0651",
+      "paragraphId": "P0651",
+      "title": "제3절 반환채권의 권리변동과 행사·수령권한",
+      "page": 107,
+      "printedPage": "87",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0654",
+      "paragraphId": "P0654",
+      "title": "Ⅰ. 반환채권의 이전·담보제공과 행사권한",
+      "page": 108,
+      "printedPage": "88",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0655",
+      "paragraphId": "P0655",
+      "title": "1. 채권양도와 제3자 대항요건",
+      "page": 108,
+      "printedPage": "88",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0661",
+      "paragraphId": "P0661",
+      "title": "2. 질권설정과 반환채권의 행사",
+      "page": 109,
+      "printedPage": "89",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0666",
+      "paragraphId": "P0666",
+      "title": "3. 압류·추심·전부명령과 권리귀속",
+      "page": 110,
+      "printedPage": "90",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0670",
+      "paragraphId": "P0670",
+      "title": "Ⅱ. 금융기관·보증기관의 권리취득과 보호지위",
+      "page": 112,
+      "printedPage": "92",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0671",
+      "paragraphId": "P0671",
+      "title": "1. 금융기관의 채권양수와 우선변제권의 승계",
+      "page": 112,
+      "printedPage": "92",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0677",
+      "paragraphId": "P0677",
+      "title": "2. 보증기관의 지급과 양수·대위의 구별",
+      "page": 113,
+      "printedPage": "93",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0683",
+      "paragraphId": "P0683",
+      "title": "3. 일부대위와 원임차인의 잔존채권",
+      "page": 115,
+      "printedPage": "95",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0687",
+      "paragraphId": "P0687",
+      "title": "Ⅲ. 권리변동 후 반환채권의 범위와 항변",
+      "page": 116,
+      "printedPage": "96",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0688",
+      "paragraphId": "P0688",
+      "title": "1. 보증금의 담보적 공제와 별도 상계",
+      "page": 116,
+      "printedPage": "96",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0694",
+      "paragraphId": "P0694",
+      "title": "2. 채권양수인·질권자에 대한 공제·상계의 대항",
+      "page": 118,
+      "printedPage": "98",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0702",
+      "paragraphId": "P0702",
+      "title": "3. 권리취득의 근거에 따른 항변범위의 차이",
+      "page": 120,
+      "printedPage": "100",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0707",
+      "paragraphId": "P0707",
+      "title": "Ⅳ. 권리변동과 변제를 반영한 최종 정산",
+      "page": 121,
+      "printedPage": "101",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0708",
+      "paragraphId": "P0708",
+      "title": "1. 채권귀속·행사권한과 잔존채권액의 확정",
+      "page": 121,
+      "printedPage": "101",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0710",
+      "paragraphId": "P0710",
+      "title": "[표 9] 권리변동·변제의 유형별 효과",
+      "page": 123,
+      "printedPage": "103",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0723",
+      "paragraphId": "P0723",
+      "title": "2. 복수의 청구원인과 동일 원금의 중복만족 방지",
+      "page": 123,
+      "printedPage": "103",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0728",
+      "paragraphId": "P0728",
+      "title": "제4절 배당절차에 편입된 채권의 범위와 후행 자료의 처리",
+      "page": 124,
+      "printedPage": "104",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0732",
+      "paragraphId": "P0732",
+      "title": "Ⅰ. 경매신청·배당요구에 따른 청구범위의 확정",
+      "page": 125,
+      "printedPage": "105",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0733",
+      "paragraphId": "P0733",
+      "title": "1. 경매신청채권액과 추가 배당요구",
+      "page": 125,
+      "printedPage": "105",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0736",
+      "paragraphId": "P0736",
+      "title": "2. 배당요구 종기까지 행사된 채권과 우선순위",
+      "page": 126,
+      "printedPage": "106",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0740",
+      "paragraphId": "P0740",
+      "title": "Ⅱ. 종기 후 자료 제출과 청구범위 변경의 한계",
+      "page": 127,
+      "printedPage": "107",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0741",
+      "paragraphId": "P0741",
+      "title": "1. 기존 청구의 소명과 우선순위 자료의 보완",
+      "page": 127,
+      "printedPage": "107",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0753",
+      "paragraphId": "P0753",
+      "title": "2. 새로운 채권·금액 및 우선변제 범위의 추가",
+      "page": 129,
+      "printedPage": "109",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0759",
+      "paragraphId": "P0759",
+      "title": "3. 부대채권의 계산과 청구금액의 확장",
+      "page": 131,
+      "printedPage": "111",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0764",
+      "paragraphId": "P0764",
+      "title": "Ⅲ. 후발적 권리변동의 반영",
+      "page": 132,
+      "printedPage": "112",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0765",
+      "paragraphId": "P0765",
+      "title": "1. 권리자의 변경과 승계의 증명",
+      "page": 132,
+      "printedPage": "112",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0770",
+      "paragraphId": "P0770",
+      "title": "2. 변제·대위·압류 등 후발적 사실의 반영",
+      "page": 133,
+      "printedPage": "113",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0776",
+      "paragraphId": "P0776",
+      "title": "[표 10] 신청·배당요구 후 제출자료의 검토사항",
+      "page": 135,
+      "printedPage": "115",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P0786",
+      "paragraphId": "P0786",
+      "title": "제4장 임대인의 도산절차에서 임차보증금반환채권의 행사",
+      "page": 137,
+      "printedPage": "117",
+      "level": 1,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0787",
+      "paragraphId": "P0787",
+      "title": "제1절 파산절차",
+      "page": 137,
+      "printedPage": "117",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0789",
+      "paragraphId": "P0789",
+      "title": "Ⅰ. 특정재산 우선변제권과 파산면책",
+      "page": 137,
+      "printedPage": "117",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0790",
+      "paragraphId": "P0790",
+      "title": "1. 임차주택에 대한 우선변제권과 보증금반환청구",
+      "page": 137,
+      "printedPage": "117",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0794",
+      "paragraphId": "P0794",
+      "title": "2. 파산면책 후 반환청구와 우선변제권",
+      "page": 138,
+      "printedPage": "118",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0801",
+      "paragraphId": "P0801",
+      "title": "3. 현행 비면책 특례와 적용범위",
+      "page": 140,
+      "printedPage": "120",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0805",
+      "paragraphId": "P0805",
+      "title": "Ⅱ. 파산관재인의 경매 속행과 임차주택의 처분",
+      "page": 141,
+      "printedPage": "121",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0806",
+      "paragraphId": "P0806",
+      "title": "1. 기존 강제집행의 효력상실과 파산관재인의 속행",
+      "page": 141,
+      "printedPage": "121",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0811",
+      "paragraphId": "P0811",
+      "title": "2. 관재인의 직접 처분과 보증금 정산",
+      "page": 143,
+      "printedPage": "123",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0819",
+      "paragraphId": "P0819",
+      "title": "3. 기존 매각·처분방법이 없는 경우의 권리실현",
+      "page": 145,
+      "printedPage": "125",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0830",
+      "paragraphId": "P0830",
+      "title": "Ⅲ. 파산선고에 따른 임대차·정산관계의 변경",
+      "page": 148,
+      "printedPage": "128",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0831",
+      "paragraphId": "P0831",
+      "title": "1. 대항력 있는 임대차와 해지제한",
+      "page": 148,
+      "printedPage": "128",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0836",
+      "paragraphId": "P0836",
+      "title": "2. 파산법상 상계제한과 임대차 내부의 공제",
+      "page": 149,
+      "printedPage": "129",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0841",
+      "paragraphId": "P0841",
+      "title": "3. 부인과 반환채권의 재산정",
+      "page": 150,
+      "printedPage": "130",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0846",
+      "paragraphId": "P0846",
+      "title": "제2절 회생절차",
+      "page": 151,
+      "printedPage": "131",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0849",
+      "paragraphId": "P0849",
+      "title": "Ⅰ. 우선변제권의 회생담보권 분류와 담보가치",
+      "page": 152,
+      "printedPage": "132",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0850",
+      "paragraphId": "P0850",
+      "title": "1. 제141조 제1항의 우선특권과 주택임차인의 우선변제권",
+      "page": 152,
+      "printedPage": "132",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0856",
+      "paragraphId": "P0856",
+      "title": "2. 담보가치의 산정과 허가매각대금의 배분",
+      "page": 153,
+      "printedPage": "133",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0864",
+      "paragraphId": "P0864",
+      "title": "Ⅱ. 임대차의 존속과 회생계획에 따른 권리변경",
+      "page": 155,
+      "printedPage": "135",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0865",
+      "paragraphId": "P0865",
+      "title": "1. 임대차관계의 존속과 허가매각의 효과",
+      "page": 155,
+      "printedPage": "135",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0874",
+      "paragraphId": "P0874",
+      "title": "2. 회생계획상 권리변경과 현실지급",
+      "page": 158,
+      "printedPage": "138",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0882",
+      "paragraphId": "P0882",
+      "title": "Ⅲ. 반환채권액의 확정과 회생절차상 상계",
+      "page": 160,
+      "printedPage": "140",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0883",
+      "paragraphId": "P0883",
+      "title": "1. 임대차관계의 공제와 반환채권액",
+      "page": 160,
+      "printedPage": "140",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0890",
+      "paragraphId": "P0890",
+      "title": "2. 회생절차상 상계와 상계금지",
+      "page": 162,
+      "printedPage": "142",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0898",
+      "paragraphId": "P0898",
+      "title": "제3절 개인회생절차",
+      "page": 164,
+      "printedPage": "144",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0903",
+      "paragraphId": "P0903",
+      "title": "Ⅰ. 개시결정과 권리행사의 제한",
+      "page": 165,
+      "printedPage": "145",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0904",
+      "paragraphId": "P0904",
+      "title": "1. 기존 집행과 집행권원의 취득",
+      "page": 165,
+      "printedPage": "145",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0918",
+      "paragraphId": "P0918",
+      "title": "2. 일반 강제경매와 담보권 실행경매의 구별",
+      "page": 171,
+      "printedPage": "151",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0924",
+      "paragraphId": "P0924",
+      "title": "Ⅱ. 변제계획 인가와 기존 집행의 처리",
+      "page": 172,
+      "printedPage": "152",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0925",
+      "paragraphId": "P0925",
+      "title": "1. 인가에 따른 권리상태와 재산귀속",
+      "page": 172,
+      "printedPage": "152",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0931",
+      "paragraphId": "P0931",
+      "title": "2. 기존 집행의 속행·취소와 인가에 따른 실효",
+      "page": 173,
+      "printedPage": "153",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0981",
+      "paragraphId": "P0981",
+      "title": "Ⅲ. 인가 후 신규 강제경매와 임차주택의 미매각",
+      "page": 191,
+      "printedPage": "171",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P0982",
+      "paragraphId": "P0982",
+      "title": "1. 인가 후 신규 강제경매의 허용 여부",
+      "page": 191,
+      "printedPage": "171",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1000",
+      "paragraphId": "P1000",
+      "title": "2. 변제기간 중 미매각과 면책 후 권리행사",
+      "page": 198,
+      "printedPage": "178",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1023",
+      "paragraphId": "P1023",
+      "title": "Ⅳ. 절차종료와 권리행사",
+      "page": 204,
+      "printedPage": "184",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1024",
+      "paragraphId": "P1024",
+      "title": "1. 폐지 후 집행",
+      "page": 204,
+      "printedPage": "184",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1028",
+      "paragraphId": "P1028",
+      "title": "2. 면책 후 권리행사와 승계",
+      "page": 205,
+      "printedPage": "185",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1053",
+      "paragraphId": "P1053",
+      "title": "제4절 임차주택 매각절차의 입법적 보완 방향",
+      "page": 213,
+      "printedPage": "193",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1055",
+      "paragraphId": "P1055",
+      "title": "Ⅰ. 도산절차별 임차주택의 매각과 임차인의 권리",
+      "page": 214,
+      "printedPage": "194",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1056",
+      "paragraphId": "P1056",
+      "title": "1. 임차주택의 매각주체와 현행법상 매각방법",
+      "page": 214,
+      "printedPage": "194",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1060",
+      "paragraphId": "P1060",
+      "title": "2. 미매각 상태와 절차종료의 효과",
+      "page": 215,
+      "printedPage": "195",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1062",
+      "paragraphId": "P1062",
+      "title": "Ⅱ. 기존 매각방법과 임차인의 경매신청",
+      "page": 216,
+      "printedPage": "196",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1063",
+      "paragraphId": "P1063",
+      "title": "1. 현행 매각·지급방법의 우선적 이용",
+      "page": 216,
+      "printedPage": "196",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1070",
+      "paragraphId": "P1070",
+      "title": "2. 예상배당액과 경매의 실익",
+      "page": 218,
+      "printedPage": "198",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1074",
+      "paragraphId": "P1074",
+      "title": "[표 11] 관재인의 매각과 새 경매의 비교",
+      "page": 219,
+      "printedPage": "199",
+      "level": 5,
+      "kind": "table"
+    },
+    {
+      "id": "toc-P1083",
+      "paragraphId": "P1083",
+      "title": "3. 임차인의 경매신청에 관한 입법요건",
+      "page": 220,
+      "printedPage": "200",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1085",
+      "paragraphId": "P1085",
+      "title": "Ⅲ. 외국법의 집행제한과 환가절차",
+      "page": 221,
+      "printedPage": "201",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1086",
+      "paragraphId": "P1086",
+      "title": "1. 미국법상 재산귀속과 집행정지",
+      "page": 221,
+      "printedPage": "201",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1090",
+      "paragraphId": "P1090",
+      "title": "2. 독일법상 환가권한과 환가기간",
+      "page": 222,
+      "printedPage": "202",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1094",
+      "paragraphId": "P1094",
+      "title": "3. 일본법상 집행중지와 불복",
+      "page": 223,
+      "printedPage": "203",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1099",
+      "paragraphId": "P1099",
+      "title": "제5절 개정안의 검토와 절차별 개선방안",
+      "page": 225,
+      "printedPage": "205",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1100",
+      "paragraphId": "P1100",
+      "title": "Ⅰ. 개정안의 구조와 한계",
+      "page": 225,
+      "printedPage": "205",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1101",
+      "paragraphId": "P1101",
+      "title": "1. 국회에 제출된 개정안의 내용",
+      "page": 225,
+      "printedPage": "205",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1105",
+      "paragraphId": "P1105",
+      "title": "2. 개정안의 검토와 입법방식의 선택",
+      "page": 227,
+      "printedPage": "207",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1111",
+      "paragraphId": "P1111",
+      "title": "Ⅱ. 파산절차",
+      "page": 228,
+      "printedPage": "208",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1112",
+      "paragraphId": "P1112",
+      "title": "1. 파산재단 소속 주택의 경매신청허가",
+      "page": 228,
+      "printedPage": "208",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1118",
+      "paragraphId": "P1118",
+      "title": "2. 경매의 신청과 배당",
+      "page": 230,
+      "printedPage": "210",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1124",
+      "paragraphId": "P1124",
+      "title": "3. 경매의 효력과 매수인의 보호",
+      "page": 232,
+      "printedPage": "212",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1129",
+      "paragraphId": "P1129",
+      "title": "Ⅲ. 회생절차",
+      "page": 234,
+      "printedPage": "214",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1130",
+      "paragraphId": "P1130",
+      "title": "1. 회생담보권 분류와 담보가치 산정",
+      "page": 234,
+      "printedPage": "214",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1134",
+      "paragraphId": "P1134",
+      "title": "2. 임차주택의 처분과 권리자 보호",
+      "page": 234,
+      "printedPage": "214",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1138",
+      "paragraphId": "P1138",
+      "title": "Ⅳ. 개인회생절차",
+      "page": 236,
+      "printedPage": "216",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1139",
+      "paragraphId": "P1139",
+      "title": "1. 인가 후 경매신청과 집행의 중지",
+      "page": 236,
+      "printedPage": "216",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1145",
+      "paragraphId": "P1145",
+      "title": "2. 매각 후 정산과 변제계획의 변경",
+      "page": 238,
+      "printedPage": "218",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1153",
+      "paragraphId": "P1153",
+      "title": "3. 변제계획의 기재사항",
+      "page": 241,
+      "printedPage": "221",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1156",
+      "paragraphId": "P1156",
+      "title": "4. 면책·폐지 후의 권리행사",
+      "page": 241,
+      "printedPage": "221",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1162",
+      "paragraphId": "P1162",
+      "title": "Ⅴ. 적용례와 경과조치",
+      "page": 243,
+      "printedPage": "223",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1163",
+      "paragraphId": "P1163",
+      "title": "1. 시행 전 파산사건과 확정된 권리의 보호",
+      "page": 243,
+      "printedPage": "223",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1166",
+      "paragraphId": "P1166",
+      "title": "2. 회생·개인회생사건의 적용례",
+      "page": 244,
+      "printedPage": "224",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1171",
+      "paragraphId": "P1171",
+      "title": "Ⅵ. 소액보증금 보호범위의 보완과 남은 과제",
+      "page": 245,
+      "printedPage": "225",
+      "level": 3,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1174",
+      "paragraphId": "P1174",
+      "title": "제5장 결론",
+      "page": 247,
+      "printedPage": "227",
+      "level": 1,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1194",
+      "paragraphId": "P1194",
+      "title": "참고문헌",
+      "page": 252,
+      "printedPage": "232",
+      "level": 1,
+      "kind": "back"
+    },
+    {
+      "id": "toc-P1195",
+      "paragraphId": "P1195",
+      "title": "Ⅰ. 국내 문헌",
+      "page": 252,
+      "printedPage": "232",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1196",
+      "paragraphId": "P1196",
+      "title": "1. 주석서·단행본",
+      "page": 252,
+      "printedPage": "232",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1237",
+      "paragraphId": "P1237",
+      "title": "2. 논문 및 평석",
+      "page": 255,
+      "printedPage": "235",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1326",
+      "paragraphId": "P1326",
+      "title": "3. 학위논문",
+      "page": 265,
+      "printedPage": "245",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1330",
+      "paragraphId": "P1330",
+      "title": "4. 연구보고서·발표문·정책자료",
+      "page": 266,
+      "printedPage": "246",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1341",
+      "paragraphId": "P1341",
+      "title": "5. 기타 자료",
+      "page": 267,
+      "printedPage": "247",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1359",
+      "paragraphId": "P1359",
+      "title": "Ⅱ. 외국 문헌",
+      "page": 268,
+      "printedPage": "248",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1360",
+      "paragraphId": "P1360",
+      "title": "1. 법령",
+      "page": 268,
+      "printedPage": "248",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1366",
+      "paragraphId": "P1366",
+      "title": "2. 주석서·논문",
+      "page": 269,
+      "printedPage": "249",
+      "level": 4,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1369",
+      "paragraphId": "P1369",
+      "title": "부록: 법률 개정안",
+      "page": 270,
+      "printedPage": "250",
+      "level": 1,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-appendix-P1370",
+      "paragraphId": "P1370",
+      "title": "1. 파산재단에 속하는 임차주택의 경매신청 허가",
+      "page": 270,
+      "printedPage": "250",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1370",
+      "paragraphId": "P1370",
+      "title": "[부록 표 1] 파산재단에 속하는 임차주택의 경매신청 허가",
+      "page": 270,
+      "printedPage": "250",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1373",
+      "paragraphId": "P1373",
+      "title": "2. 임차주택의 경매와 배당",
+      "page": 272,
+      "printedPage": "252",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1373",
+      "paragraphId": "P1373",
+      "title": "[부록 표 2] 임차주택의 경매와 배당",
+      "page": 272,
+      "printedPage": "252",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1376",
+      "paragraphId": "P1376",
+      "title": "3. 우선변제권 있는 주택임차인의 회생담보권",
+      "page": 275,
+      "printedPage": "255",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1376",
+      "paragraphId": "P1376",
+      "title": "[부록 표 3] 우선변제권 있는 주택임차인의 회생담보권",
+      "page": 275,
+      "printedPage": "255",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1379",
+      "paragraphId": "P1379",
+      "title": "4. 우선변제권 있는 임차주택의 처분",
+      "page": 276,
+      "printedPage": "256",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1379",
+      "paragraphId": "P1379",
+      "title": "[부록 표 4] 우선변제권 있는 임차주택의 처분",
+      "page": 276,
+      "printedPage": "256",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1382",
+      "paragraphId": "P1382",
+      "title": "5. 인가 후 경매신청과 기존 배당절차의 존속",
+      "page": 278,
+      "printedPage": "258",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1382",
+      "paragraphId": "P1382",
+      "title": "[부록 표 5] 인가 후 경매신청과 기존 배당절차의 존속",
+      "page": 278,
+      "printedPage": "258",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1385",
+      "paragraphId": "P1385",
+      "title": "6. 매각·배당의 정산과 변제계획의 조정",
+      "page": 281,
+      "printedPage": "261",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1385",
+      "paragraphId": "P1385",
+      "title": "[부록 표 6] 매각·배당의 정산과 변제계획의 조정",
+      "page": 281,
+      "printedPage": "261",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1388",
+      "paragraphId": "P1388",
+      "title": "7. 변제계획의 기재사항",
+      "page": 283,
+      "printedPage": "263",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1388",
+      "paragraphId": "P1388",
+      "title": "[부록 표 7] 변제계획의 기재사항",
+      "page": 283,
+      "printedPage": "263",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1391",
+      "paragraphId": "P1391",
+      "title": "8. 면책 후 우선변제권의 행사",
+      "page": 284,
+      "printedPage": "264",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1391",
+      "paragraphId": "P1391",
+      "title": "[부록 표 8] 면책 후 우선변제권의 행사",
+      "page": 284,
+      "printedPage": "264",
+      "level": 3,
+      "kind": "table"
+    },
+    {
+      "id": "toc-appendix-P1394",
+      "paragraphId": "P1394",
+      "title": "9. 적용례와 경과조치",
+      "page": 285,
+      "printedPage": "265",
+      "level": 2,
+      "kind": "heading"
+    },
+    {
+      "id": "toc-P1394",
+      "paragraphId": "P1394",
+      "title": "[부록 표 9] 적용례와 경과조치",
+      "page": 285,
+      "printedPage": "265",
+      "level": 3,
+      "kind": "table"
+    }
+  ]
+}

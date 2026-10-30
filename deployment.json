@@ -42,13 +42,19 @@
       "datasetId": "applied-v123-human80",
       "pages": 260,
       "footnotes": 417
+    },
+    "v124": {
+      "datasetId": "applied-v124-human80",
+      "pages": 286,
+      "footnotes": 442
     }
   },
   "revisionGuide": {
-    "version": "v123",
-    "items": 566,
+    "version": "v124",
+    "items": 698,
     "baseline": "human80",
     "archives": {
+      "v123": 566,
       "v122": 475,
       "v121": 468,
       "v120": 452
@@ -56,14 +62,14 @@
   },
   "aiEnabled": false,
   "previousVerifiedDeployment": {
-    "sourceCommit": "1adb7410751def0a181c7fe0a3119fc27d3ef8a7",
-    "pagesCommit": "6fe006a11ac9fb696fded749e41b89ba58797635",
-    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41001904452",
+    "sourceCommit": "afe2a329ba70d603ce49e357c783039b71bcbdd0",
+    "pagesCommit": "2059ce05ee78b1ef2627415c4fd80d4ce94dd5b7",
+    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41099681418",
     "pagesBuildConclusion": "success",
-    "sourceFiles": 527,
-    "pagesFiles": 283
+    "sourceFiles": 545,
+    "pagesFiles": 291
   },
-  "release": "human80-v123-ui283",
+  "release": "human80-v124-ui284",
   "deploymentHistory": [
     {
       "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
@@ -122,6 +128,14 @@
       "pagesBuildConclusion": "success",
       "sourceFiles": 527,
       "pagesFiles": 283
+    },
+    {
+      "sourceCommit": "afe2a329ba70d603ce49e357c783039b71bcbdd0",
+      "pagesCommit": "2059ce05ee78b1ef2627415c4fd80d4ce94dd5b7",
+      "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41099681418",
+      "pagesBuildConclusion": "success",
+      "sourceFiles": 545,
+      "pagesFiles": 291
     }
   ],
   "archivedEditions": {
@@ -159,8 +173,11 @@
     "v120Pdf": 12,
     "v120Hwpx": 28,
     "v121Tested": false,
-    "v122Tested": false,
+    "v122Pdf": 11,
+    "v122Hwpx": 25,
+    "v122Tested": true,
     "v123Tested": false,
+    "v124Tested": false,
     "fivePercentTargetVerified": false
   }
 }

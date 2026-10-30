@@ -10,18 +10,18 @@ const require=createRequire(import.meta.url);
 function compile(file){return ts.transpileModule(readFileSync(new URL('../src/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;}
 function loadEditions(){const module={exports:{}};vm.runInNewContext(compile('manuscript-editions.ts'),{module,exports:module.exports,URLSearchParams,require:id=>id.endsWith('.json')?{default:require('../src/'+id.slice(2))}:require(id)});return module.exports;}
 const editions=loadEditions();
-const release=JSON.parse(readFileSync(new URL('./fixtures/edition-release283.json',import.meta.url),'utf8'));
+const release=JSON.parse(readFileSync(new URL('./fixtures/edition-release284.json',import.meta.url),'utf8'));
 
 test('the selected edition supplies its own catalog, TOC, page numbers and stable guide IDs',()=>{
  assert.equal(editions.editionFromSearch(''),'human80');assert.equal(editions.editionFromSearch('?edition=v120'),'v120');assert.equal(editions.editionFromSearch('?edition=v121'),'v121');
- for(const id of ['human80','v120','v121','v122','v123']){
-  const version=editions.MANUSCRIPT_EDITIONS[id],catalog=editions.editionParagraphs(id),guide=editions.editionProposals(id),expectedGuide=id==='v120'?release.guideV120:id==='v121'?release.guideV121:id==='v122'?release.guideV122:release.guide;
+ for(const id of ['human80','v120','v121','v122','v123','v124']){
+  const version=editions.MANUSCRIPT_EDITIONS[id],catalog=editions.editionParagraphs(id),guide=editions.editionProposals(id),expectedGuide=id==='v120'?release.guideV120:id==='v121'?release.guideV121:id==='v122'?release.guideV122:id==='v123'?release.guideV123:release.guide;
   assert.equal(catalog.length,release[id].catalog);
   assert.equal(guide.length,expectedGuide.items);assert.equal(new Set(guide.map(item=>item.id)).size,expectedGuide.items);
   assert.equal(version.toc.pdfSha256,version.catalog.pdfSha256);
   for(const item of guide){assert.ok(item.page>=1&&item.page<=version.pages,item.id);if(id!=='human80')assert.equal(item.applyText,undefined);if(item.targetParagraphId)assert.ok(catalog.some(p=>p.id===item.targetParagraphId),item.id);}
  }
- assert.deepEqual(editions.editionProposals('human80').map(p=>p.id),editions.editionProposals('v123').map(p=>p.id));
+ assert.deepEqual(editions.editionProposals('human80').map(p=>p.id),editions.editionProposals('v124').map(p=>p.id));
 });
 
 test('the actual edition switch keys a new workspace, clears deep links and selection, and retains the one popup controller',()=>{
