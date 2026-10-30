@@ -5,8 +5,19 @@ import {getCitationSegments,citationPdfTargets} from '../src/citation-link-model
 import {getLegalMentions} from '../src/legal-link-model.ts';
 import {targetAt,validRect,targetKey} from '../src/pdf-viewer-model.ts';
 const read=path=>JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
-const release=read('./fixtures/edition-release280.json');
-for(const [edition,suffix] of [['human80',''],['v120','-v120']]){
+const release=read('./fixtures/edition-release281.json');
+test('v121 repeated citations to the same commentary retain every cited page',()=>{
+ const pages=read('../src/citation-pages-v121.json'),manifest=read('../public/editions/v121/manifest.json');
+ const sourceId='s-6b7a3fc8b161bc5d',source=manifest.sources.find(s=>s.id===sourceId);
+ for(const [noteId,expected] of [['fn-351',[[604,19],[605,20]]],['fn-353',[[84,3],[133,4],[134,5]]],['fn-355',[[186,8],[187,9],[356,11]]]]){
+  const actual=pages[noteId][sourceId].pages.map(p=>[Number(p.printed),p.page]).sort((a,b)=>a[0]-b[0]);
+  assert.deepEqual(actual,expected,noteId);
+  for(const [printed,page] of actual)assert.ok(source.pageMap.some(p=>p.page===page&&p.printedPages.includes(String(printed))));
+  const ref=manifest.notes.find(n=>n.id===noteId).sourceRefs.find(r=>r.sourceId===sourceId);
+  assert.deepEqual(ref.scope.split('·').map(Number).sort((a,b)=>a-b),expected.map(x=>x[0]));
+ }
+});
+for(const [edition,suffix] of [['human80',''],['v120','-v120'],['v121','-v121']]){
  const {notes:count,pages:total}=release[edition];
  const citations=read(`../src/citation-links${suffix}.json`),pages=read(`../src/citation-pages${suffix}.json`),legal=read(`../src/legal-pdf-targets${suffix}.json`),paragraphs=read(`../src/paragraph-catalog${suffix}.json`),manifest=read(`../public/editions/${edition}/manifest.json`),translations=read(`../src/source-translations${suffix}.json`);
  test(`${edition}: all ${count} current footnotes retain bounded distinct citation spans and correct source membership`,()=>{

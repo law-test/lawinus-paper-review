@@ -45358,11 +45358,11 @@
     },
     "revisionGuide": {
       "url": "https://paper.lawinus.org/editions/human80/revision-guide.md",
-      "sha256": "f3114d8aabc114be149c4092529343d59a92469b9398f8e132cbdbedb5e9877c",
-      "bytes": 660669,
+      "sha256": "b0e2b8d006e3a304568e6e25fe795c7f1047d6f67ebec35c6b71201a02fc5708",
+      "bytes": 692514,
       "variant": "original",
-      "sourceSha256": "f3114d8aabc114be149c4092529343d59a92469b9398f8e132cbdbedb5e9877c",
-      "sourceFilename": "gpt_6_수정제안_v120.md",
+      "sourceSha256": "b0e2b8d006e3a304568e6e25fe795c7f1047d6f67ebec35c6b71201a02fc5708",
+      "sourceFilename": "gpt_6_수정제안_v121.md",
       "visibleTextUnchanged": true,
       "originalByteIdentical": true
     }
@@ -45380,8 +45380,39 @@
       "checked": "2026-10-29 16:33",
       "issued": "2026-10-29 16:34"
     },
-    "appliedV120Tested": false,
+    "appliedV120Tested": true,
     "fivePercentTargetVerified": false,
-    "scope": "제공된 80차 단락재조정 별도 PDF 검사. 웹 심사본 HWP 또는 v120의 새 검사결과가 아님."
+    "scope": "사용자가 제공한 v120 PDF/HWPX 검사결과를 입력 형식별로 기록. v121 새 검사결과는 없음.",
+    "providedV120Reports": [
+      {
+        "report_number": "00379891341",
+        "input_format": "PDF",
+        "ai_percent": 12,
+        "total_regions": 378,
+        "suspected_regions": 57,
+        "high": 0,
+        "medium": 0,
+        "low": 57,
+        "examined_at": "2026-10-30 10:34",
+        "issued_at": "2026-10-30 10:35",
+        "input_document": "1030_박사논문_80차인간최종본기준_v120적용본_v001.pdf",
+        "sha256": "4328239585942d15aee7bd0d4e37aca30132cb05f9985eeff3ffbccb5e452fae"
+      },
+      {
+        "report_number": "00379891376",
+        "input_format": "HWPX",
+        "ai_percent": 28,
+        "total_regions": 285,
+        "suspected_regions": 149,
+        "high": 0,
+        "medium": 0,
+        "low": 149,
+        "examined_at": "2026-10-30 10:34",
+        "issued_at": "2026-10-30 10:35",
+        "input_document": "1030_박사논문_80차인간최종본기준_v120적용본_v001.hwpx",
+        "sha256": "0277f35a7903eb4393a8326e5bf162338df38a9ae67e4596762e0ad3cdee9689"
+      }
+    ],
+    "appliedV121Tested": false
   }
 }

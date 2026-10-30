@@ -3,10 +3,14 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {currentTocId,visibleToc} from '../src/thesis-toc-model.ts';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
-const release=read('./fixtures/edition-release280.json');
-const human=read('../src/thesis-toc-data.json'),applied=read('../src/thesis-toc-data-v120.json');
-test('both contents catalogs are bound to their exact PDF editions and real paragraph locations',()=>{
- for(const [toc,suffix,pages] of [[human,'',release.human80.pages],[applied,'-v120',release.v120.pages]]){
+const release=read('./fixtures/edition-release281.json');
+const human=read('../src/thesis-toc-data.json'),applied=read('../src/thesis-toc-data-v120.json'),latest=read('../src/thesis-toc-data-v121.json');
+test('v121 contents lists table captions without promoting the explanatory paragraph into a heading',()=>{
+ assert.ok(latest.entries.some(e=>e.kind==='table'&&e.title==='[표 9] 관재인의 매각과 새 경매의 비교'));
+ assert.ok(!latest.entries.some(e=>e.title.startsWith('[표 9]는')));
+});
+test('all contents catalogs are bound to their exact PDF editions and real paragraph locations',()=>{
+ for(const [toc,suffix,pages] of [[human,'',release.human80.pages],[applied,'-v120',release.v120.pages],[latest,'-v121',release.v121.pages]]){
   const catalog=read(`../src/paragraph-catalog${suffix}.json`),paragraphs=new Map(catalog.paragraphs.map(p=>[p.id,p]));
   assert.equal(toc.pageCount,pages);assert.equal(toc.pdfSha256,catalog.pdfSha256);assert.equal(new Set(toc.entries.map(e=>e.id)).size,toc.entries.length);
   for(const e of toc.entries){assert.ok(e.page>=1&&e.page<=pages);if(e.paragraphId)assert.equal(e.page,paragraphs.get(e.paragraphId)?.page,e.title);}
@@ -16,10 +20,10 @@ test('both contents catalogs are bound to their exact PDF editions and real para
 });
 test('same title routes to each edition own pagination, including native front matter',()=>{
  const heading=(toc,title)=>toc.entries.find(e=>e.title===title);
- for(const [ed,toc] of [['human80',human],['v120',applied]])for(const [title,page] of Object.entries(release[ed].frontPages))assert.equal(heading(toc,title).page,page,ed+':'+title);
+ for(const [ed,toc] of [['human80',human],['v120',applied],['v121',latest]])for(const [title,page] of Object.entries(release[ed].frontPages))assert.equal(heading(toc,title).page,page,ed+':'+title);
 });
 test('search preserves ancestors and details while the short contents mode stays compact',()=>{
- for(const toc of [human,applied]){
+ for(const toc of [human,applied,latest]){
   assert.ok(visibleToc(toc.entries,'',false).every(e=>e.level<=2));
   assert.equal(visibleToc(toc.entries,'',true).length,toc.entries.length);
   const found=visibleToc(toc.entries,'변제계획의 기재사항',false);assert.ok(found.length>1);assert.ok(found.some(e=>e.title.includes('변제계획의 기재사항')));
@@ -27,5 +31,5 @@ test('search preserves ancestors and details while the short contents mode stays
  }
 });
 test('same-page selected headings remain stable and pages before the document have no active item',()=>{
- for(const toc of [human,applied]){const chapter=toc.entries.find(e=>e.title==='제1장 서론');assert.equal(currentTocId(toc.entries,chapter.page,chapter.id),chapter.id);assert.equal(currentTocId(toc.entries,0),undefined);}
+ for(const toc of [human,applied,latest]){const chapter=toc.entries.find(e=>e.title==='제1장 서론');assert.equal(currentTocId(toc.entries,chapter.page,chapter.id),chapter.id);assert.equal(currentTocId(toc.entries,0),undefined);}
 });

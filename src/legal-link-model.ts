@@ -4,7 +4,7 @@ import editionContextData from './manuscript-legal-contexts.json' with {type:'js
 export type LegalStatus='current'|'proposal'|'historical'|'foreign'|'unresolved';
 export type LegalRelated={label:string;href:string;lawId?:string;article?:string};
 export type LegalMention={start:number;end:number;label:string;lawId?:string;lawName?:string;article?:string;paragraph?:string;href:string;related:LegalRelated[];status:LegalStatus;reason?:string;articleText?:string};
-export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human80'|'v120'|'legacy1021'};
+export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human80'|'v120'|'v121'|'legacy1021'};
 export type LegalArticle={title:string;text:string;paragraphs?:string[]};
 export type LegalLaw={id:string;name:string;aliases:string[];status?:LegalStatus;href:string;lsiSeq?:string;effectiveDate?:string;effectiveLabel?:string;articleNumbers?:string[];articles?:Record<string,LegalArticle>;relatedLawIds?:string[];relatedArticleMap?:Record<string,{lawId:string;article:string}[]>;relatedNote?:string};
 type ContextRecord={defaultLawId?:string;lawId?:string;status?:LegalStatus;proposalHref?:string;source?:string;textHash?:string;excludedSpans?:{start:number;label:string}[];mentions?:{article:string;lawId:string;status?:LegalStatus;start?:number}[];auditedSpans?:{start:number;label:string;article:string;lawId:string;status:LegalStatus}[]};

@@ -87,7 +87,7 @@ test('all 444 public footnotes retain their original text and a web manuscript p
  const noteIds=new Set(originals.footnotes.map(n=>n.id));
  for(const p of catalog.paragraphs)for(const match of p.text.matchAll(/\[\^(\d+)\]/g))assert.ok(noteIds.has('fn-'+match[1].padStart(3,'0')),p.id+' '+match[0]);
 });
-test('both editions retain their own appendix table pages',()=>{const release=JSON.parse(readFileSync(new URL('./fixtures/edition-release280.json',import.meta.url),'utf8'));for(const [ed,suffix] of [['human80',''],['v120','-v120']]){const actual=JSON.parse(readFileSync(new URL('../src/paragraph-catalog'+suffix+'.json',import.meta.url),'utf8'));assert.equal(actual.paragraphs.find(p=>p.id===release[ed].lastParagraphId).page,release[ed].lastParagraphPage);}});
+test('both editions retain their own appendix table pages',()=>{const release=JSON.parse(readFileSync(new URL('./fixtures/edition-release281.json',import.meta.url),'utf8'));for(const [ed,suffix] of [['human80',''],['v120','-v120'],['v121','-v121']]){const actual=JSON.parse(readFileSync(new URL('../src/paragraph-catalog'+suffix+'.json',import.meta.url),'utf8'));assert.equal(actual.paragraphs.find(p=>p.id===release[ed].lastParagraphId).page,release[ed].lastParagraphPage);}});
 test('experience displays only the starting year for all recorded date forms',()=>{
  for(const period of ['2014. 8.~2017. 7.','2019. 10. 취임','2026. 4.부터','2026. 9.']){const html=renderToStaticMarkup(React.createElement(ProfileRow,{section:'experience',row:{period,institution:'기관',role:'위원'}}));assert.ok(html.includes('>'+period.slice(0,4)+'</span>'));assert.ok(!html.includes('취임'));assert.ok(!html.includes('부터'));assert.ok(!html.includes('~'));}
 });

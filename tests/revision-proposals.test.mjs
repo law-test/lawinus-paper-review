@@ -4,17 +4,17 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
 const guide=read('../src/revision-proposals.json'),original=read('./fixtures/human-originals.json');
-const release=read('./fixtures/edition-release280.json');
+const release=read('./fixtures/edition-release281.json');
 const paragraphs=new Map(read('../src/paragraph-catalog.json').paragraphs.map(p=>[p.id,p]));
-const applied=new Map(read('../src/paragraph-catalog-v120.json').paragraphs.map(p=>[p.id,p]));
+const applied=new Map(read('../src/paragraph-catalog-v121.json').paragraphs.map(p=>[p.id,p]));
 const notes=new Map(original.footnotes.map(n=>[n.id,n]));
 const sha=text=>createHash('sha256').update(text,'utf8').digest('hex');
-test('v120 keeps every approved human80 instruction with separate original and applied navigation',()=>{
- assert.equal(guide.version,'v120');assert.equal(guide.baseline,'human-1029-1629');assert.equal(guide.items.length,release.guide.items);
+test('v121 keeps every approved human80 instruction with separate original and applied navigation',()=>{
+ assert.equal(guide.version,'v121');assert.equal(guide.baseline,'human-1029-1629');assert.equal(guide.items.length,release.guide.items);
  assert.equal(new Set(guide.items.map(p=>p.id)).size,release.guide.items);
  for(const p of guide.items){
   assert.ok(p.humanPages.length&&p.humanPages.every(n=>n>=1&&n<=release.human80.pages),p.id);
-  assert.ok(p.appliedPages.length&&p.appliedPages.every(n=>n>=1&&n<=release.v120.pages),p.id);
+  assert.ok(p.appliedPages.length&&p.appliedPages.every(n=>n>=1&&n<=release.v121.pages),p.id);
   assert.equal(p.page,p.humanPage,p.id);assert.equal(typeof p.before,'string');assert.equal(typeof p.after,'string');assert.equal(typeof p.reason,'string');
   if(['paragraph','paragraph_split'].includes(p.kind)){
    assert.equal(sha(p.before),original.paragraphSha256[p.originalParagraphId],p.id);

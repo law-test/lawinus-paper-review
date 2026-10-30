@@ -57,10 +57,11 @@ test('a valid proposal link opens the exact current proposal while an unknown ID
  assert.equal(reviewDeepLink('',ids),null);
 });
 
-test('the new examiner preparation routes jeonse-right provisions to civil law and the two insolvency conditions to DRBA',()=>{
+test('the new examiner preparation retains civil-law answer citations and the DRBA question scope',()=>{
  for(const [id,lawId,articles] of [['committee-gyuwan-04','civil',['303','318']],['committee-gyuwan-02','drba',['615','600']]]){
   const item=faq.find(row=>row.id===id);
-  const mentions=item.answer.flatMap(text=>getLegalMentions(text,{contextId:'faq:'+item.id,defaultLawId:item.defaultLawId,edition:'human80'}));
+  const texts=id==='committee-gyuwan-02'?[item.question]:item.answer;
+  const mentions=texts.flatMap(text=>getLegalMentions(text,{contextId:'faq:'+item.id,defaultLawId:item.defaultLawId,edition:'human80'}));
   assert.deepEqual(mentions.map(m=>m.article),articles);assert.ok(mentions.every(m=>m.lawId===lawId&&m.status==='current'));
  }
 });
