@@ -45358,11 +45358,11 @@
     },
     "revisionGuide": {
       "url": "https://paper.lawinus.org/editions/human80/revision-guide.md",
-      "sha256": "217e312bc064373d8d7ed8cdfdd8333203a58efad1eb20c4c90304ed5f17734f",
-      "bytes": 698537,
+      "sha256": "bc6cd52f8d007d1f5cb5fb3ee986134d1123a97a16828b362ed625cd6440a962",
+      "bytes": 782873,
       "variant": "original",
-      "sourceSha256": "217e312bc064373d8d7ed8cdfdd8333203a58efad1eb20c4c90304ed5f17734f",
-      "sourceFilename": "gpt_6_수정제안_v122.md",
+      "sourceSha256": "bc6cd52f8d007d1f5cb5fb3ee986134d1123a97a16828b362ed625cd6440a962",
+      "sourceFilename": "gpt_6_수정제안_v123.md",
       "visibleTextUnchanged": true,
       "originalByteIdentical": true
     }
@@ -45382,7 +45382,7 @@
     },
     "appliedV120Tested": true,
     "fivePercentTargetVerified": false,
-    "scope": "사용자가 제공한 v120 PDF/HWPX 검사결과를 입력 형식별로 기록. v121·v122 새 검사결과는 없음.",
+    "scope": "사용자가 제공한 v120 PDF/HWPX 검사결과를 입력 형식별로 기록. v121·v122·v123 새 검사결과는 없음.",
     "providedV120Reports": [
       {
         "report_number": "00379891341",
@@ -45414,6 +45414,7 @@
       }
     ],
     "appliedV121Tested": false,
-    "appliedV122Tested": false
+    "appliedV122Tested": false,
+    "appliedV123Tested": false
   }
 }
