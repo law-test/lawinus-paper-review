@@ -98,7 +98,7 @@ export function ReviewWorkspaceEdition({edition,onEdition,toolPopups}:{edition:M
   const alive=useRef(true);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
   const api=(path:string,init?:RequestInit)=>reviewApi(path,init,datasetId);
-  const assetUrl=(id:string)=>reviewAssetUrl(id,id==='human'||id==='thesis'?datasetId:'human-1021-1559');
+  const assetUrl=(id:string)=>data?.sources?.find((item:Obj)=>item.id===id)?.assetUrl||reviewAssetUrl(id,id==='human'||id==='thesis'?datasetId:'human-1021-1559');
   const openLegal=useLegalLinks();
   const [aiWide,setAiWide]=useState(true);
   const [missingCitation,setMissingCitation]=useState<SourceSegment|null>(null);

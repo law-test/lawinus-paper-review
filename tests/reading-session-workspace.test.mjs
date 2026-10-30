@@ -54,6 +54,18 @@ function harness(saved,width=390,height=844,layout,entry={search:'',hash:''}){
 }
 const saved={schema:1,datasetId:'human-a',thesis:{page:249,zoom:1.15},sources:{a:{page:199,zoom:1.3},b:{page:21,zoom:1.6}},sourceId:'a',textTranslation:'',activeNote:'fn-001',manuscriptMode:'pdf',mobilePane:'source',tab:'source',paragraphId:'',proposalId:'',readingView:{focus:false,header:true,tools:true,footnotes:true},sidebarOpen:false,metadataOpen:true};
 
+test('the displayed PDF and external link both use the edition manifest source asset',async()=>{
+ const url='https://paper.lawinus.org/source-excerpts/v122/s-61a1544db8a006d7.pdf';
+ fixture.sources[0].assetUrl=url;
+ try{
+  const h=harness(saved);await h.boot();
+  assert.equal(h.pdf('a').props.url,url);
+  assert.ok(h.nodes().some(n=>n.type==='a'&&n.props.title==='별도 창에서 원전 열기'&&n.props.href===url));
+  const next=h.nodes().find(n=>n.type==='button'&&h.label(n)==='2. 원전 B');next.props.onClick();h.render();
+  assert.equal(h.pdf('b').props.url,'','unversioned source retains the existing resolver fallback');
+ }finally{delete fixture.sources[0].assetUrl;}
+});
+
 test('footer uses the actual edition printed-page label and never derives an old offset',async()=>{
  const h=harness(saved);await h.boot();
  assert.ok(h.nodes().some(node=>node.type==='span'&&h.label(node)==='PDF 249쪽 · 인쇄 231면'));
