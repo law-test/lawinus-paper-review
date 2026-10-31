@@ -45358,13 +45358,8 @@
     },
     "revisionGuide": {
       "url": "https://paper.lawinus.org/editions/human80/revision-guide.md",
-      "sha256": "616b4f6b4b5bb91821b013a7a542c5821eb3aacece929db9e0354c291cc86264",
-      "bytes": 1135387,
-      "variant": "original",
-      "sourceSha256": "616b4f6b4b5bb91821b013a7a542c5821eb3aacece929db9e0354c291cc86264",
-      "sourceFilename": "gpt_6_수정제안_v126.md",
-      "visibleTextUnchanged": true,
-      "originalByteIdentical": true
+      "sha256": "bf2c9ab0e467d59efae9c419f7a81007d51ef366c5da739396b2d1e18eb6e3ef",
+      "bytes": 1322405
     }
   },
   "inspectionRecord": {
@@ -45382,7 +45377,7 @@
     },
     "appliedV120Tested": true,
     "fivePercentTargetVerified": false,
-    "scope": "사용자가 제공한 v120 PDF 12%·HWPX 28%, v122 PDF 11%·HWPX 25%를 판본과 형식별로 기록. v123·v124·v125·v126 새 검사결과는 없음.",
+    "scope": "사용자가 제공한 v120 PDF 12%·HWPX 28%, v122 PDF 11%·HWPX 25%를 판본과 형식별로 기록. v123·v124·v125·v126·v127 새 검사결과는 없음.",
     "providedV120Reports": [
       {
         "edition": "v120",

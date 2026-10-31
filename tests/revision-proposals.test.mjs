@@ -4,17 +4,17 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url),'utf8'));
 const guide=read('../src/revision-proposals.json'),original=read('./fixtures/human-originals.json');
-const release=read('./fixtures/edition-release285.json');
+const release=read('./fixtures/edition-release286.json');
 const paragraphs=new Map(read('../src/paragraph-catalog.json').paragraphs.map(p=>[p.id,p]));
-const applied=new Map(read('../src/paragraph-catalog-v126.json').paragraphs.map(p=>[p.id,p]));
+const applied=new Map(read('../src/paragraph-catalog-v127.json').paragraphs.map(p=>[p.id,p]));
 const notes=new Map(original.footnotes.map(n=>[n.id,n]));
 const sha=text=>createHash('sha256').update(text,'utf8').digest('hex');
-test('v126 keeps every approved human80 instruction with separate original and applied navigation',()=>{
- assert.equal(guide.version,'v126');assert.equal(guide.baseline,'human-1029-1629');assert.equal(guide.items.length,release.guide.items);
+test('v127 keeps every approved human80 instruction with separate original and applied navigation',()=>{
+ assert.equal(guide.version,'v127');assert.equal(guide.baseline,'human-1029-1629');assert.equal(guide.items.length,release.guide.items);
  assert.equal(new Set(guide.items.map(p=>p.id)).size,release.guide.items);
  for(const p of guide.items){
   assert.ok(p.humanPages.length&&p.humanPages.every(n=>n>=1&&n<=release.human80.pages),p.id);
-  assert.ok(p.appliedPages.length&&p.appliedPages.every(n=>n>=1&&n<=release.v126.pages),p.id);
+  assert.ok(p.appliedPages.length&&p.appliedPages.every(n=>n>=1&&n<=release.v127.pages),p.id);
   assert.equal(p.page,p.humanPage,p.id);assert.equal(typeof p.before,'string');assert.equal(typeof p.after,'string');assert.equal(typeof p.reason,'string');
   if(['paragraph','paragraph_split'].includes(p.kind)&&p.appliedLocationKind!=='table-toc-section'){
    assert.equal(sha(p.before),original.paragraphSha256[p.originalParagraphId],p.id);
@@ -23,7 +23,7 @@ test('v126 keeps every approved human80 instruction with separate original and a
   if(p.kind==='footnote')assert.equal(p.before,notes.get(p.originalNoteId)?.text,p.id);
   if(p.appliedLocationKind==='table-toc-section'){
    assert.equal(p.originalTextParagraphIds.length,1);assert.ok(p.appliedTextParagraphIds.length);
-   assert.ok(p.before.startsWith('[표 '));assert.ok(p.after.startsWith('[표 '));
+   assert.match(p.before,/^\[(?:부록 )?표 \d+/);assert.match(p.after,/^(?:부록 )?표 \d+\./);
    assert.equal(applied.get(p.appliedParagraphId).text,'표 목차');assert.equal(p.applyText,undefined);
   }
   if(p.appliedParagraphId)assert.ok(applied.has(p.appliedParagraphId),p.id);

@@ -52,13 +52,19 @@
       "datasetId": "applied-v126-human80",
       "pages": 199,
       "footnotes": 442
+    },
+    "v127": {
+      "datasetId": "applied-v127-human80",
+      "pages": 199,
+      "footnotes": 442
     }
   },
   "revisionGuide": {
-    "version": "v126",
-    "items": 894,
+    "version": "v127",
+    "items": 1132,
     "baseline": "human80",
     "archives": {
+      "v126": 894,
       "v124": 698,
       "v123": 566,
       "v122": 475,
@@ -68,14 +74,14 @@
   },
   "aiEnabled": false,
   "previousVerifiedDeployment": {
-    "sourceCommit": "a9d0e5c51afa2849245fad21b8456e5a9252eb64",
-    "pagesCommit": "74d7fadc0b732e56270b5bc8b79f6afb41ccceb9",
-    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41114135554",
+    "sourceCommit": "e01dcad1c6565d905a64c422525f0c9864aa78a5",
+    "pagesCommit": "5131dbac633424b60747b2ab34e7df715f321cd3",
+    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41130835184",
     "pagesBuildConclusion": "success",
-    "sourceFiles": 568,
-    "pagesFiles": 304
+    "sourceFiles": 584,
+    "pagesFiles": 310
   },
-  "release": "human80-v126-ui285",
+  "release": "human80-v127-ui286",
   "deploymentHistory": [
     {
       "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
@@ -150,6 +156,14 @@
       "pagesBuildConclusion": "success",
       "sourceFiles": 568,
       "pagesFiles": 304
+    },
+    {
+      "sourceCommit": "e01dcad1c6565d905a64c422525f0c9864aa78a5",
+      "pagesCommit": "5131dbac633424b60747b2ab34e7df715f321cd3",
+      "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41130835184",
+      "pagesBuildConclusion": "success",
+      "sourceFiles": 584,
+      "pagesFiles": 310
     }
   ],
   "archivedEditions": {
@@ -194,6 +208,7 @@
     "v124Tested": false,
     "v125Tested": false,
     "v126Tested": false,
+    "v127Tested": false,
     "fivePercentTargetVerified": false
   }
 }

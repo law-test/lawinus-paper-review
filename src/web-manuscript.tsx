@@ -7,6 +7,8 @@ import './proposal-indicators.css';
 import {useBodyReadingPosition} from './body-reading-hook';
 import {LegalText} from './legal-links';
 import SourceText,{type SourceSegment} from './source-text';
+import {useManuscriptEditionId} from './manuscript-edition-context';
+import {manuscriptNoteLabel} from './manuscript-format';
 
 export type ManuscriptParagraph={id:string;text:string;page:number;printed:string|number|null;kind:string;heading:boolean;order:number;rects:{page:number;rect:number[]}[]};
 type Note={id:string;number:number;page:number;text:string};
@@ -28,6 +30,7 @@ export function InlineNoteText({text,onNote,contextId}:{text:string;onNote:(id:s
 
 export default function WebManuscript({extraControls,controlsHost,paragraphs,overrides,notes,page,zoom,selected,onPageChange,onParagraph,onNote,onReference,proposalIndicators={},onProposal,persistenceKey,navigationToken,onNavigationHandled}:{extraControls?:React.ReactNode;controlsHost?:HTMLElement|null;paragraphs:ManuscriptParagraph[];overrides:Record<string,SharedEdit>;notes:Note[];page:number;zoom:number;selected:string;onPageChange:(page:number)=>void;onParagraph:(id:string)=>void;onNote:(id:string)=>void;onReference:(noteId:string,segment:SourceSegment)=>void;proposalIndicators?:Record<string,ProposalIndicator>;onProposal?:(proposalId:string)=>void;persistenceKey?:string;navigationToken?:number;onNavigationHandled?:(token:number)=>void}){
   const host=useRef<HTMLDivElement>(null),drag=useRef<{x:number;y:number;top:number;moved:boolean}|null>(null),suppressClick=useRef(false);
+  const edition=useManuscriptEditionId();
   const reportPage=useBodyReadingPosition(host,page,zoom,persistenceKey,onPageChange,navigationToken,onNavigationHandled,overrides);
   const [hand,setHand]=useState(true);
   const groups=new Map<number,ManuscriptParagraph[]>();
@@ -45,7 +48,7 @@ export default function WebManuscript({extraControls,controlsHost,paragraphs,ove
           {indicator&&<span className="manuscript-proposal-label"><button className={'proposal-badge proposal-'+indicator.tone} onClick={e=>{e.stopPropagation();open();}}>{proposalLabel(indicator)}</button></span>}
           {deleted?<span className="manuscript-deleted-label">현재 본문에서 삭제된 문단</span>:<InlineNoteText text={overrides[p.id]?.text??p.text} onNote={onNote} contextId={p.id}/>}
         </div>;})}
-        {notes.some(note=>note.page===n)&&<div className="manuscript-footnotes">{notes.filter(note=>note.page===n).map(note=><div key={note.id} hidden={!!overrides[note.id]&&overrides[note.id].text.trim()===''} className="manuscript-footnote-row"><button type="button" title={`각주 ${note.number} 상세정보`} onClick={()=>onNote(note.id)}><sup>{note.number})</sup></button> <SourceText noteId={note.id} text={overrides[note.id]?.text??note.text} onReference={segment=>onReference(note.id,segment)}/></div>)}</div>}
+        {notes.some(note=>note.page===n)&&<div className="manuscript-footnotes">{notes.filter(note=>note.page===n).map(note=><div key={note.id} hidden={!!overrides[note.id]&&overrides[note.id].text.trim()===''} className="manuscript-footnote-row"><button type="button" title={`각주 ${note.number} 상세정보`} onClick={()=>onNote(note.id)}><sup>{manuscriptNoteLabel(note.number,edition)}</sup></button> <SourceText noteId={note.id} text={overrides[note.id]?.text??note.text} onReference={segment=>onReference(note.id,segment)}/></div>)}</div>}
       </section>)}
     </div>
   </div>;

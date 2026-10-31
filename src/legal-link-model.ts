@@ -4,10 +4,10 @@ import editionContextData from './manuscript-legal-contexts.json' with {type:'js
 export type LegalStatus='current'|'proposal'|'historical'|'foreign'|'unresolved';
 export type LegalRelated={label:string;href:string;lawId?:string;article?:string};
 export type LegalMention={start:number;end:number;label:string;lawId?:string;lawName?:string;article?:string;paragraph?:string;href:string;related:LegalRelated[];status:LegalStatus;reason?:string;articleText?:string};
-export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human80'|'v120'|'v121'|'v122'|'v123'|'v124'|'v126'|'legacy1021'};
-export type LegalArticle={title:string;text:string;paragraphs?:string[]};
+export type LegalContext={contextId?:string;defaultLawId?:string;edition?:'human80'|'v120'|'v121'|'v122'|'v123'|'v124'|'v126'|'v127'|'legacy1021'};
+export type LegalArticle={title:string;text:string;paragraphs?:string[];href?:string;effectiveLabel?:string;sourceNote?:string};
 export type LegalLaw={id:string;name:string;aliases:string[];status?:LegalStatus;href:string;lsiSeq?:string;effectiveDate?:string;effectiveLabel?:string;articleNumbers?:string[];articles?:Record<string,LegalArticle>;relatedLawIds?:string[];relatedArticleMap?:Record<string,{lawId:string;article:string}[]>;relatedNote?:string};
-type ContextRecord={defaultLawId?:string;lawId?:string;status?:LegalStatus;proposalHref?:string;source?:string;textHash?:string;excludedSpans?:{start:number;label:string}[];mentions?:{article:string;lawId:string;status?:LegalStatus;start?:number}[];auditedSpans?:{start:number;label:string;article:string;lawId:string;status:LegalStatus}[]};
+type ContextRecord={defaultLawId?:string;lawId?:string;status?:LegalStatus;proposalHref?:string;historicalHref?:string;source?:string;textHash?:string;excludedSpans?:{start:number;label:string}[];mentions?:{article:string;lawId:string;status?:LegalStatus;start?:number}[];auditedSpans?:{start:number;label:string;article:string;lawId:string;status:LegalStatus}[]};
 type Catalog={verifiedOn:string;laws:LegalLaw[];foreignLaws:LegalLaw[];contexts:Record<string,ContextRecord>;contextOverrides:Record<string,ContextRecord>;proposalArticles:Record<string,string[]>;proposalParagraphs:Record<string,string[]>};
 export const legalCatalog=catalogData as unknown as Catalog;
 const laws=[...legalCatalog.laws,...legalCatalog.foreignLaws];
@@ -21,6 +21,7 @@ const aliases=laws.flatMap(l=>[l.name,...l.aliases].filter(Boolean).map(name=>({
 const aliasRegex=new RegExp(aliases.map(x=>'('+x.source+')').join('|'),'g');
 const searchHref=(text:string)=>'https://www.law.go.kr/LSW/lsSc.do?menuId=1&query='+encodeURIComponent(text);
 export function legalArticleHref(law:LegalLaw,article:string):string {
+ if(law.articles?.[article]?.href)return law.articles[article].href!;
  if(law.id==='de-insolvency')return 'https://www.gesetze-im-internet.de/inso/__'+article.replace('-','')+'.html';
  if(law.id==='de-civil')return 'https://www.gesetze-im-internet.de/bgb/__'+article.replace('-','')+'.html';
  if(law.id==='de-execution')return 'https://www.gesetze-im-internet.de/zvg/__'+article.replace('-','')+'.html';
@@ -69,7 +70,7 @@ function lawHits(text:string):LawHit[]{
  const out:LawHit[]=[];aliasRegex.lastIndex=0;let m:RegExpExecArray|null;
  while((m=aliasRegex.exec(text))){const ai=m.slice(1).findIndex(Boolean);const item=aliases[ai];if(!item)continue;
   const id=foreignOverride(text,m.index,item.id),prefix=text.slice(Math.max(0,m.index-10),m.index);
-  out.push({start:m.index,end:aliasRegex.lastIndex,id,historical:/구\s*[「『]?\s*$/.test(prefix)||id==='old-individual-rehab'});
+  out.push({start:m.index,end:aliasRegex.lastIndex,id,historical:/구\s*[「『“"]?\s*$/.test(prefix)||id==='old-individual-rehab'});
  }
  for(const m of text.matchAll(/같은\s*법\s*(시행령|시행규칙)/g)){
   const previous=out.filter(x=>x.end<=m.index!).sort((a,b)=>a.end-b.end).at(-1);
@@ -85,6 +86,7 @@ const sentenceStart=(t:string,pos:number)=>Math.max(t.lastIndexOf('\n',pos-1),t.
 /** No global statute default. Context defaults must come from the reviewed manuscript map. */
 export function getLegalMentions(text:string,context?:string|LegalContext):LegalMention[]{
  const ctx=contextRecord(context,text),hits=lawHits(text),out:LegalMention[]=[];
+ const historicalHref=ctx.textHash===legalTextFingerprint(text)?ctx.historicalHref:undefined;
  const excluded=ctx.textHash===legalTextFingerprint(text)?(ctx.excludedSpans||[]).filter(x=>text.slice(x.start,x.start+x.label.length)===x.label):[];
  const proposedSupplementDocument=/^\s*(?:<\s*신설\s*>\s*\|?\s*)?부칙\s+제\s*1\s*조\s*\(시행일\)/.test(text);
  const contextId=typeof context==='string'?context:context?.contextId||'';
@@ -98,20 +100,20 @@ export function getLegalMentions(text:string,context?:string|LegalContext):Legal
   if(excluded.some(x=>x.start<end&&x.start+x.label.length>start))continue;
   // A commentary's article-number chapter title belongs to its bibliography
   // link; retain any actual statute references later in the same footnote.
-  const chapterTitle=/「\s*$/.test(text.slice(0,start))&&/^\s*(?:\[[^\]\n]{1,150}\]\s*)?」\s*,[^;\n]{0,140}『[^』]*(?:주석|온주)/.test(text.slice(end));
+  const chapterTitle=/[「“"]\s*$/.test(text.slice(0,start))&&/^\s*(?:\[[^\]\n]{1,150}\]\s*)?[」”"]\s*,[^;\n]{0,140}『[^』]*(?:주석|온주)/.test(text.slice(end));
   if(chapterTitle)continue;
   // A proposal may quote a commentary chapter titled 「제589조」. It is a
   // bibliographic title, not an instruction to open a national statute.
-  if(contextId.startsWith('proposal:')&&/「\s*$/.test(text.slice(0,start))&&/^\s*」/.test(text.slice(end)))continue;
+  if(contextId.startsWith('proposal:')&&/[「“"]\s*$/.test(text.slice(0,start))&&/^\s*[」”"]/.test(text.slice(end)))continue;
   if(contextId.startsWith('proposal:')&&/김범준\s*$/.test(text.slice(0,start))&&m[1]==='615'&&!m[2])continue;
   // Local practice-rule numbers are document references; a later national-law
   // provision in the same footnote remains linkable through its audited scope.
   if(!hits.length&&/약관/.test(text))continue;
   const practiceStart=text.lastIndexOf('실무준칙',start);
-  if(practiceStart>=0&&!text.slice(practiceStart,start).includes('\n\n')&&/(?:실무준칙[』」]?\s*|제\s*\d+\s*호\s*(?:「[^」]*」\s*)?)$/.test(text.slice(0,start)))continue;
+  if(practiceStart>=0&&!text.slice(practiceStart,start).includes('\n\n')&&/(?:실무준칙[』」”"]?\s*|제\s*\d+\s*호\s*(?:[「“"][^」”"]*[」”"]\s*)?)$/.test(text.slice(0,start)))continue;
   const left=text.slice(0,start),sentence=sentenceStart(text,start),prefix=left.slice(-45),tail=text.slice(end,end+12);
   const preceding=hits.filter(h=>h.end<=start),nearest=preceding.at(-1);
-  const explicit=nearest&&/^\s*[」』]?\s*(?:부칙\s*)?$/.test(text.slice(nearest.end,start));
+  const explicit=nearest&&/^\s*[」』”"]?\s*(?:부칙\s*)?$/.test(text.slice(nearest.end,start));
   const sameLaw=/같은\s*법\s*$/.test(prefix),sameSentence=nearest&&nearest.start>=sentence&&previous?.lawId===nearest.id&&previous.start>=nearest.end;
   const chain=previous&&/^[\s·ㆍ,;및부터까지내지~～〜와과]*(?:제\s*\d+\s*항)?[\s·ㆍ,;및부터까지내지~～〜와과]*$/.test(text.slice(previous.end,start));
   const repeated=out.filter(x=>x.article===article&&x.end<=start&&!text.slice(x.end,start).includes('\n\n')&&!hits.some(h=>h.start>x.end&&h.end<=start)).at(-1);
@@ -139,7 +141,7 @@ export function getLegalMentions(text:string,context?:string|LegalContext):Legal
   const baseArticle=isSupplement?'부칙:'+article:article;
   let href=law?legalArticleHref(law,baseArticle):searchHref(m[0]);
   let reason:string|undefined;
-  if(status==='historical'){href=searchHref((law?.name||'')+' '+(isSupplement?'부칙':'연혁'));reason=isSupplement?'부칙은 공포번호와 시행시점에 따라 확인해야 합니다.':'구법 인용입니다. 적용 시점의 연혁을 확인하세요.';}
+  if(status==='historical'){href=historicalHref||searchHref((law?.name||'')+' '+(isSupplement?'부칙':'연혁'));reason=isSupplement?'부칙은 공포번호와 시행시점에 따라 확인해야 합니다.':'구법 인용입니다. 적용 시점의 연혁을 확인하세요.';}
   if(status==='proposal'){href=ctx.proposalHref||searchHref((law?.name||'')+' '+m[0]+' 개정안');reason='개정안에 관한 인용입니다. 현행 조문과 구별하여 확인하세요.';}
   if(status==='foreign')reason='외국 법령의 공식 자료입니다. 인용 당시 적용본은 논문의 설명도 확인하세요.';
   if(status==='unresolved'){href=searchHref((law?.name||'')+' '+m[0]);reason=law?'해당 번호의 현행 조문을 확정하지 못했습니다. 법령명·연혁·개정안 여부를 확인하세요.':'생략된 법령명을 확정하지 못했습니다. 주변 문맥과 함께 확인하세요.';}
@@ -186,7 +188,7 @@ export function getLegalMentions(text:string,context?:string|LegalContext):Legal
   const law=getLegalLaw(lawId);if(!law)continue;
   for(let i=out.length-1;i>=0;i--)if(out[i].start<end&&out[i].end>start)out.splice(i,1);
   const paragraph=label.match(/제\s*(\d+)\s*항/)?.[1];
-  const href=status==='proposal'?(ctx.proposalHref||searchHref(law.name+' '+(article.startsWith('부칙:')?'부칙':label)+' 개정안')):status==='historical'?searchHref(law.name+' 부칙 연혁'):legalArticleHref(law,article);
+  const href=status==='proposal'?(ctx.proposalHref||searchHref(law.name+' '+(article.startsWith('부칙:')?'부칙':label)+' 개정안')):status==='historical'?(historicalHref||searchHref(law.name+' 부칙 연혁')):legalArticleHref(law,article);
   out.push({start,end,label,lawId,lawName:law.name,article,paragraph,status,href,related:relatedLinks(law,article,status),reason:status==='proposal'?'개정안에 관한 인용입니다. 현행 조문과 구별하여 확인하세요.':status==='historical'?'부칙은 공포번호와 시행시점에 따라 확인해야 합니다.':undefined,...(status==='current'&&law.articles?.[article]?.text?{articleText:law.articles[article].text}:{})});
  }
  return out.filter(m=>!excluded.some(x=>x.start<m.end&&x.start+x.label.length>m.start)).sort((a,b)=>a.start-b.start);
@@ -194,10 +196,11 @@ export function getLegalMentions(text:string,context?:string|LegalContext):Legal
 
 export function getLegalMentionDetails(mention:LegalMention){
  const law=getLegalLaw(mention.lawId);
+ const article=mention.article?law?.articles?.[mention.article]:undefined;
  const relative=/^(?:(?:같은|이)\s*조\s*)?제\s*\d+\s*(?:항|호)/.test(mention.label);
  const articleLabel=mention.article?.startsWith('부칙:')?'부칙 제'+mention.article.slice(3).replace('-','조의')+'조':'제'+(mention.article||'').replace(/-(\d+)$/,'조의$1')+(mention.article?.includes('-')?'':'조');
  const titleLabel=relative&&mention.article?articleLabel+' '+mention.label.replace(/^(?:같은|이)\s*조\s*/,''):mention.article?.startsWith('부칙:')?articleLabel:mention.status==='foreign'&&!/[§조]|Art/i.test(mention.label)?'§ '+mention.label:mention.label;
  return {...mention,title:(law?.name?law.name+' ':'')+titleLabel,law,article:mention.status==='current'&&mention.article?law?.articles?.[mention.article]:undefined,
-  articleText:mention.status==='current'?mention.articleText:undefined,verifiedOn:legalCatalog.verifiedOn,effectiveLabel:mention.status==='current'?law?.effectiveLabel:undefined,
-  relatedNote:mention.status==='current'?(law?.relatedNote||(!law?.relatedLawIds?.length?'연결된 일반 시행령·규칙이 없습니다. 조문별 특별 규정은 공식 법령의 연계정보에서 확인할 수 있습니다.':undefined)):undefined};
+  articleText:mention.status==='current'?mention.articleText:undefined,verifiedOn:legalCatalog.verifiedOn,effectiveLabel:mention.status==='current'?(article?.effectiveLabel||law?.effectiveLabel):undefined,
+  relatedNote:mention.status==='current'?(article?.sourceNote||law?.relatedNote||(!law?.relatedLawIds?.length?'연결된 일반 시행령·규칙이 없습니다. 조문별 특별 규정은 공식 법령의 연계정보에서 확인할 수 있습니다.':undefined)):undefined};
 }
