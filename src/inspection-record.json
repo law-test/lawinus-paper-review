@@ -1,5 +1,5 @@
 {
-  "source": "사용자 제공 v120·v122 보고서; 새 검사 실행 아님",
+  "source": "사용자 제공 v120·v122·v126 보고서; 새 검사 실행 아님",
   "reports": [
     {
       "edition": "v120",
@@ -60,6 +60,38 @@
       "issued_at": "2026-10-31 01:59",
       "input_document": "1030_박사논문_80차인간최종본기준_v122_검토용.pdf",
       "sha256": "2bdc34390d3b01d75a2acab9c0336eb2309301d76bf3bcba58d3ec43ae6a90de"
+    },
+    {
+      "edition": "v126",
+      "report_number": "00380083155",
+      "input_format": "HWPX",
+      "ai_percent": 30,
+      "total_regions": 194,
+      "suspected_regions": 97,
+      "high": 0,
+      "medium": 1,
+      "low": 96,
+      "examined_at": "2026-10-31 10:56",
+      "issued_at": "2026-10-31 10:57",
+      "input_document": "1031_박사논문_80차인간최종본기준_v126적용본_v001.hwpx",
+      "sha256": "d108612e9f6bd389a1b742ff24ff31eef8800699f10015f1f926ad90956baa5a",
+      "sha256Scope": "사용자가 제공한 검사결과 PDF의 SHA256; 업로드 원고 해시가 아님"
+    },
+    {
+      "edition": "v126",
+      "report_number": "00380083164",
+      "input_format": "PDF",
+      "ai_percent": 10,
+      "total_regions": 302,
+      "suspected_regions": 29,
+      "high": 0,
+      "medium": 0,
+      "low": 29,
+      "examined_at": "2026-10-31 10:56",
+      "issued_at": "2026-10-31 10:57",
+      "input_document": "1031_박사논문_80차인간최종본기준_v126_검토용.pdf",
+      "sha256": "99f9a02916077b1cf08be15d10239a3940c4010a33a60e52a0d126137743ba2a",
+      "sha256Scope": "사용자가 제공한 검사결과 PDF의 SHA256; 업로드 원고 해시가 아님"
     }
   ],
   "v120Tested": true,
@@ -69,12 +101,14 @@
   "v124Tested": false,
   "fivePercentTargetVerified": false,
   "limitations": [
-    "제공된 최신 검사대상은 v122이다. v123·v124·v125·v126·v127의 새 검사결과로 사용하지 않는다.",
+    "제공된 최신 검사대상은 v126이다. v127·v128·v129의 새 검사결과로 사용하지 않는다.",
     "제공보고서의 입력파일명과 원고 내용은 대조하되 업로드원본바이트해시는 업체보고서에 없으므로 동일파일해시라고 주장하지 않는다.",
     "낮음·중간·높음 및 업체 검사영역 수와 원고 텍스트단위 수를 구별한다.",
     "새카피킬러검사/5%확인0."
   ],
   "v125Tested": false,
-  "v126Tested": false,
-  "v127Tested": false
+  "v126Tested": true,
+  "v127Tested": false,
+  "v128Tested": false,
+  "v129Tested": false
 }

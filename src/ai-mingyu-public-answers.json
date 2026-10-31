@@ -1,6 +1,6 @@
 {
-  "verifiedOn": "2026-10-30",
-  "edition": "FAQ281 · 인간80 신규심사 대비, v121 보완 및 구판 문답 보존",
+  "verifiedOn": "2026-10-31",
+  "edition": "FAQ287 · 핵심5개 v129 연결 대조, 인간80·기존 구판 문답 보존",
   "items": [
     {
       "id": "committee-gyuwan-01",
@@ -94,6 +94,20 @@
             "href": "https://faculty.korea.ac.kr/kufaculty/kwkim/index.do",
             "kind": "research",
             "edition": "공개 서지·초록"
+          },
+          {
+            "id": "committee-gyuwan-01-s7",
+            "label": "v129 수정안 · 면책 후 회수범위",
+            "href": "./?edition=v129&proposal=V120-P0047",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
+          },
+          {
+            "id": "committee-gyuwan-01-s8",
+            "label": "v129 수정안 · 목적물 한정설과 예외",
+            "href": "./?edition=v129&proposal=V120-P1084",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
           }
         ],
         "edition": "인간80 심사본 · 김규완 교수 심사 대비",
@@ -110,7 +124,7 @@
           {
             "kind": "limitations",
             "title": "답변 준비",
-            "text": "원고 P0902의 사실전제를 먼저 제시한다.",
+            "text": "인간80 심사본 P0902의 사실전제를 먼저 제시한다.",
             "citationIds": [
               "committee-gyuwan-02-s1",
               "committee-gyuwan-02-s2",
@@ -148,10 +162,11 @@
           },
           {
             "kind": "limitations",
-            "title": "v121 보완사항",
-            "text": "v121은 인간80의 제한설을 복원하여, 실제 목록에 기재된 반환채권의 집행권원으로 재단 소속 임차주택에 신청하는 신규 강제경매가 인가 후에도 절차의 종국적 종료까지 제한된다는 본고의 해석을 제시한다. 소유권 귀속과 재단 제외, 계획 외 만족·비면책과 집행금지 해제를 각각 구분한다. 인가로 재단이 소멸한다는 반론과 계획 밖 만족에는 신규경매 허용도 포함된다는 반론에 답하되, 이를 인가 후 신규집행을 직접 판단한 판례의 결론으로 말하지 않는다. 실제 목록누락·재단 외 재산·독립 담보권 실행·절차 종료 후 집행은 별도로 판단한다.",
+            "title": "v129 보완사항",
+            "text": "v129는 인간80의 제한설을 유지하여, 실제 목록기재 반환채권의 집행권원으로 재단 소속 주택에 신청하는 신규 강제경매가 인가 후에도 절차의 종국적 종료까지 제한된다는 본고의 해석을 제시한다. 우선변제 부분도 제한대상에 포함된다는 채권요건과 해당 주택의 재단 소속이라는 재산요건을 각각 판단한다. 소유권 귀속·계획 외 만족·비면책만으로 집행금지가 해제되는 것은 아니라는 입장이며, 인가로 재단이 소멸한다는 반론과 계획 밖 만족에 신규경매 허용도 포함된다는 반론에 답한다. 이를 인가 후 신규집행을 직접 판단한 판례의 결론으로 말하지 않는다. 실제 목록누락·재단 외 재산·독립 담보권 실행·절차 종료 후 집행은 별도로 판단한다.",
             "citationIds": [
-              "committee-gyuwan-02-s7"
+              "committee-gyuwan-02-s8",
+              "committee-gyuwan-02-s9"
             ]
           }
         ],
@@ -203,14 +218,28 @@
           },
           {
             "id": "committee-gyuwan-02-s7",
-            "label": "v121 수정안 · 인가 후 제한설의 근거와 반론",
+            "label": "[구판 v121] v121 수정안 · 인가 후 제한설의 근거와 반론",
             "href": "./?edition=v121&proposal=V120-P0048",
             "kind": "paper",
             "edition": "인간80 기준 v121 수정안"
+          },
+          {
+            "id": "committee-gyuwan-02-s8",
+            "label": "v129 수정안 · 인가 후 제한설의 요건",
+            "href": "./?edition=v129&proposal=V120-P0048",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
+          },
+          {
+            "id": "committee-gyuwan-02-s9",
+            "label": "v129 수정안 · 기존 경매·대금의 처리",
+            "href": "./?edition=v129&proposal=V120-P1083",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
           }
         ],
         "edition": "인간80 심사본 · 김규완 교수 심사 대비",
-        "sourceWarning": "공개 서지·초록과 원고를 바탕으로 준비한 질문이며 교수의 실제 질문·견해를 뜻하지 않습니다. 논문 전문을 새로 검증한 답변이 아닙니다. 인간80의 표현을 되묻는 질문이며, 마지막 준비항목은 v121에서 복원한 본고의 제한설과 반대해석을 함께 확인합니다."
+        "sourceWarning": "공개 서지·초록과 원고를 바탕으로 준비한 질문이며 교수의 실제 질문·견해를 뜻하지 않습니다. 교수 논문 전문을 새로 검증한 답변이 아닙니다. 인간80의 표현을 되묻는 질문이며, 마지막 준비항목은 v129에서 유지·보완한 본고의 제한설과 반대해석을 함께 확인합니다."
       }
     },
     {
@@ -315,6 +344,20 @@
             "href": "https://scholar.korea.ac.kr/item/ff458dc7-ca6e-49c8-9900-e6326804201c",
             "kind": "research",
             "edition": "공개 서지·초록"
+          },
+          {
+            "id": "committee-gyuwan-03-s8",
+            "label": "v129 수정안 · 목적물 한정설의 논거와 반론",
+            "href": "./?edition=v129&proposal=V120-P0929",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
+          },
+          {
+            "id": "committee-gyuwan-03-s9",
+            "label": "v129 수정안 · 적용범위와 확정판결의 예외",
+            "href": "./?edition=v129&proposal=V120-P1084",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
           }
         ],
         "edition": "인간80 심사본 · 김규완 교수 심사 대비",
@@ -366,6 +409,15 @@
               "committee-gyuwan-04-s5",
               "committee-gyuwan-04-s6"
             ]
+          },
+          {
+            "kind": "limitations",
+            "title": "v129 보완사항",
+            "text": "v129의 새 신청권은 입법안이다. 존속하는 우선변제권과 임대차 종료·실제 반환이행기를 전제로, 파산재단 주택의 사전허가와 적법한 재단 이탈·파산종료 뒤 및 개인회생 인가 후의 직접신청을 구분한다. 허가단계의 소명과 경매신청의 권리증명서류도 구별하며, 신청권 신설이 배당순위나 회수액을 보장하는 것은 아니다.",
+            "citationIds": [
+              "committee-gyuwan-04-s7",
+              "committee-gyuwan-04-s8"
+            ]
           }
         ],
         "followUp": [
@@ -413,6 +465,20 @@
             "href": "https://scholar.korea.ac.kr/item/ff458dc7-ca6e-49c8-9900-e6326804201c",
             "kind": "research",
             "edition": "공개 서지·초록"
+          },
+          {
+            "id": "committee-gyuwan-04-s7",
+            "label": "v129 수정안 · 우선변제권과 경매신청 근거",
+            "href": "./?edition=v129&proposal=V125-P0402",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
+          },
+          {
+            "id": "committee-gyuwan-04-s8",
+            "label": "v129 수정안 · 새 신청권의 입법요건",
+            "href": "./?edition=v129&proposal=V120-P1086",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
           }
         ],
         "edition": "인간80 심사본 · 김규완 교수 심사 대비",
@@ -2131,6 +2197,20 @@
             "href": "https://kci.go.kr/kciportal/landing/article.kci?arti_id=ART001090762",
             "kind": "research",
             "edition": "공개 서지·초록"
+          },
+          {
+            "id": "committee-gyuwan-20-s11",
+            "label": "v129 수정안 · 지급근거와 면책 후 책임범위",
+            "href": "./?edition=v129&proposal=V120-P0320",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
+          },
+          {
+            "id": "committee-gyuwan-20-s12",
+            "label": "v129 수정안 · 현행법과 구별한 신청·정산 입법안",
+            "href": "./?edition=v129&proposal=V120-P1086",
+            "kind": "paper",
+            "edition": "인간80 기준 v129 수정안"
           }
         ],
         "edition": "인간80 심사본 · 김규완 교수 심사 대비",

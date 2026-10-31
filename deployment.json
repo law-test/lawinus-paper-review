@@ -57,13 +57,19 @@
       "datasetId": "applied-v127-human80",
       "pages": 199,
       "footnotes": 442
+    },
+    "v129": {
+      "datasetId": "applied-v129-human80",
+      "pages": 213,
+      "footnotes": 442
     }
   },
   "revisionGuide": {
-    "version": "v127",
-    "items": 1132,
+    "version": "v129",
+    "items": 1133,
     "baseline": "human80",
     "archives": {
+      "v127": 1132,
       "v126": 894,
       "v124": 698,
       "v123": 566,
@@ -74,14 +80,14 @@
   },
   "aiEnabled": false,
   "previousVerifiedDeployment": {
-    "sourceCommit": "e01dcad1c6565d905a64c422525f0c9864aa78a5",
-    "pagesCommit": "5131dbac633424b60747b2ab34e7df715f321cd3",
-    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41130835184",
+    "sourceCommit": "f9935b80ec6e54df8351313324af9c874588d427",
+    "pagesCommit": "621fe1fb4ae8dcccac25dfd07f018e166c2a9878",
+    "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41163455656",
     "pagesBuildConclusion": "success",
-    "sourceFiles": 584,
-    "pagesFiles": 310
+    "sourceFiles": 604,
+    "pagesFiles": 317
   },
-  "release": "human80-v127-ui286",
+  "release": "human80-v129-ui287",
   "deploymentHistory": [
     {
       "sourceCommit": "b833edfd15eea6030a62d23772028bd4af7cfab9",
@@ -164,6 +170,14 @@
       "pagesBuildConclusion": "success",
       "sourceFiles": 584,
       "pagesFiles": 310
+    },
+    {
+      "sourceCommit": "f9935b80ec6e54df8351313324af9c874588d427",
+      "pagesCommit": "621fe1fb4ae8dcccac25dfd07f018e166c2a9878",
+      "pagesBuildRun": "https://github.com/law-test/lawinus-paper-review/actions/runs/41163455656",
+      "pagesBuildConclusion": "success",
+      "sourceFiles": 604,
+      "pagesFiles": 317
     }
   ],
   "archivedEditions": {
@@ -207,8 +221,12 @@
     "v123Tested": false,
     "v124Tested": false,
     "v125Tested": false,
-    "v126Tested": false,
+    "v126Tested": true,
     "v127Tested": false,
-    "fivePercentTargetVerified": false
+    "fivePercentTargetVerified": false,
+    "v126Hwpx": 30,
+    "v126Pdf": 10,
+    "v128Tested": false,
+    "v129Tested": false
   }
 }
