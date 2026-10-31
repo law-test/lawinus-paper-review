@@ -45358,8 +45358,13 @@
     },
     "revisionGuide": {
       "url": "https://paper.lawinus.org/editions/human80/revision-guide.md",
-      "sha256": "bf2c9ab0e467d59efae9c419f7a81007d51ef366c5da739396b2d1e18eb6e3ef",
-      "bytes": 1322405
+      "sha256": "fc08ed2a77867cd6d628ad24ef1457a2920c67f7b72a7921aff5cd4a22b35bda",
+      "bytes": 1353988,
+      "variant": "original",
+      "sourceSha256": "fc08ed2a77867cd6d628ad24ef1457a2920c67f7b72a7921aff5cd4a22b35bda",
+      "sourceFilename": "gpt_6_수정제안_v129.md",
+      "visibleTextUnchanged": true,
+      "originalByteIdentical": true
     }
   },
   "inspectionRecord": {
@@ -45377,7 +45382,7 @@
     },
     "appliedV120Tested": true,
     "fivePercentTargetVerified": false,
-    "scope": "사용자가 제공한 v120 PDF 12%·HWPX 28%, v122 PDF 11%·HWPX 25%를 판본과 형식별로 기록. v123·v124·v125·v126·v127 새 검사결과는 없음.",
+    "scope": "사용자 제공 v126 HWPX30%/PDF10%는 과거 해당판본·입력형식의 AI생성검사 결과다. v128·v129는 미검사이며 5% 이하 여부 미확인.",
     "providedV120Reports": [
       {
         "edition": "v120",
@@ -45447,6 +45452,43 @@
     ],
     "appliedV124Tested": false,
     "appliedV125Tested": false,
-    "appliedV126Tested": false
+    "appliedV126Tested": true,
+    "providedV126Reports": [
+      {
+        "edition": "v126",
+        "report_number": "00380083155",
+        "input_format": "HWPX",
+        "ai_percent": 30,
+        "total_regions": 194,
+        "suspected_regions": 97,
+        "high": 0,
+        "medium": 1,
+        "low": 96,
+        "examined_at": "2026-10-31 10:56",
+        "issued_at": "2026-10-31 10:57",
+        "input_document": "1031_박사논문_80차인간최종본기준_v126적용본_v001.hwpx",
+        "sha256": "d108612e9f6bd389a1b742ff24ff31eef8800699f10015f1f926ad90956baa5a",
+        "sha256Scope": "사용자가 제공한 검사결과 PDF의 SHA256; 업로드 원고 해시가 아님"
+      },
+      {
+        "edition": "v126",
+        "report_number": "00380083164",
+        "input_format": "PDF",
+        "ai_percent": 10,
+        "total_regions": 302,
+        "suspected_regions": 29,
+        "high": 0,
+        "medium": 0,
+        "low": 29,
+        "examined_at": "2026-10-31 10:56",
+        "issued_at": "2026-10-31 10:57",
+        "input_document": "1031_박사논문_80차인간최종본기준_v126_검토용.pdf",
+        "sha256": "99f9a02916077b1cf08be15d10239a3940c4010a33a60e52a0d126137743ba2a",
+        "sha256Scope": "사용자가 제공한 검사결과 PDF의 SHA256; 업로드 원고 해시가 아님"
+      }
+    ],
+    "appliedV127Tested": false,
+    "appliedV128Tested": false,
+    "appliedV129Tested": false
   }
 }
