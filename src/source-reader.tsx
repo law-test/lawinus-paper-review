@@ -45,13 +45,10 @@ export default function SourceReader({source,href,text,byteHash,error,notes,sele
  }
  function trapKeys(event:React.KeyboardEvent){
   if(event.key==='Escape'){event.stopPropagation();onClose();return;}
-  if(event.key!=='Tab')return;
-  const focusable=Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],select,input,[tabindex="0"]')||[]).filter(el=>el.getClientRects().length>0);
-  const first=focusable[0],last=focusable.at(-1);if(!first||!last)return;
-  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+
  }
  const parts=textEvidenceParts(text,showTextHighlights?textEntries:[]);
- return <div className="source-overlay" role="dialog" aria-modal="true" aria-label="인용 원전" onKeyDown={trapKeys}>
+ return <div className="source-inline-reader" role="region" aria-label="인용 원전" onKeyDown={trapKeys}>
   <section className="source-dialog" ref={dialog}>
    <header><h2>{source.title}</h2><div>{href&&<a href={href+(source.kind==='pdf'?'#page='+page:'')} target="_blank" rel="noopener noreferrer">원문 별도 창 ↗</a>}<button ref={closeButton} onClick={onClose} aria-label="원전 닫기">닫기 ×</button></div></header>
    <section className="source-evidence-panel" aria-label="인용 구절">

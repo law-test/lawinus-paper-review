@@ -28,3 +28,20 @@
 .source-library-list small{color:#687b8a;font-size:11px;margin-top:3px}
 select:focus-visible{outline:3px solid #3978a4;outline-offset:2px}
 @media(max-width:700px){.source-evidence-panel{padding:8px 10px;font-size:12px;max-height:33dvh}.source-library{right:7px;top:155px;width:calc(100vw - 14px);max-height:calc(100dvh - 168px);padding:12px}.source-original-text{padding:16px;font-size:15px}.source-dialog header>div{flex-wrap:wrap}}
+
+/* UI290: restore the manuscript/source pair and the existing draggable boundary. */
+.reader-layout,.reader-layout.with-toc{position:relative;grid-template-columns:minmax(0,var(--document-split,53%)) 6px minmax(0,1fr);overflow:hidden}
+.manuscript-pane>.pdf-reader{flex:1;min-height:0}
+.reference-pane{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.reference-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid #d9e0e5;font-size:14px;flex-shrink:0}
+.reference-toolbar>div{display:flex;gap:5px;flex-wrap:wrap}.reference-toolbar button{padding:3px 7px;font-size:12px}
+.document-divider{cursor:col-resize;background:#d5dce2;position:relative;touch-action:none;z-index:5}.document-divider:hover,.document-divider.resizing{background:#7a9cb8}.document-divider:focus-visible{outline:3px solid #3978a4;outline-offset:-2px}
+.reader-layout .toc-pane{position:absolute;left:0;top:0;bottom:0;width:min(320px,85vw);z-index:40;box-shadow:5px 0 15px #0002}
+.reference-pane .source-library{position:static;width:auto;max-height:none;min-height:0;flex:1;overflow:auto;border:0;border-radius:0;box-shadow:none;padding:17px 20px}
+.reference-pane .note-pane{position:static;width:auto;min-height:0;flex:1;overflow:auto;box-shadow:none;border:0}
+.source-inline-reader{flex:1;min-height:0;display:flex;overflow:hidden}
+.source-inline-reader>.source-dialog{width:100%;height:auto;flex:1;min-height:0;border-radius:0;box-shadow:none}
+.source-inline-reader .source-dialog>header{align-items:flex-start;padding:10px 14px;flex-wrap:wrap;gap:5px}
+.source-inline-reader .source-dialog h2{font-size:16px;line-height:1.5}.source-inline-reader .source-dialog header>div{flex-wrap:wrap;margin-left:auto}
+.source-inline-reader .source-evidence-panel{max-height:30dvh}.source-inline-reader .source-original-text{padding:20px;font-size:16px}
+@media(max-width:700px){.reader-layout,.reader-layout.with-toc{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(240px,1fr) minmax(240px,1fr);overflow:auto}.document-divider{display:none}.reference-pane{border-top:5px solid #d5dce2}.source-inline-reader .source-evidence-panel{max-height:20dvh}.source-inline-reader .source-dialog h2{font-size:14px}.source-inline-reader .source-original-text{font-size:15px;padding:14px}}
