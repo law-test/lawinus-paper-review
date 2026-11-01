@@ -1,47 +1,61 @@
-import React, {useEffect, useState} from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import ReviewWorkspace from './review-workspace';
-import AiMingyu from './ai-mingyu';
-import {AI_MINGYU_LABEL} from './ai-mingyu-availability';
-import LegalGlossary from './legal-glossary';
-import GlossaryAutoOpenControl from './glossary-auto-open-control';
-import {standaloneWorkspaceTool} from './workspace-tools';
-import {LegalLinkProvider} from './legal-links';
-import {loadReviewConfig} from './review-api';
-import {applyTextSize, readTextSize} from './text-size';
-import './globals.css';
-import './text-size-control.css';
-import './mobile-layout.css';
-import './workspace-layout.css';
-import './ai-mingyu-window.css';
-import './workspace-launchers.css';
-
-function App() {
-  const [state, setState] = useState<'loading'|'ready'|'setup'>('loading');
-  useEffect(() => {
-    let active = true;
-    loadReviewConfig().then(() => { if (active) setState('ready'); }).catch(() => {
-      if (!active) return;
-      setState('setup');
-    });
-    return () => { active = false; };
-  }, []);
-  if (state === 'ready') {
-    const tool=standaloneWorkspaceTool(window.location.search);
-    const embedded=window.self!==window.top&&new URLSearchParams(window.location.search).get('embedded')==='1';
-    return <LegalLinkProvider>{tool==='ai-mingyu'?<main className="mingyu-standalone">{!embedded&&<nav className="mingyu-window-tools" aria-label="대화창 이동"><span>{AI_MINGYU_LABEL}</span><a href="./?view=faq">논문 FAQ 보기</a><a href="./" target="lawinus-paper" rel="noopener">논문 열기 ↗</a></nav>}<AiMingyu/></main>:tool==='glossary'?<main className="glossary-standalone">{!embedded&&<nav className="glossary-window-tools" aria-label="사전창 이동"><strong>법학어학사전</strong><GlossaryAutoOpenControl/></nav>}<div className="glossary-window-content" tabIndex={0} role="region" aria-label="법학어학사전 내용"><LegalGlossary/></div></main>:<ReviewWorkspace/>}</LegalLinkProvider>;
-  }
-  return <main className="review-app"><section className="loading-screen" role="status" aria-live="polite">
-    <div className="law-logo"><img src="./korea-law-logo.svg" alt="고대법대 KU Law" width="244" height="100"/></div>
-    <h1>LAWINUS · 논문 심사실</h1>
-    <h2>{state === 'setup' ? '심사 자료를 불러오지 못했습니다.' : '심사 자료를 불러오는 중…'}</h2>
-    {state === 'setup' ? <>
-      <button className="primary" onClick={() => window.location.reload()}>다시 불러오기</button>
-    </> : null}
-  </section></main>;
+import PdfPane from './pdf-viewer';
+import type {PdfTarget} from './pdf-viewer-model';
+import {LegalLinkProvider,LegalText,useLegalLinks} from './legal-links';
+import SourceText,{type SourceSegment} from './source-text';
+import {citationPdfTargets} from './citation-link-model';
+import catalog from './paragraph-catalog.json';
+import toc from './thesis-toc-data.json';
+import lawData from './legal-pdf-targets.json';
+import citationPages from './citation-pages.json';
+import './examiner.css';
+type Obj=Record<string,any>;
+const publicManifest='./editions/human80/manifest.json';
+const pdf='./editions/human80/manuscript.pdf';
+const signedCache=new Map<string,{url:string;expires:number}>();
+let configPromise:Promise<Obj>|null=null;
+async function sourceUrl(source:Obj){
+ const old=signedCache.get(source.id);if(old&&old.expires>Date.now())return old.url;
+ const cfg=await(configPromise??=fetch('./config.json').then(r=>{if(!r.ok)throw Error('연결 설정을 불러오지 못했습니다.');return r.json();}));
+ const endpoint=cfg.supabaseUrl+'/storage/v1/object/sign/'+cfg.storageBucket+'/'+source.storagePath;
+ const response=await fetch(endpoint,{method:'POST',headers:{apikey:cfg.supabasePublishableKey,Authorization:'Bearer '+cfg.supabasePublishableKey,'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});
+ if(!response.ok)throw Error('원전을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+ const result=await response.json(),path=result.signedURL||result.signedUrl;
+ if(!path)throw Error('원전 주소를 확인하지 못했습니다.');
+ const url=path.startsWith('http')?path:cfg.supabaseUrl+'/storage/v1'+path;
+ signedCache.set(source.id,{url,expires:Date.now()+3300000});return url;
 }
-
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('화면을 표시할 영역이 없습니다.');
-applyTextSize(readTextSize(), false);
-createRoot(rootElement).render(<App/>);
+function App(){
+ const [manifest,setManifest]=useState<Obj|null>(null),[error,setError]=useState('');
+ const [page,setPage]=useState(20),[mode,setMode]=useState<'pdf'|'text'>('pdf'),[tocOpen,setTocOpen]=useState(true),[query,setQuery]=useState('');
+ const [noteId,setNoteId]=useState<string|null>(null),[source,setSource]=useState<Obj|null>(null),[sourcePage,setSourcePage]=useState(1),[sourceHref,setSourceHref]=useState(''),[sourceText,setSourceText]=useState(''),[sourceError,setSourceError]=useState(''),[nav,setNav]=useState(0);
+ const openLaw=useLegalLinks();
+ useEffect(()=>{fetch(publicManifest).then(r=>{if(!r.ok)throw Error('원고 정보를 불러오지 못했습니다.');return r.json();}).then(setManifest).catch(e=>setError(e.message));},[]);
+ const note=manifest?.notes.find((n:Obj)=>n.id===noteId);
+ const targets=useMemo(()=>manifest?[...manifest.notes.flatMap((n:Obj)=>n.clickTargets.map((t:Obj)=>({...t,noteId:n.id,number:n.number}))),...citationPdfTargets(),...lawData.targets] as PdfTarget[]:[],[manifest]);
+ const paragraphs=catalog.paragraphs.filter(p=>query?p.text.includes(query):p.page===page);
+ const entries=toc.entries.filter(x=>!query||x.title.includes(query));
+ function go(p:number){setPage(Math.max(1,Math.min(266,p)));setNav(v=>v+1);if(window.innerWidth<900)setTocOpen(false);}
+ async function openSource(id:string,p=1){
+  const item=manifest?.sources.find((s:Obj)=>s.id===id);if(!item)return;
+  setSource(item);setSourcePage(p);setSourceHref('');setSourceText('');setSourceError('');
+  try{const url=await sourceUrl(item);setSourceHref(url);if(item.kind!=='pdf'){const r=await fetch(url);if(!r.ok)throw Error('원문을 불러오지 못했습니다.');const value=await r.text();let text=value;try{const j=JSON.parse(value);text=j.text||j.content||j.body||j.fullText||JSON.stringify(j,null,2);}catch{}setSourceText(typeof text==='string'?text:JSON.stringify(text,null,2));}}catch(e:any){setSourceError(e.message);}
+ }
+ function reference(segment:SourceSegment){if(segment.sourceId)void openSource(segment.sourceId,segment.page);else if(segment.href)window.open(segment.href,'_blank','noopener,noreferrer');}
+ function selectTarget(id:string,target?:PdfTarget){if(target?.legalId){const m=(lawData.mentions as Obj)[target.legalId];if(m)openLaw(m);return;}if(target?.sourceId){setNoteId(target.noteId);void openSource(target.sourceId,target.sourcePage||1);return;}setNoteId(id);}
+ if(error)return <main className="load-state" role="alert">{error}</main>;
+ if(!manifest)return <main className="load-state">원고를 불러오는 중입니다…</main>;
+ return <div className="examiner-app">
+  <header className="examiner-header"><div><p>박사학위논문 · 김민규</p><h1>{manifest.meta.title}</h1><span>{manifest.meta.subtitle}</span></div><nav aria-label="원고 열람"><button onClick={()=>setTocOpen(!tocOpen)} aria-expanded={tocOpen}>목차</button><button onClick={()=>setMode(mode==='pdf'?'text':'pdf')}>{mode==='pdf'?'텍스트로 읽기':'PDF로 읽기'}</button><a href={pdf} download="박사논문_심사용.pdf">PDF 내려받기</a><a href="./editions/human80/original.hwp" download="박사논문_원본.hwp">한글 원본</a></nav></header>
+  <div className={'reader-layout'+(tocOpen?' with-toc':'')+(note?' with-note':'')}>
+   {tocOpen&&<aside className="toc-pane"><label>목차·본문 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="검색어"/></label><div className="toc-list">{entries.map(e=><button key={e.id} className={'level-'+e.level} onClick={()=>go(e.page)}><span>{e.title}</span><small>{e.printedPage??e.page}</small></button>)}</div>{query&&<section className="search-results"><h2>본문 검색 · {paragraphs.length}개</h2>{paragraphs.slice(0,100).map(p=><button key={p.id} onClick={()=>{go(p.page);setQuery('');}}>{p.text.slice(0,130)}<small>PDF {p.page}쪽</small></button>)}</section>}</aside>}
+   <main className="manuscript-pane" aria-label="심사용 원고">
+    {mode==='pdf'?<PdfPane id="human80" url={pdf} page={page} total={266} fitMode="width" quickTools pageSizes={manifest.pages} targets={targets} highlights={note?.noteHighlights||[]} onPageChange={setPage} onTarget={selectTarget} label="심사용 원고" persistenceKey="examiner-human80" navigationToken={nav}/>:<div className="text-reader"><div className="text-navigation"><button disabled={page<=1} onClick={()=>go(page-1)}>이전</button><label>PDF <input type="number" min="1" max="266" value={page} onChange={e=>go(Number(e.target.value)||1)}/> / 266쪽</label><button disabled={page>=266} onClick={()=>go(page+1)}>다음</button></div>{paragraphs.map(p=><section key={p.id} className={p.heading?'manuscript-heading':'manuscript-paragraph'}><LegalText text={p.text} contextId={'paragraph:'+p.id} onNote={setNoteId}/></section>)}<section className="page-notes">{manifest.notes.filter((n:Obj)=>n.page===page).map((n:Obj)=><p key={n.id}><button onClick={()=>setNoteId(n.id)}>{n.number})</button> <SourceText noteId={n.id} text={n.text} onReference={reference}/></p>)}</section></div>}
+   </main>
+   {note&&<aside className="note-pane" aria-label={'각주 '+note.number}><header><h2>각주 {note.number}</h2><button onClick={()=>setNoteId(null)} aria-label="각주 닫기">닫기 ×</button></header><div className="note-text"><SourceText noteId={note.id} text={note.text} onReference={reference}/></div><button className="locate-note" onClick={()=>go(note.page)}>원고 PDF {note.page}쪽 보기</button>{note.sourceRefs.length>0&&<section><h3>인용 원전</h3>{note.sourceRefs.map((ref:Obj)=>{const s=manifest.sources.find((x:Obj)=>x.id===ref.sourceId);const pages=((citationPages as Obj)[note.id]?.[ref.sourceId]?.pages||[]);return s&&<div className="source-card" key={s.id}><button onClick={()=>void openSource(s.id,ref.targetPage||1)}>{s.title}</button>{pages.length>0&&<div className="cited-pages">{pages.map((p:Obj)=><button key={p.page+'-'+p.printed} onClick={()=>void openSource(s.id,p.page)}>{p.printed}면</button>)}</div>}</div>;})}</section>}{note.crossRefs.length>0&&<div className="cross-notes">함께 인용한 각주 {[...new Set<string>(note.crossRefs)].map(id=><button key={id} onClick={()=>setNoteId(id)}>{Number(id.slice(3))}</button>)}</div>}</aside>}
+  </div>
+  {source&&<div className="source-overlay" role="dialog" aria-modal="true" aria-label="인용 원전"><section className="source-dialog"><header><h2>{source.title}</h2><div>{sourceHref&&<a href={sourceHref+(source.kind==='pdf'?'#page='+sourcePage:'')} target="_blank" rel="noopener noreferrer">원문 별도 창 ↗</a>}<button onClick={()=>setSource(null)} aria-label="원전 닫기">닫기 ×</button></div></header>{sourceError?<p role="alert">{sourceError}<button onClick={()=>void openSource(source.id,sourcePage)}>다시 열기</button></p>:!sourceHref?<p>원전을 불러오는 중입니다…</p>:source.kind==='pdf'?<PdfPane key={source.id} id={source.id} url={sourceHref} page={sourcePage} total={source.pages||1} fitMode="width" quickTools onPageChange={setSourcePage} label="인용 원전"/>:<pre className="source-original-text">{sourceText||'원문을 불러오는 중입니다…'}</pre>}</section></div>}
+ </div>;
+}
+createRoot(document.getElementById('root')!).render(<LegalLinkProvider><App/></LegalLinkProvider>);
