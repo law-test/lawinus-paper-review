@@ -5,6 +5,7 @@ import './pdf-viewer.css';
 import PdfQuickControls from './pdf-quick-controls';
 import ReaderControls from './reader-controls';
 import {selectedPdfText} from './pdf-selection';
+import {documentEvidenceMatches,matchesEvidencePage,sha256Bytes,type DocumentVerification} from './source-evidence';
 type Obj=Record<string,any>;
 type Pin={id:string;page:number|null;x:number|null;y:number|null;text:string;status:string;[key:string]:any};
 const NO_PAGE_SIZES:{page:number;width:number;height:number}[]=[];
@@ -17,7 +18,8 @@ const pdfRuntime=createPdfRuntimeCache(async attempt=>{
   m.GlobalWorkerOptions.workerSrc=localAsset(PDF_RUNTIME+'pdf.worker.bootstrap.mjs'+retry);return m;
 });
 const pdfModule=()=>pdfRuntime.get();
-type Props={url?:string;controlsHost?:HTMLElement|null;id:string;page:number;total:number;zoom?:number;fitMode?:PdfFitMode;onFitModeChange?:(mode:PdfFitMode)=>void;onZoomResolved?:(zoom:number)=>void;onZoomChange?:(zoom:number)=>void;quickTools?:boolean;extraQuickControls?:React.ReactNode;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string,target?:PdfTarget)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;persistenceKey?:string;navigationToken?:number;onNavigationHandled?:(token:number)=>void};
+type Props={url?:string;controlsHost?:HTMLElement|null;id:string;page:number;total:number;zoom?:number;fitMode?:PdfFitMode;onFitModeChange?:(mode:PdfFitMode)=>void;onZoomResolved?:(zoom:number)=>void;onZoomChange?:(zoom:number)=>void;quickTools?:boolean;extraQuickControls?:React.ReactNode;pageSizes?:{page:number;width:number;height:number}[];highlights?:Obj[];targets?:PdfTarget[];pins?:Pin[];onPageChange:(page:number)=>void;onTarget?:(id:string,target?:PdfTarget)=>void;onPin?:(pin:any)=>void;onPlace?:(x:number,y:number,page:number)=>void;placing?:boolean;label?:string;persistenceKey?:string;navigationToken?:number;navigationFocus?:{page:number;x:number;y:number};onNavigationHandled?:(token:number)=>void;sourceChecksum?:string;onDocumentVerification?:(status:DocumentVerification)=>void};
+const documentHashes=new WeakMap<object,Promise<string>>();
 type PositionSession={key?:string;pending:PdfReadingPosition|null;ready:boolean;last:PdfReadingPosition|null;timer:ReturnType<typeof setTimeout>|null;handledToken:number;localPage:number|null};
 const positionStorage=()=>{try{return typeof window==='undefined'?undefined:window.localStorage;}catch{return undefined;}};
 function flushPosition(session:PositionSession){if(session.timer!==null){clearTimeout(session.timer);session.timer=null;}if(session.last)writePdfReadingPosition(positionStorage(),session.last);}
@@ -76,7 +78,8 @@ function PdfPage({doc,runtime,page,width,height,highlights,targets,pins,onTarget
     }}>
     <canvas ref={canvas}/><div className="textLayer" ref={textLayer}/>
     {(loading||error)&&<div className="pdf-page-state" role="status">{error||`PDF ${page}쪽 불러오는 중…`}{error&&<button onClick={()=>setRetry(value=>value+1)}>다시 불러오기</button>}</div>}
-    <div className="pdf-overlays">{highlights.map((h,i)=>h.kind==='cited-page'?<span key={i} className="pdf-cited-page" aria-label={`인용면 ${h.printed||page}`}/>:<span key={i} className="pdf-highlight" style={rectStyle(h.rect)}/>)}
+    {!loading&&highlights.some(h=>h.kind==='source-evidence'&&!matchesEvidencePage(h,dims))&&<div className="pdf-evidence-warning" role="status">원전의 쪽 크기가 달라 강조 표시를 보류했습니다.</div>}
+    <div className="pdf-overlays">{highlights.filter(h=>h.kind!=='source-evidence'||!loading&&matchesEvidencePage(h,dims)).map((h,i)=>h.kind==='cited-page'?<span key={i} className="pdf-cited-page" aria-label={`인용면 ${h.printed||page}`}/>:<span key={i} className={'pdf-highlight'+(h.kind==='source-evidence'?' pdf-source-evidence':'')} style={rectStyle(h.rect)}/>)}
       {!placing&&targets.filter(t=>t.kind==='legal'||t.kind==='citation').map((t,i)=><span key={'reference'+i} className={'pdf-reference-underline '+(t.kind==='legal'?'legal':'literature')} style={rectStyle(t.rect)}/>)}
       {!placing&&targets.filter(t=>actionKey(t)===selectedTarget).map((t,i)=><span key={'link'+i} className="citation-hover-region" style={rectStyle(t.rect)}/>)}
     </div>
@@ -86,7 +89,7 @@ function PdfPage({doc,runtime,page,width,height,highlights,targets,pins,onTarget
   </div>;
 }
 
-export default function PdfPane({url,controlsHost,id,page,total,zoom:requestedZoom=1,fitMode=null,onFitModeChange,onZoomResolved,onZoomChange,quickTools=false,extraQuickControls,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',persistenceKey,navigationToken=0,onNavigationHandled}:Props){
+export default function PdfPane({url,controlsHost,id,page,total,zoom:requestedZoom=1,fitMode=null,onFitModeChange,onZoomResolved,onZoomChange,quickTools=false,extraQuickControls,pageSizes=NO_PAGE_SIZES,highlights=[],targets=[],pins=[],onPageChange,onTarget,onPin,onPlace,placing=false,label='PDF 문서',persistenceKey,navigationToken=0,navigationFocus,onNavigationHandled,sourceChecksum,onDocumentVerification}:Props){
   const host=useRef<HTMLDivElement>(null),frame=useRef(0),reported=useRef(page),onPageRef=useRef(onPageChange),onNavigationRef=useRef(onNavigationHandled);
   onPageRef.current=onPageChange;onNavigationRef.current=onNavigationHandled;
   const [loaded,setLoaded]=useState<{id:string;doc:any;runtime:any}|null>(null),[error,setError]=useState(''),[loadAttempt,setLoadAttempt]=useState(0),[renderable,setRenderable]=useState(false);
@@ -106,6 +109,17 @@ export default function PdfPane({url,controlsHost,id,page,total,zoom:requestedZo
   const cancelDrag=useCallback(()=>{const current=drag.current;if(!current)return;drag.current=null;if(current.moved)suppressClickUntil.current=performance.now()+400;setDragging(false);if(host.current?.hasPointerCapture(current.pointerId))host.current.releasePointerCapture(current.pointerId);},[]);
   useEffect(()=>watchDocumentInterruption(cancelDrag,window,document),[cancelDrag]);
   const doc=loaded?.id===id?loaded.doc:null;
+  const [verifiedDocument,setVerifiedDocument]=useState<{doc:any;checksum:string}|null>(null);
+  useEffect(()=>{
+    let stopped=false;setVerifiedDocument(null);
+    if(!sourceChecksum)return;
+    onDocumentVerification?.('checking');if(!doc)return;
+    let pending=documentHashes.get(doc);
+    if(!pending){pending=doc.getData().then((bytes:Uint8Array)=>sha256Bytes(bytes));documentHashes.set(doc,pending!);}
+    pending!.then(actual=>{if(stopped)return;if(actual===sourceChecksum){setVerifiedDocument({doc,checksum:actual});onDocumentVerification?.('verified');}else onDocumentVerification?.('mismatch');}).catch(()=>{if(!stopped)onDocumentVerification?.('unavailable');});
+    return()=>{stopped=true;};
+  },[doc,sourceChecksum,onDocumentVerification]);
+  const safeHighlights=highlights.filter(h=>h.kind!=='source-evidence'||documentEvidenceMatches(sourceChecksum,verifiedDocument,doc));
   useEffect(()=>{let stopped=false,task:any;setError('');setLoaded(null);const cached=position.pending||position.last;setMeasured({id,values:Object.fromEntries((cached?.sizes||[]).map(([p,width,height])=>[p,{width,height}]))});
     (async()=>{try{const m=await pdfModule();if(stopped)return;task=m.getDocument({url:url||assetUrl(id),cMapUrl:localAsset('./vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:localAsset('./vendor/pdfjs/standard_fonts/'),wasmUrl:localAsset('./vendor/pdfjs/wasm/')});const document=await task.promise;if(!stopped)setLoaded({id,doc:document,runtime:m});}catch(e){if(!stopped)setError(pdfLoadError(e));}})();
     return()=>{stopped=true;void task?.destroy();};
@@ -147,14 +161,16 @@ export default function PdfPane({url,controlsHost,id,page,total,zoom:requestedZo
     else if(previous.layout!==layout){top=reflowScrollPosition(previous.layout,layout,readingTop-18)+Math.min(18,readingTop)-18;}
     else if(returning){top=readingTop-18;}
     const documentChanged=!previous||previous.id!==id;
-    const left=restored?restored.left:documentChanged?0:reflowing?reflowHorizontalPosition(previous!.layout.width,layout.width,savedScroll.current.left):savedScroll.current.left;
-    previousLayout.current={id,layout};resumeScroll.current=false;if(top!==undefined){el.scrollTop=top+18;if(restored||returning||reflowing||documentChanged)el.scrollLeft=left;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>({...v,top:el.scrollTop}));cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}
+    const focus=externalNavigation&&navigationFocus?.page===targetPage?navigationFocus:null;
+    if(focus&&top!==undefined)top+=Math.max(0,Math.min(1,focus.y)*layout.heights[targetPage-1]-size.height*.22);
+    const left=focus?Math.max(0,Math.min(1,focus.x)*layout.width-size.width*.15):restored?restored.left:documentChanged?0:reflowing?reflowHorizontalPosition(previous!.layout.width,layout.width,savedScroll.current.left):savedScroll.current.left;
+    previousLayout.current={id,layout};resumeScroll.current=false;if(top!==undefined){el.scrollTop=top+18;if(focus||restored||returning||reflowing||documentChanged)el.scrollLeft=left;savedScroll.current={top:el.scrollTop,left:el.scrollLeft};setViewport(v=>({...v,top:el.scrollTop}));cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}
     if(canRestore){position.ready=true;position.pending=null;if(explicit){position.localPage=null;if(externalNavigation){position.handledToken=navigationToken;onNavigationRef.current?.(navigationToken);}}
       // Keep the committed anchor before a hide/reload can cancel the next frame.
       // pagehide/visibilitychange can then flush it even during another resize.
       rememberPosition(el);
       if(top===undefined){cancelAnimationFrame(frame.current);frame.current=requestAnimationFrame(updateViewport);}}
-  },[page,id,layout,appearance,updateViewport,rememberPosition,position,doc,viewport.width,viewport.height,navigationToken,fitMode]);
+  },[page,id,layout,appearance,updateViewport,rememberPosition,position,doc,viewport.width,viewport.height,navigationToken,navigationFocus,fitMode]);
   const onSize=useCallback((p:number,size:PageSize)=>setMeasured(previous=>{const values=previous.id===id?previous.values:{};const old=values[p];return old&&Math.abs(old.width-size.width)<.01&&Math.abs(old.height-size.height)<.01?previous:{id,values:{...values,[p]:size}};}),[id]);
   const visible=renderable?visiblePageRange(layout.offsets,Math.max(0,viewport.top-18),viewport.height,1):[];
   const requestPage=(next:number)=>{position.pending=null;position.localPage=next;setAppearance(value=>value+1);onPageRef.current(next);};
@@ -175,7 +191,7 @@ export default function PdfPane({url,controlsHost,id,page,total,zoom:requestedZo
       {!doc&&!error&&<div className="pdf-status" role="status">문서를 불러오는 중…</div>}
       <div className="pdf-continuous-pages" style={{width:layout.width,height:layout.totalHeight}}>
         {visible.map(p=><div key={id+'-'+p} className="pdf-page-slot" style={{top:layout.offsets[p-1],width:layout.width,height:layout.heights[p-1]}} data-slot-page={p}>
-          {doc?<PdfPage doc={doc} runtime={loaded!.runtime} page={p} width={layout.width} height={layout.heights[p-1]} highlights={showHighlights?highlights.filter(h=>h.page===p):[]} targets={targets.filter(t=>t.page===p)} pins={pins.filter(n=>n.page===p)} onTarget={onTarget} onPin={onPin} onPlace={onPlace} placing={placing} onSize={onSize}/>:<div className="pdf-page-placeholder">PDF {p}쪽</div>}
+          {doc?<PdfPage doc={doc} runtime={loaded!.runtime} page={p} width={layout.width} height={layout.heights[p-1]} highlights={showHighlights?safeHighlights.filter(h=>h.page===p):[]} targets={targets.filter(t=>t.page===p)} pins={pins.filter(n=>n.page===p)} onTarget={onTarget} onPin={onPin} onPlace={onPlace} placing={placing} onSize={onSize}/>:<div className="pdf-page-placeholder">PDF {p}쪽</div>}
           <span className="pdf-page-number" aria-hidden="true">{p}</span>
         </div>)}
       </div>
