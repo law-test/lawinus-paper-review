@@ -10,6 +10,7 @@ import toc from './thesis-toc-data.json';
 import lawData from './legal-pdf-targets.json';
 import citationPages from './citation-pages.json';
 import './examiner.css';
+import './pdf-base.css';
 type Obj=Record<string,any>;
 const publicManifest='./editions/human80/manifest.json';
 const pdf='./editions/human80/manuscript.pdf';
