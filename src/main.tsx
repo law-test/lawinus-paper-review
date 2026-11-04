@@ -1,4 +1,4 @@
-import React,{useEffect,useMemo,useRef,useState} from 'react';
+import React,{useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import PdfPane from './pdf-viewer';
 import type {PdfTarget} from './pdf-viewer-model';
@@ -7,6 +7,8 @@ import SourceText,{type SourceSegment} from './source-text';
 import {citationPdfTargets} from './citation-link-model';
 import SourceReader from './source-reader';
 import PaneResizer from './pane-resizer';
+import KuBrand from './ku-brand';
+import {pageReferences} from './page-references';
 import {parseEvidenceDocument,sha256Bytes,sourceNoteId,sourceNotes,type EvidenceDocument} from './source-evidence';
 import catalog from './paragraph-catalog.json';
 import toc from './thesis-toc-data.json';
@@ -34,7 +36,8 @@ function App(){
  const [manifest,setManifest]=useState<Obj|null>(null),[error,setError]=useState('');
  const [page,setPage]=useState(20),[mode,setMode]=useState<'pdf'|'text'>('pdf'),[tocOpen,setTocOpen]=useState(false),[query,setQuery]=useState('');
  const [noteId,setNoteId]=useState<string|null>(null),[source,setSource]=useState<Obj|null>(null),[sourcePage,setSourcePage]=useState(1),[sourceHref,setSourceHref]=useState(''),[sourceText,setSourceText]=useState(''),[sourceError,setSourceError]=useState(''),[nav,setNav]=useState(0);
- const [sourceNote,setSourceNote]=useState<string|null>(null),[sourceByteHash,setSourceByteHash]=useState(''),[libraryOpen,setLibraryOpen]=useState(true),[libraryQuery,setLibraryQuery]=useState('');
+ const [sourceNote,setSourceNote]=useState<string|null>(null),[sourceByteHash,setSourceByteHash]=useState(''),[libraryOpen,setLibraryOpen]=useState(false),[libraryQuery,setLibraryQuery]=useState('');
+ const [automatic,setAutomatic]=useState(false);
  const [evidence,setEvidence]=useState<EvidenceDocument|null>(null),[evidenceState,setEvidenceState]=useState<'loading'|'ready'|'error'>('loading');
  const sourceRequest=useRef(0),splitHost=useRef<HTMLDivElement>(null);
  const [split,setSplit]=useState(53);
@@ -42,25 +45,39 @@ function App(){
  useEffect(()=>{fetch(publicManifest).then(r=>{if(!r.ok)throw Error('원고 정보를 불러오지 못했습니다.');return r.json();}).then(setManifest).catch(e=>setError(e.message));},[]);
  useEffect(()=>{let stopped=false;fetch('./editions/human80/source-evidence.json').then(r=>{if(!r.ok)throw Error('unavailable');return r.json();}).then(parseEvidenceDocument).then(value=>{if(!stopped){setEvidence(value);setEvidenceState('ready');}}).catch(()=>{if(!stopped)setEvidenceState('error');});return()=>{stopped=true;};},[]);
  const note=manifest?.notes.find((n:Obj)=>n.id===noteId);
+ const sourceIndex=useMemo(()=>new Map<string,{id:string;title:string}>((manifest?.sources||[]).map((s:Obj)=>[s.id,s])),[manifest]);
+ const pageChoices=useMemo(()=>pageReferences(manifest?.notes||[],sourceIndex,page),[manifest,sourceIndex,page]);
+ const followedPage=useRef<number|null>(null);
+ function followPage(){
+  const first=pageChoices[0];
+  setLibraryOpen(false);setNoteId(first?.noteId||null);
+  if(first)void openSource(first.sourceId,first.page,first.noteId,true);
+  else closeSource();
+ }
+ useLayoutEffect(()=>{
+  if(!manifest||followedPage.current===page)return;
+  followedPage.current=page;
+  if(!libraryOpen)followPage();
+ },[manifest,page,libraryOpen]);
  const targets=useMemo(()=>manifest?[...manifest.notes.flatMap((n:Obj)=>n.clickTargets.map((t:Obj)=>({...t,noteId:n.id,number:n.number}))),...citationPdfTargets(),...lawData.targets] as PdfTarget[]:[],[manifest]);
  const paragraphs=catalog.paragraphs.filter(p=>query?p.text.includes(query):p.page===page);
  const entries=toc.entries.filter(x=>!query||x.title.includes(query));
  function go(p:number){setPage(Math.max(1,Math.min(266,p)));setNav(v=>v+1);if(window.innerWidth<900)setTocOpen(false);}
- async function openSource(id:string,p=1,requestedNote:string|null=noteId){
+ async function openSource(id:string,p=1,requestedNote:string|null=noteId,follow=false){
   const item=manifest?.sources.find((s:Obj)=>s.id===id);if(!item)return;
   const request=++sourceRequest.current;
-  setLibraryOpen(false);setSource(item);setSourceNote(sourceNoteId(manifest!.notes,id,requestedNote));setSourcePage(p);setSourceHref('');setSourceText('');setSourceByteHash('');setSourceError('');
+  setAutomatic(follow);setLibraryOpen(false);setSource(item);setSourceNote(sourceNoteId(manifest!.notes,id,requestedNote));setSourcePage(p);setSourceHref('');setSourceText('');setSourceByteHash('');setSourceError('');
   try{const url=await sourceUrl(item);if(request!==sourceRequest.current)return;setSourceHref(url);if(item.kind!=='pdf'){const r=await fetch(url);if(!r.ok)throw Error('원문을 불러오지 못했습니다.');const bytes=new Uint8Array(await r.arrayBuffer()),hash=await sha256Bytes(bytes);if(request!==sourceRequest.current)return;const value=new TextDecoder().decode(bytes);let text=value;try{const j=JSON.parse(value);text=j.text||j.content||j.body||j.fullText||JSON.stringify(j,null,2);}catch{}setSourceByteHash(hash);setSourceText(typeof text==='string'?text:JSON.stringify(text,null,2));}}catch(e:any){if(request===sourceRequest.current)setSourceError(e.message);}
  }
  function closeSource(){sourceRequest.current++;setSource(null);setSourceNote(null);setSourceHref('');setSourceText('');setSourceByteHash('');}
  function selectNote(id:string){setNoteId(id);setLibraryOpen(false);const selected=manifest?.notes.find((n:Obj)=>n.id===id),ref=selected?.sourceRefs?.[0];if(ref)void openSource(ref.sourceId,ref.targetPage||1,id);else closeSource();}
- function showLibrary(){closeSource();setLibraryOpen(true);}
+ function showLibrary(){closeSource();setNoteId(null);setLibraryOpen(true);}
  function reference(segment:SourceSegment,contextNote:string|null=noteId){if(segment.sourceId)void openSource(segment.sourceId,segment.page,contextNote);else if(segment.href)window.open(segment.href,'_blank','noopener,noreferrer');}
  function selectTarget(id:string,target?:PdfTarget){if(target?.legalId){const m=(lawData.mentions as Obj)[target.legalId];if(m)openLaw(m);return;}if(target?.sourceId){setNoteId(target.noteId);void openSource(target.sourceId,target.sourcePage||1,target.noteId);return;}selectNote(id);}
  if(error)return <main className="load-state" role="alert">{error}</main>;
  if(!manifest)return <main className="load-state">원고를 불러오는 중입니다…</main>;
  return <div className="examiner-app">
-  <header className="examiner-header"><div><p>박사학위논문 · 김민규</p><h1>{manifest.meta.title}</h1><span>{manifest.meta.subtitle}</span></div><nav aria-label="원고 열람"><button onClick={()=>setTocOpen(!tocOpen)} aria-expanded={tocOpen}>목차</button><button onClick={showLibrary} aria-expanded={libraryOpen}>참고문헌·원전</button><button onClick={()=>setMode(mode==='pdf'?'text':'pdf')}>{mode==='pdf'?'텍스트로 읽기':'PDF로 읽기'}</button><a href={pdf} download="박사논문_심사용.pdf">PDF 내려받기</a><a href="./editions/human80/original.hwp" download="박사논문_원본.hwp">한글 원본</a></nav></header>
+  <header className="examiner-header"><div className="examiner-identity"><KuBrand/><div className="examiner-title"><p>박사학위논문 · 김민규</p><h1>{manifest.meta.title}</h1><span>{manifest.meta.subtitle}</span></div></div><nav aria-label="원고 열람"><button onClick={()=>setTocOpen(!tocOpen)} aria-expanded={tocOpen}>목차</button><button onClick={showLibrary} aria-expanded={libraryOpen}>참고문헌·원전</button><button onClick={()=>setMode(mode==='pdf'?'text':'pdf')}>{mode==='pdf'?'텍스트로 읽기':'PDF로 읽기'}</button><a href={pdf} download="박사논문_심사용.pdf">PDF 내려받기</a><a href="./editions/human80/original.hwp" download="박사논문_원본.hwp">한글 원본</a></nav></header>
   <div className={'reader-layout'+(tocOpen?' with-toc':'')} ref={splitHost} style={{'--document-split':split+'%'} as React.CSSProperties}>
    {tocOpen&&<aside className="toc-pane"><label>목차·본문 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="검색어"/></label><div className="toc-list">{entries.map(e=><button key={e.id} className={'level-'+e.level} onClick={()=>go(e.page)}><span>{e.title}</span><small>{e.printedPage??e.page}</small></button>)}</div>{query&&<section className="search-results"><h2>본문 검색 · {paragraphs.length}개</h2>{paragraphs.slice(0,100).map(p=><button key={p.id} onClick={()=>{go(p.page);setQuery('');}}>{p.text.slice(0,130)}<small>PDF {p.page}쪽</small></button>)}</section>}</aside>}
    <main className="manuscript-pane" aria-label="심사용 원고">
@@ -69,9 +86,9 @@ function App(){
 
    <PaneResizer className="document-divider" label="논문과 참고문헌 너비 조절" value={split} min={30} max={70} onChange={setSplit} unitsPerPixel={()=>100/Math.max(1,(splitHost.current?.clientWidth||1)-6)}/>
    <aside className="reference-pane" aria-label="참고문헌 원전">
-    <div className="reference-toolbar"><strong>참고문헌·원전</strong><div><button onClick={()=>setSplit(50)}>같은 폭</button><button onClick={showLibrary}>자료 목록</button>{note&&<button onClick={()=>{closeSource();setLibraryOpen(false);}}>각주 {note.number} 상세</button>}</div></div>
-    {source&&<SourceReader key={source.id} source={{id:source.id,title:source.title,kind:source.kind,pages:source.pages}} href={sourceHref} text={sourceText} byteHash={sourceByteHash} error={sourceError} notes={manifest.notes} selectedNoteId={sourceNote} onNoteChange={setSourceNote} page={sourcePage} onPageChange={setSourcePage} evidence={evidence} evidenceState={evidenceState} onClose={closeSource} onRetry={()=>void openSource(source.id,sourcePage,sourceNote)}/>} 
-    {!source&&<>{(libraryOpen||!note)&&<section className="source-library" aria-label="참고문헌·원전"><header><h2>참고문헌·원전</h2></header><label>자료 검색<input type="search" placeholder="저자, 자료명 또는 사건번호" value={libraryQuery} onChange={e=>setLibraryQuery(e.target.value)}/></label><div className="source-library-list">{manifest.sources.filter((s:Obj)=>!libraryQuery||s.title.toLocaleLowerCase().includes(libraryQuery.toLocaleLowerCase())).map((s:Obj)=>{const linked=sourceNotes(manifest.notes,s.id),count=evidence?.entries.filter(e=>e.sourceId===s.id&&e.status==='verified').length||0;return <button key={s.id} onClick={()=>void openSource(s.id,1,null)}><span>{s.title}</span><small>{linked.length}개 각주에서 인용{count?' · 표시 구절 있음':''}</small></button>;})}</div></section>}{!libraryOpen&&note&&<aside className="note-pane" aria-label={'각주 '+note.number}><header><h2>각주 {note.number}</h2><button onClick={()=>{setNoteId(null);setLibraryOpen(true);}} aria-label="각주 닫기">닫기 ×</button></header><div className="note-text"><SourceText noteId={note.id} text={note.text} onReference={segment=>reference(segment,note.id)}/></div><button className="locate-note" onClick={()=>go(note.page)}>원고 PDF {note.page}쪽 보기</button>{note.sourceRefs.length>0&&<section><h3>인용 원전</h3>{note.sourceRefs.map((ref:Obj)=>{const s=manifest.sources.find((x:Obj)=>x.id===ref.sourceId);const pages=((citationPages as Obj)[note.id]?.[ref.sourceId]?.pages||[]);return s&&<div className="source-card" key={s.id}><button onClick={()=>void openSource(s.id,ref.targetPage||1,note.id)}>{s.title}</button>{pages.length>0&&<div className="cited-pages">{pages.map((p:Obj)=><button key={p.page+'-'+p.printed} onClick={()=>void openSource(s.id,p.page,note.id)}>{p.printed}면</button>)}</div>}</div>;})}</section>}{note.crossRefs.length>0&&<div className="cross-notes">함께 인용한 각주 {[...new Set<string>(note.crossRefs)].map(id=><button key={id} onClick={()=>selectNote(id)}>{Number(id.slice(3))}</button>)}</div>}</aside>}</>}
+    <div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{pageChoices.length>0&&<select aria-label={`논문 PDF ${page}쪽의 인용자료`} title="지금 읽는 쪽의 각주와 원전" value={source&&sourceNote&&pageChoices.some(c=>c.noteId===sourceNote&&c.sourceId===source.id)?sourceNote+'/'+source.id:''} onChange={e=>{const picked=pageChoices.find(c=>c.key===e.target.value);if(picked){setNoteId(picked.noteId);void openSource(picked.sourceId,picked.page,picked.noteId);}}}><option value="" disabled>이 쪽의 인용자료</option>{pageChoices.map(c=><option key={c.key} value={c.key}>각주 {c.number} · {c.title}</option>)}</select>}{libraryOpen&&<button onClick={followPage}>본문 따라가기</button>}<button onClick={()=>setSplit(50)}>같은 폭</button><button onClick={showLibrary}>자료 목록</button>{note&&<button onClick={()=>{closeSource();setLibraryOpen(false);}}>각주 {note.number} 상세</button>}</div></div>
+    {source&&<SourceReader key={source.id} automatic={automatic} source={{id:source.id,title:source.title,kind:source.kind,pages:source.pages}} href={sourceHref} text={sourceText} byteHash={sourceByteHash} error={sourceError} notes={manifest.notes} selectedNoteId={sourceNote} onNoteChange={id=>{setAutomatic(false);setSourceNote(id);setNoteId(id);}} page={sourcePage} onPageChange={setSourcePage} evidence={evidence} evidenceState={evidenceState} onClose={closeSource} onRetry={()=>void openSource(source.id,sourcePage,sourceNote,automatic)}/>} 
+    {!source&&<>{!libraryOpen&&!note&&<section className="reference-empty"><h2>PDF {page}쪽</h2><p>{pageChoices.length?'이 쪽의 인용자료를 선택해 주세요.':'이 쪽에 연결된 인용자료가 없습니다.'}</p><button onClick={showLibrary}>전체 자료 목록</button></section>}{libraryOpen&&<section className="source-library" aria-label="참고문헌·원전"><header><h2>참고문헌·원전</h2></header><label>자료 검색<input type="search" placeholder="저자, 자료명 또는 사건번호" value={libraryQuery} onChange={e=>setLibraryQuery(e.target.value)}/></label><div className="source-library-list">{manifest.sources.filter((s:Obj)=>!libraryQuery||s.title.toLocaleLowerCase().includes(libraryQuery.toLocaleLowerCase())).map((s:Obj)=>{const linked=sourceNotes(manifest.notes,s.id),count=evidence?.entries.filter(e=>e.sourceId===s.id&&e.status==='verified').length||0;return <button key={s.id} onClick={()=>void openSource(s.id,1,null)}><span>{s.title}</span><small>{linked.length}개 각주에서 인용{count?' · 표시 구절 있음':''}</small></button>;})}</div></section>}{!libraryOpen&&note&&<aside className="note-pane" aria-label={'각주 '+note.number}><header><h2>각주 {note.number}</h2><button onClick={()=>{setNoteId(null);setLibraryOpen(true);}} aria-label="각주 닫기">닫기 ×</button></header><div className="note-text"><SourceText noteId={note.id} text={note.text} onReference={segment=>reference(segment,note.id)}/></div><button className="locate-note" onClick={()=>go(note.page)}>원고 PDF {note.page}쪽 보기</button>{note.sourceRefs.length>0&&<section><h3>인용 원전</h3>{note.sourceRefs.map((ref:Obj)=>{const s=manifest.sources.find((x:Obj)=>x.id===ref.sourceId);const pages=((citationPages as Obj)[note.id]?.[ref.sourceId]?.pages||[]);return s&&<div className="source-card" key={s.id}><button onClick={()=>void openSource(s.id,ref.targetPage||1,note.id)}>{s.title}</button>{pages.length>0&&<div className="cited-pages">{pages.map((p:Obj)=><button key={p.page+'-'+p.printed} onClick={()=>void openSource(s.id,p.page,note.id)}>{p.printed}면</button>)}</div>}</div>;})}</section>}{note.crossRefs.length>0&&<div className="cross-notes">함께 인용한 각주 {[...new Set<string>(note.crossRefs)].map(id=><button key={id} onClick={()=>selectNote(id)}>{Number(id.slice(3))}</button>)}</div>}</aside>}</>}
    </aside>
   </div>
  </div>;

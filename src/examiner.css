@@ -45,3 +45,25 @@ select:focus-visible{outline:3px solid #3978a4;outline-offset:2px}
 .source-inline-reader .source-dialog h2{font-size:16px;line-height:1.5}.source-inline-reader .source-dialog header>div{flex-wrap:wrap;margin-left:auto}
 .source-inline-reader .source-evidence-panel{max-height:30dvh}.source-inline-reader .source-original-text{padding:20px;font-size:16px}
 @media(max-width:700px){.reader-layout,.reader-layout.with-toc{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(240px,1fr) minmax(240px,1fr);overflow:auto}.document-divider{display:none}.reference-pane{border-top:5px solid #d5dce2}.source-inline-reader .source-evidence-panel{max-height:20dvh}.source-inline-reader .source-dialog h2{font-size:14px}.source-inline-reader .source-original-text{font-size:15px;padding:14px}}
+
+.reference-toolbar > div { min-width: 0; max-width: 100%; align-items: center; }
+.reference-toolbar select {
+  min-width: 0;
+  width: min(24em, 100%);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: inherit;
+  color: #263b4c;
+  background-color: #fff;
+  border: 1px solid #a6b4bf;
+  border-radius: 5px;
+  padding: 4px 6px;
+}
+.reference-toolbar button { font-size: 13px; }
+.reference-toolbar button, .reference-toolbar select { min-height: 33px; }
+.reference-toolbar select:focus-visible { outline: 3px solid #3978a4; outline-offset: 2px; }
+.reference-empty { padding: 18px 20px; overflow: auto; }
+.reference-empty h2 { font-size: 17px; }
+.reference-empty p { margin: 6px 0 12px; }

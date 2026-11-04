@@ -4,8 +4,8 @@ import type {PdfFitMode} from './pdf-viewer-model';
 import {evidenceHighlights,sha256Text,sourceNotes,textEvidenceParts,verifiedEvidence,verifiedTextEvidence,type DocumentVerification,type EvidenceDocument,type EvidenceNote} from './source-evidence';
 
 type Source={id:string;title:string;kind:string;pages?:number|null};
-type Props={source:Source;href:string;text:string;byteHash:string;error:string;notes:EvidenceNote[];selectedNoteId:string|null;onNoteChange:(id:string|null)=>void;page:number;onPageChange:(page:number)=>void;evidence:EvidenceDocument|null;evidenceState:'loading'|'ready'|'error';onClose:()=>void;onRetry:()=>void};
-export default function SourceReader({source,href,text,byteHash,error,notes,selectedNoteId,onNoteChange,page,onPageChange,evidence,evidenceState,onClose,onRetry}:Props){
+type Props={automatic:boolean;source:Source;href:string;text:string;byteHash:string;error:string;notes:EvidenceNote[];selectedNoteId:string|null;onNoteChange:(id:string|null)=>void;page:number;onPageChange:(page:number)=>void;evidence:EvidenceDocument|null;evidenceState:'loading'|'ready'|'error';onClose:()=>void;onRetry:()=>void};
+export default function SourceReader({automatic,source,href,text,byteHash,error,notes,selectedNoteId,onNoteChange,page,onPageChange,evidence,evidenceState,onClose,onRetry}:Props){
  const linkedNotes=useMemo(()=>sourceNotes(notes,source.id),[notes,source.id]);
  const note=linkedNotes.find(n=>n.id===selectedNoteId);
  const [noteHash,setNoteHash]=useState(''),[textHash,setTextHash]=useState('');
@@ -13,6 +13,7 @@ export default function SourceReader({source,href,text,byteHash,error,notes,sele
  const [zoom,setZoom]=useState(1),[fit,setFit]=useState<PdfFitMode>('width'),[navigation,setNavigation]=useState(0),[showTextHighlights,setShowTextHighlights]=useState(true);
  const [navigationFocus,setNavigationFocus]=useState<{page:number;x:number;y:number}|undefined>();
  const dialog=useRef<HTMLElement>(null),originalText=useRef<HTMLPreElement>(null),closeButton=useRef<HTMLButtonElement>(null);
+ const positioned=useRef(false);
  useEffect(()=>{let stopped=false;setNoteHash('');if(note)void sha256Text(note.text).then(hash=>{if(!stopped)setNoteHash(hash);}).catch(()=>{});return()=>{stopped=true;};},[note]);
  useEffect(()=>{let stopped=false;setTextHash('');if(source.kind==='text'&&text)void sha256Text(text).then(hash=>{if(!stopped)setTextHash(hash);}).catch(()=>{});return()=>{stopped=true;};},[source.kind,text]);
  const entries=useMemo(()=>verifiedEvidence(evidence,note,source,noteHash),[evidence,note,source,noteHash]);
@@ -24,7 +25,15 @@ export default function SourceReader({source,href,text,byteHash,error,notes,sele
  // A different note or PDF must never retain the former selection's success state.
  useEffect(()=>{setVerification('checking');},[source.id,expectedHash]);
  useEffect(()=>{setShowTextHighlights(true);},[source.id,selectedNoteId]);
- useEffect(()=>{const previous=document.activeElement instanceof HTMLElement?document.activeElement:null;closeButton.current?.focus();return()=>{previous?.focus({preventScroll:true});};},[]);
+ useEffect(()=>{if(automatic)return;const previous=document.activeElement instanceof HTMLElement?document.activeElement:null;const pane=dialog.current;closeButton.current?.focus({preventScroll:true});return()=>{if(pane?.contains(document.activeElement)&&previous?.isConnected)previous.focus({preventScroll:true});};},[]);
+ useEffect(()=>{positioned.current=false;},[source.id,selectedNoteId,automatic]);
+ useEffect(()=>{
+  if(!automatic||!confirmed||positioned.current)return;
+  positioned.current=true;
+  if(source.kind==='pdf'&&entries[0]?.page){navigate(entries[0].page,true);return;}
+  const host=originalText.current,mark=host?.querySelector('mark');
+  if(host&&mark)host.scrollTop+=mark.getBoundingClientRect().top-host.getBoundingClientRect().top-host.clientHeight*.25;
+ },[automatic,confirmed,entries,source.kind]);
  function navigate(next:number,focus=false){const entry=focus?entries.find(e=>e.kind==='pdf'&&e.page===next):undefined,rect=entry?.rects?.[0];setNavigationFocus(entry&&rect?{page:next,x:rect[0]/entry.pageWidth!,y:rect[1]/entry.pageHeight!}:undefined);onPageChange(next);setNavigation(v=>v+1);}
  function chooseNote(id:string){const next=linkedNotes.find(n=>n.id===id);onNoteChange(next?.id||null);const target=next?.sourceRefs.find(r=>r.sourceId===source.id)?.targetPage;if(target)navigate(target);}
  function findEvidence(){
@@ -48,7 +57,7 @@ export default function SourceReader({source,href,text,byteHash,error,notes,sele
 
  }
  const parts=textEvidenceParts(text,showTextHighlights?textEntries:[]);
- return <div className="source-inline-reader" role="region" aria-label="인용 원전" onKeyDown={trapKeys}>
+ return <div className="source-inline-reader" role="region" aria-label="인용 원전" onPointerDownCapture={()=>{positioned.current=true;}} onWheelCapture={()=>{positioned.current=true;}} onKeyDownCapture={()=>{positioned.current=true;}} onKeyDown={trapKeys}>
   <section className="source-dialog" ref={dialog}>
    <header><h2>{source.title}</h2><div>{href&&<a href={href+(source.kind==='pdf'?'#page='+page:'')} target="_blank" rel="noopener noreferrer">원문 별도 창 ↗</a>}<button ref={closeButton} onClick={onClose} aria-label="원전 닫기">닫기 ×</button></div></header>
    <section className="source-evidence-panel" aria-label="인용 구절">
