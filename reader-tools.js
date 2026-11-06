@@ -14,8 +14,8 @@
   let dictionaryWindow;
   let tools, box, active, trigger, body, memoInput, memoPage;
   const pageFrom = v => Number.isInteger(Number(v)) && Number(v)>0 && Number(v)<=pageCount ? Number(v) : null;
-  function read(key, fallback) { try { return (key.startsWith(memoPrefix)?sessionStorage:localStorage).getItem(key) ?? fallback; } catch { return fallback; } }
-  function write(key, value) { try { const store=key.startsWith(memoPrefix)?sessionStorage:localStorage; if (value === null)store.removeItem(key);else store.setItem(key,value); return true; } catch { return false; } }
+  function read(key, fallback) { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } }
+  function write(key, value) { try { const store=localStorage; if (value === null)store.removeItem(key);else store.setItem(key,value); return true; } catch { return false; } }
   function gotoPage(page) { window.dispatchEvent(new CustomEvent('paper:navigate', {detail:{page}})); }
   function el(tag, text, cls) { const node=document.createElement(tag); if(text!==undefined) node.textContent=text; if(cls)node.className=cls; return node; }
   function button(text, action, label) { const b=el('button',text);b.type='button';if(label)b.setAttribute('aria-label',label);b.addEventListener('click',action);return b; }
@@ -27,12 +27,97 @@
       dictionaryWindow.opener=null;dictionaryWindow.focus();return true;
     } catch { return false; }
   }
-  function memoNumbers() {
-    try {
-      return Object.keys(sessionStorage).filter(k=>k.startsWith(memoPrefix))
-        .map(k=>pageFrom(k.slice(memoPrefix.length))).filter(Boolean).sort((a,b)=>a-b);
-    } catch {return [];}
+  const notesEndpoint='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/examiner-notes';
+  const cacheKey=memoPrefix+'drafts';
+  let noteSession=null;
+  function getToken(){try{return JSON.parse(sessionStorage.getItem('examiner-session')||'null')?.token||'';}catch{return '';}}
+  function memoNumbers(){return [...(noteSession?.values.keys()||[])].filter(n=>noteSession.values.get(n)?.trim()).sort((a,b)=>a-b);}
+  function memoValue(n){return noteSession?.values.get(n)||'';}
+  function storeDrafts(state){
+    if(state!==noteSession)return;
+    try{
+      if(state.pending.size)sessionStorage.setItem(cacheKey,JSON.stringify({owner:state.token.slice(0,20),pages:Object.fromEntries(state.pending)}));
+      else sessionStorage.removeItem(cacheKey);
+    }catch{}
   }
+  function redrawMemoState(){
+    if(active==='notes'){
+      const status=body.querySelector('[data-status]');
+      const retry=body.querySelector('[data-retry]');
+      if(status)status.textContent=noteSession?.error||(!noteSession||noteSession.loading?'포스트잇을 불러오는 중…':noteSession.pending.size?'저장 중…':'내 심사코드에 저장됨');
+      if(retry)retry.hidden=!noteSession?.error;
+    }
+  }
+  function refreshVisibleNotes(){
+    if(active==='notes'&&document.activeElement!==memoInput)renderNotes(memoPage);
+    else if(active==='notes')body.querySelector('.prt-saved')?.dispatchEvent(new Event('refresh'));
+    redrawMemoState();markPages();
+  }
+  async function loadRemote(state){
+    state.loading=true;state.error='';const version=state.edits;
+    try{
+      const res=await fetch(notesEndpoint,{headers:{Authorization:'Bearer '+state.token},credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',signal:state.controller.signal});
+      if(!res.ok)throw Error();
+      const payload=await res.json();
+      if(!Array.isArray(payload.notes))throw Error();
+      if(state!==noteSession)return;
+      for(const item of payload.notes){
+        const n=pageFrom(item.page);
+        if(n&&typeof item.body==='string'&&!state.pending.has(n)&&(state.touch.get(n)||0)<=version)state.values.set(n,item.body);
+      }
+      state.loaded=true;
+    }catch{if(state===noteSession)state.error='포스트잇을 불러오지 못했습니다.';}
+    finally{if(state===noteSession){state.loading=false;refreshVisibleNotes();}}
+  }
+  function syncLogin(){
+    const token=getToken();if(!token||token===noteSession?.token)return;
+    clearSessionMemos(false);
+    const state={token,values:new Map(),pending:new Map(),touch:new Map(),edits:0,error:'',loaded:false,loading:true,timer:0,worker:null,controller:new AbortController()};
+    noteSession=state;
+    try{
+      const draft=JSON.parse(sessionStorage.getItem(cacheKey)||'null');
+      if(draft?.owner===token.slice(0,20))for(const [key,value] of Object.entries(draft.pages||{})){
+        const page=pageFrom(key);if(page&&typeof value==='string'){state.values.set(page,value);state.pending.set(page,value);}
+      }
+      storeDrafts(state);
+    }catch{}
+    loadRemote(state);
+    if(state.pending.size)flushState(state);
+  }
+  function flushState(state){
+    if(state.worker)return state.worker;
+    clearTimeout(state.timer);
+    state.worker=(async()=>{
+      while(state===noteSession&&state.pending.size){
+        const [page,body]=state.pending.entries().next().value;
+        try{
+          const res=await fetch(notesEndpoint,{method:'PUT',headers:{Authorization:'Bearer '+state.token,'Content-Type':'application/json'},body:JSON.stringify({page,body}),credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',signal:state.controller.signal});
+          if(!res.ok||!(await res.json()).ok)throw Error();
+          if(state!==noteSession)return false;
+          if(state.pending.get(page)===body)state.pending.delete(page);
+          state.error='';storeDrafts(state);
+        }catch{if(state===noteSession)state.error='저장하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.';return false;}
+      }
+      return state===noteSession;
+    })().finally(()=>{state.worker=null;if(state===noteSession)redrawMemoState();});
+    return state.worker;
+  }
+  window.paperFlushNotes=async()=>{
+    const state=noteSession;if(!state||!state.pending.size)return true;
+    const ok=await flushState(state);
+    if(!ok&&state===noteSession){
+      if(active!=='notes')showBox('notes',tools.querySelector('[data-tool="notes"]'));
+      const first=state.pending.keys().next().value;if(first)renderNotes(first);redrawMemoState();
+    }
+    return ok;
+  };
+  function updateMemo(page,text){
+    const state=noteSession;if(!state)return;
+    const value=text.trim()?text:'';
+    state.values.set(page,value);state.pending.set(page,value);state.touch.set(page,++state.edits);
+    state.error='';storeDrafts(state);clearTimeout(state.timer);state.timer=setTimeout(()=>flushState(state),550);redrawMemoState();
+  }
+  window.addEventListener('pagehide',()=>{if(noteSession?.pending.size)storeDrafts(noteSession);});
   function closeBox(restore=true) {
     if(!box)return;
     box.remove();box=null;active=null;memoInput=null;
@@ -85,26 +170,26 @@
   function renderNotes(page) {
     memoPage=page;body.replaceChildren();
     const heading=el('label','제출본 '+page+'쪽');heading.htmlFor='prt-memo';
-    memoInput=el('textarea');memoInput.id='prt-memo';memoInput.rows=5;memoInput.value=read(memoPrefix+page,'');memoInput.placeholder='이 쪽에 남길 메모';
-    const status=el('small','이 열람 세션에 저장');status.setAttribute('role','status');
-    const rows=el('div',undefined,'prt-actions');const updated=()=>drawTabs();
+    memoInput=el('textarea');memoInput.id='prt-memo';memoInput.rows=5;memoInput.maxLength=6000;memoInput.disabled=!noteSession?.loaded;memoInput.value=memoValue(page);memoInput.placeholder='이 쪽에 남길 메모';
+    const status=el('small');status.dataset.status='';status.setAttribute('role','status');
+    const retry=button('다시 시도',async()=>{const state=noteSession;if(!state)return;if(!state.loaded&&!state.loading)await loadRemote(state);if(state.pending.size)await flushState(state);});retry.dataset.retry='';
+    const counter=el('small');counter.textContent=memoInput.value.length.toLocaleString('ko-KR')+' / 6,000자';const rows=el('div',undefined,'prt-actions');const updated=()=>drawTabs();
     memoInput.addEventListener('input',()=>{
-      const text=memoInput.value;const ok=write(memoPrefix+page,text.trim()?text:null);
-      status.textContent=ok?'이 열람 세션에 저장됨':'이 브라우저에 저장할 수 없습니다.';
+      counter.textContent=memoInput.value.length.toLocaleString('ko-KR')+' / 6,000자';updateMemo(page,memoInput.value);
       updated();
     });
-    rows.append(status);
+    rows.append(status,counter,retry);
     const list=el('div',undefined,'prt-saved');list.setAttribute('aria-label','메모가 있는 쪽');
     function drawTabs(){
       const pages=memoNumbers(); list.replaceChildren();
       if(pages.length)list.append(el('h3','메모가 있는 쪽'));
       for(const n of pages){
         const b=button(n+'쪽',()=>{renderNotes(n);gotoPage(n);});
-        b.setAttribute('aria-current',n===page?'page':'false');b.title=read(memoPrefix+n,'').slice(0,100);list.append(b);
+        b.setAttribute('aria-current',n===page?'page':'false');b.title=memoValue(n).slice(0,100);list.append(b);
       }
       markPages();
     }
-    body.append(heading,memoInput,rows,list);drawTabs();
+    list.addEventListener('refresh',drawTabs);body.append(heading,memoInput,rows,list);drawTabs();redrawMemoState();
   }
   function markPages() {
     const withMemos=new Set(memoNumbers());
@@ -144,8 +229,9 @@
     slot.append(tools);
   }
   let wasAdmitted=false;
-  function clearSessionMemos(){
-    for(const n of memoNumbers())write(memoPrefix+n,null);
+  function clearSessionMemos(dropCache=true){
+    if(noteSession){clearTimeout(noteSession.timer);noteSession.controller.abort();noteSession=null;}
+    if(dropCache)try{sessionStorage.removeItem(cacheKey);}catch{}
   }
   function autoDictionary(){
     try{
@@ -162,7 +248,7 @@
       if(wasAdmitted){closeBox(false);clearSessionMemos();tools?.remove();wasAdmitted=false;}
       return;
     }
-    if(!wasAdmitted){wasAdmitted=true;autoDictionary();}
+    syncLogin();if(!wasAdmitted){wasAdmitted=true;autoDictionary();}
     if(!document.querySelector('.prt-tool-row'))mountTools(header);
     const toc=document.querySelector('.toc-pane');
     if(toc&&!toc.querySelector(':scope > .prt-grip')){
@@ -176,7 +262,7 @@
   let queued=false;
   function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;sync();});}
   window.addEventListener('paper:page',e=>{const n=pageFrom(e.detail?.page);if(!n)return;currentPage=n;if(active==='notes'&&memoPage!==n)renderNotes(n);});
-  window.addEventListener('storage',e=>{if(e.key?.startsWith(memoPrefix)){if(active==='notes' && document.activeElement!==memoInput)renderNotes(memoPage);schedule();}});
+
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&box){closeBox();e.preventDefault();}});
   const observer=new MutationObserver(schedule);observer.observe(document.body,{childList:true,subtree:true});schedule();
 })();
