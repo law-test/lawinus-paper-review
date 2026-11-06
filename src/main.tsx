@@ -87,7 +87,8 @@ function Workspace({session,catalog,notes,logout}:{session:Session;catalog:Catal
   const source=sourceId?sources.get(sourceId):null;
   const previews=citation?.previewPages?.length?citation.previewPages:citation?.image&&citation.page?[citation.page]:[];
   const previewPage=preview&&previews.includes(preview)?preview:previews[0];
-  const change=useCallback((p:number)=>{setPage(p);setPageInput(String(p));setPreview(undefined);setOwn(previous=>previous?.page===p?previous:null);},[]);
+  const readingPage=useRef(initial);
+  const change=useCallback((p:number)=>{if(readingPage.current===p)return;readingPage.current=p;setPage(p);setPageInput(String(p));setPreview(undefined);setOwn(previous=>previous?.page===p?previous:null);},[]);
   useEffect(()=>{window.dispatchEvent(new CustomEvent('paper:page',{detail:{page}}));},[page]);
   const jump=(p:number)=>window.dispatchEvent(new CustomEvent('paper:navigate',{detail:{page:Math.max(1,Math.min(p,catalog.pageCount))}}));
   const chooseNote=(n:Note)=>{setList(false);setOwn({page,number:n.number,id:n.sources[0]?.id});setPreview(undefined);};
@@ -123,7 +124,12 @@ function ReadingSession({session,logout}:{session:Session;logout:()=>void}){
 function App(){
   const [session,setSession]=useState<Session|null>(readSession);
   const logout=useCallback(()=>{storeSession(null);setSession(null);},[]);
+  const leave=async()=>{
+    const flush=(window as Window&{paperFlushNotes?:()=>Promise<boolean>}).paperFlushNotes;
+    if(flush&&!await flush())return;
+    logout();
+  };
   useEffect(()=>{if(!session)return;const timer=setTimeout(logout,Math.max(0,expiration(session.expiresAt)-Date.now()));window.addEventListener('paper:expired',logout);return()=>{clearTimeout(timer);window.removeEventListener('paper:expired',logout);};},[session,logout]);
-  return session?<ReadingSession session={session} logout={logout}/>:<Gate ready={s=>{storeSession(s);setSession(s);}}/>;
+  return session?<ReadingSession session={session} logout={leave}/>:<Gate ready={s=>{storeSession(s);setSession(s);}}/>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);
