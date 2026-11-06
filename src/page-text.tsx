@@ -2,6 +2,7 @@ import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {ReaderError,type Session} from './reader-api';
 import {pageCache} from './visible-page-cache';
 import separators from './line-separators.json';
+import footnoteRows from './footnote-rows.json';
 
 export type Rect={x:number;y:number;w:number;h:number};
 export type TextLine=Rect&{text:string;size?:number;index?:number};
@@ -63,10 +64,11 @@ export function officialURL(raw?:string){
     return link.protocol==='https:'&&!link.username&&!link.password&&allowed.some(domain=>host===domain||host.endsWith('.'+domain))?link.href:undefined;
   }catch{return undefined;}
 }
-export function targetLabel(t:PageTarget){return t.label||t.title||((t.kind==='note'||t.kind==='cross')?'각주 '+t.number:'원문 확인');}
+export function targetLabel(t:PageTarget){return t.kind==='note'&&!t.sourceId?'각주 '+t.number:t.label||t.title||'원문 확인';}
 function positioning(r:Rect){return {left:r.x*100+'%',top:r.y*100+'%',width:r.w*100+'%',height:r.h*100+'%'};}
 const within=(p:{x:number;y:number},r:Rect)=>p.x>=r.x&&p.y>=r.y&&p.x<=r.x+r.w&&p.y<=r.y+r.h;
-const targetPriority=(t:PageTarget)=>t.kind==='note'||t.kind==='cross'?0:1;
+const plainNote=(t:PageTarget)=>t.kind==='note'&&!t.sourceId;
+export const printedFootnotes=footnoteRows as Record<string,number[]>;
 
 export function copyManuscriptSelection(event:React.ClipboardEvent<HTMLElement>){
   const selection=window.getSelection();
@@ -96,34 +98,63 @@ export function copyManuscriptSelection(event:React.ClipboardEvent<HTMLElement>)
 export function PageLayer({session,query,active=true,fallback=[],label,onTarget,textAllowed=false}:{session:Session;query:string;active?:boolean;fallback?:PageTarget[];label:string;textAllowed?:boolean;onTarget?:(t:PageTarget)=>void}){
   const {data,error,retry}=usePageMetadata(session,query,active,textAllowed);
   const host=useRef<HTMLDivElement>(null);
-  const start=useRef<{x:number;y:number}|null>(null);
+  const start=useRef<{x:number;y:number;touch:boolean;dragged:boolean}|null>(null);
+  const hover=useRef<HTMLSpanElement>(null);
   const [size,setSize]=useState({w:0,h:0});
   useLayoutEffect(()=>{
     const node=host.current;if(!node)return;
     const update=()=>{const r=node.getBoundingClientRect();setSize(prev=>prev.w===r.width&&prev.h===r.height?prev:{w:r.width,h:r.height});};
     update();const observer=new ResizeObserver(update);observer.observe(node);return()=>observer.disconnect();
   },[active]);
-  const targets=[...(data?.targets||[]),...fallback.filter(f=>!(data?.targets||[]).some(t=>t.kind===f.kind&&t.number===f.number&&Math.abs(t.x-f.x)<.015&&Math.abs(t.y-f.y)<.01))].sort((a,b)=>targetPriority(a)-targetPriority(b)||a.w*a.h-b.w*b.h);
+  const targets=[...(data?.targets||[]),...fallback.filter(f=>!(data?.targets||[]).some(t=>t.kind===f.kind&&t.number===f.number&&Math.abs(t.x-f.x)<.015&&Math.abs(t.y-f.y)<.01))].sort((a,b)=>a.w*a.h-b.w*b.h);
+  const page=new URLSearchParams(query).get('page')||'';
+  const rows=printedFootnotes[page]||[];
   function activate(t:PageTarget){
     onTarget?.(t);
   }
-  function hit(e:React.MouseEvent){
+  function hit(e:React.MouseEvent,touch=false):PageTarget|undefined{
     const r=host.current!.getBoundingClientRect();if(!r.width||!r.height)return;
     const p={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};
-    return targets.find(t=>within(p,t));
+    const direct=targets.find(t=>within(p,t));
+    if(direct)return direct;
+    // Printed superscripts are narrower than a fingertip. Pick the nearest marker only.
+    let best:PageTarget|undefined, distance=Infinity;
+    for(const t of targets){
+      if(!plainNote(t))continue;
+      const dx=Math.max(t.x-p.x,0,p.x-t.x-t.w)*r.width;
+      const dy=Math.max(t.y-p.y,0,p.y-t.y-t.h)*r.height;
+      const gap=Math.hypot(dx,dy);
+      if(gap<=(touch?10:6)&&gap<distance){distance=gap;best=t;}
+    }
+    if(best)return best;
+    for(const [i,line] of (data?.lines||[]).entries()){
+      const number=rows[line.index??i];
+      if(number&&within(p,line))return {...line,kind:'note',number};
+    }
   }
-  const order=(separators as Record<string,string>)[new URLSearchParams(query).get('page')||'']||'';
+  function point(e:React.PointerEvent){
+    if(start.current&&Math.hypot(e.clientX-start.current.x,e.clientY-start.current.y)>4)start.current.dragged=true;
+    const node=host.current!, t=hit(e);
+    node.title=t?targetLabel(t):'';node.style.cursor=t?'pointer':data?.lines?.length?'text':'default';
+    if(hover.current){hover.current.hidden=!t;if(t)Object.assign(hover.current.style,positioning(t));}
+  }
+  const order=(separators as Record<string,string>)[page]||'';
   if(!active)return null;
   return <div ref={host} className={'page-text-layer'+(data?.lines?.length?' has-text':' links-only')} aria-label={label}
-    onMouseMove={e=>{const n=host.current!;const t=hit(e); const title=t?targetLabel(t):'';if(n.title!==title)n.title=title;n.style.cursor=t?'pointer':data?.lines?.length?'text':'default';}}
-    onPointerDown={e=>{start.current={x:e.clientX,y:e.clientY};}}
+    onPointerMove={point} onPointerLeave={()=>{if(hover.current)hover.current.hidden=true;}}
+    onPointerDown={e=>{start.current=e.button===0&&e.isPrimary?{x:e.clientX,y:e.clientY,touch:e.pointerType==='touch',dragged:false}:null;}}
+    onPointerCancel={()=>{start.current=null;}}
     onClick={e=>{
-      if(!start.current||e.detail>1||Math.hypot(e.clientX-start.current.x,e.clientY-start.current.y)>4||window.getSelection()?.isCollapsed===false)return;
-      const t=hit(e);if(t)activate(t);
+      const press=start.current;start.current=null;
+      if(!press||press.dragged||e.detail>1||e.shiftKey||Math.hypot(e.clientX-press.x,e.clientY-press.y)>4)return;
+      const selection=window.getSelection();
+      if(selection&&!selection.isCollapsed&&(host.current?.contains(selection.anchorNode)||host.current?.contains(selection.focusNode)))return;
+      const t=hit(e,press.touch);if(t)activate(t);
     }}>
     {data?.lines.map((line,i)=>{
       const sep=order[line.index??i];return <TextRun key={i} line={line} width={size.w} height={size.h} joinBefore={sep==='C'?'':sep==='S'?' ':'\n'}/>;
     })}
+    <span ref={hover} className="page-target-hover" aria-hidden="true" hidden/>
     {onTarget&&targets.map((t,i)=>{const url=officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':'각주';
       const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'aria-label':name+' 열기 · '+targetLabel(t)};
       return url?<a key={i} {...props} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>{if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();e.stopPropagation();activate(t);}}}/>: 

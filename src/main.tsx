@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {createRoot} from 'react-dom/client';
 import KuBrand from './ku-brand';
 import {Catalog,Citation,Note,Session,ReaderError,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
-import {PageLayer,LegalInfo,NoteText,inlineLinks,usePageMetadata,copyManuscriptSelection,type PageTarget} from './page-text';
+import {PageLayer,LegalInfo,NoteText,inlineLinks,usePageMetadata,copyManuscriptSelection,printedFootnotes,type PageTarget} from './page-text';
 import ContentsSearch from './contents-search';
 import {getPageImage} from './visible-page-cache';
 import './reader.css';
@@ -69,9 +69,9 @@ function DocumentPane({session,start,count,notes,onPage,onTarget}:{session:Sessi
 function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;notes:Note[]}){
   const initial=Math.max(1,Math.min(catalog.bodyStartPage||1,catalog.pageCount));
   const [legal,setLegal]=useState<PageTarget|null>(null);
-  const [page,setPage]=useState(initial),[pageInput,setPageInput]=useState(String(initial)),[toc,setToc]=useState(false),[query,setQuery]=useState(''),[list,setList]=useState(false),[own,setOwn]=useState<{page:number;number?:number;id?:string}|null>(null),[preview,setPreview]=useState<number|undefined>();
+  const [page,setPage]=useState(initial),[pageInput,setPageInput]=useState(String(initial)),[toc,setToc]=useState(false),[query,setQuery]=useState(''),[list,setList]=useState(false),[own,setOwn]=useState<{page:number;number?:number;id?:string;showNote?:boolean}|null>(null),[preview,setPreview]=useState<number|undefined>();
   const sources=useMemo(()=>new Map(catalog.sources.map(s=>[s.id,s])),[catalog]);
-  const pageNotes=useMemo(()=>notes.filter(n=>n.page===page),[notes,page]);
+  const pageNotes=useMemo(()=>{const printed=new Set(printedFootnotes[page]);return notes.filter(n=>n.page===page||printed.has(n.number));},[notes,page]);
   const options=useMemo(()=>pageNotes.flatMap(n=>n.sources.filter(s=>sources.has(s.id)).map(s=>({note:n,citation:s}))),[pageNotes,sources]);
   const chosen=own?.page===page?own:null;
   const entry=chosen?options.find(item=>item.note.number===chosen.number&&item.citation.id===chosen.id):options[0];
@@ -84,33 +84,46 @@ function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;note
   const previews=citation?.previewPages?.length?citation.previewPages:citation?.image&&citation.page?[citation.page]:[];
   const previewPage=preview&&previews.includes(preview)?preview:previews[0];
   const sourceScroll=useRef<HTMLElement>(null);
+  const noteDetail=useRef<HTMLDetailsElement>(null);
   const focusEvidence=useCallback(()=>{
+    if(chosen?.showNote)return;
     const pane=sourceScroll.current;if(!pane)return;
     const mark=pane.querySelector<HTMLElement>('.source-image mark,blockquote mark');
     if(!mark)return;
     const heading=pane.querySelector('h2')?.getBoundingClientRect().height||0;
     const goal=mark.getBoundingClientRect().top-pane.getBoundingClientRect().top+pane.scrollTop-heading-24;
     pane.scrollTop=Math.max(0,goal);
-  },[]);
+  },[chosen?.showNote]);
   useLayoutEffect(()=>{
     const pane=sourceScroll.current;if(!pane)return;
     pane.scrollTop=0;
     const img=pane.querySelector<HTMLImageElement>('.source-image img');
     if(!img||img.complete&&img.naturalWidth>0)focusEvidence();
   },[sourceId,selectedNote?.number,previewPage,focusEvidence]);
+  useLayoutEffect(()=>{
+    if(!chosen?.showNote||!noteDetail.current||!sourceScroll.current||list)return;
+    noteDetail.current.open=true;
+    sourceScroll.current.scrollTop=0;
+    if(window.matchMedia('(max-width:760px)').matches){
+      const pane=sourceScroll.current, bounds=pane.getBoundingClientRect();
+      const note=noteDetail.current.getBoundingClientRect();
+      if(note.bottom>bounds.bottom)pane.scrollTop=Math.max(0,note.top-bounds.top-4);
+      if(bounds.bottom<0||bounds.top>=window.innerHeight)pane.scrollIntoView({block:'center'});
+    }
+  },[chosen,list]);
   const readingPage=useRef(initial);
   const change=useCallback((p:number)=>{if(readingPage.current===p)return;readingPage.current=p;setPage(p);setPageInput(String(p));setPreview(undefined);setOwn(previous=>previous?.page===p?previous:null);},[]);
   useEffect(()=>{window.dispatchEvent(new CustomEvent('paper:page',{detail:{page}}));},[page]);
   const jump=(p:number)=>window.dispatchEvent(new CustomEvent('paper:navigate',{detail:{page:Math.max(1,Math.min(p,catalog.pageCount))}}));
-  const chooseNote=(n:Note)=>{setList(false);setOwn({page,number:n.number,id:n.sources[0]?.id});setPreview(undefined);};
+  const chooseNote=(n:Note)=>{setList(false);setOwn({page,number:n.number,id:n.sources[0]?.id,showNote:true});setPreview(undefined);};
   function targetAction(t:PageTarget,fromPage:number){
     if(t.kind==='law'||t.kind==='case'){setLegal(t);return;}
     const n=notes.find(item=>item.number===t.number);
     if(!n)return;
-    const dest=t.targetPage||(t.kind==='cross'?n.page:fromPage);
-    if(t.kind==='cross'||page!==dest)jump(dest);
+    const dest=t.kind==='cross'?(t.targetPage||n.page):fromPage;
+    if(t.kind==='cross')jump(dest);else if(page!==dest)change(dest);
     const linked=t.sourceId&&n.sources.some(c=>c.id===t.sourceId)?t.sourceId:n.sources[0]?.id;
-    setList(false);setOwn({page:dest,number:n.number,id:linked});setPreview(undefined);
+    setList(false);setOwn({page:dest,number:n.number,id:linked,showNote:true});setPreview(undefined);
   }
   const chooseSource=(id:string)=>{const n=pageNotes.find(n=>n.sources.some(c=>c.id===id))||notes.find(n=>n.sources.some(c=>c.id===id));setList(false);setOwn({page,number:n?.number,id});setPreview(undefined);};
   return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>setList(v=>!v)} aria-expanded={list}>참고문헌</button></nav></header>
@@ -120,8 +133,8 @@ function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;note
       <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={entry?entry.note.number+'/'+entry.citation.id:''} onChange={e=>{const opt=options.find(o=>o.note.number+'/'+o.citation.id===e.target.value);if(opt){setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);}}}><option value="" disabled>이 쪽의 인용자료</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
         <button onClick={()=>{setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
       {list?<section className="source-library"><h2>자료 목록</h2><label>자료 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label>{catalog.sources.filter(s=>s.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(s=><button key={s.id} onClick={()=>chooseSource(s.id)}>{s.title}</button>)}</section>:
-      <section className="source-dialog" ref={sourceScroll}><h2>{source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
-        {selectedNote&&<details key={selectedNote.number} open={!previewPage&&!citation?.excerpt}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,page)}/></p></details>}
+      <section className={'source-dialog'+(chosen?.showNote?' showing-note':'')} ref={sourceScroll}><h2>{source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
+        {selectedNote&&<details ref={noteDetail} key={selectedNote.number} open={chosen?.showNote||(!previewPage&&!citation?.excerpt)}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,page)}/></p></details>}
         {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
         {previewPage&&sourceId&&<><h3>확인된 인용면</h3><div className="preview-pages">{previews.map(p=><button aria-pressed={p===previewPage} key={p} onClick={()=>setPreview(p)}>자료 {p}쪽</button>)}</div><div className="source-image"><Photo session={session} label="인용면" query={new URLSearchParams({source:sourceId,page:String(previewPage)}).toString()} onReady={focusEvidence}/>{previewPage===citation?.page&&citation.highlights?.map((r,i)=><mark key={i} style={{left:r.x*100+"%",top:r.y*100+"%",width:r.w*100+"%",height:r.h*100+"%"}}/>)}</div></>}

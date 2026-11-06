@@ -3,14 +3,22 @@
 
 /* Keep both document panels on the same adjustable reading surface. */
 .examiner-app.prt-resizable-reading{height:auto;min-height:100dvh;overflow:visible}
-.prt-resizable-reading>.reader-layout{box-sizing:border-box;flex:0 0 auto;width:100%;max-width:100%;height:var(--prt-reading-height);max-height:none;padding-bottom:26px;z-index:2;isolation:isolate;background:#eeeae6}
+.prt-resizable-reading>.reader-layout{box-sizing:border-box;flex:0 0 auto;width:100%;max-width:100%;height:var(--prt-reading-height);max-height:none;z-index:2;isolation:isolate;background:#eeeae6}
 .prt-resizable-reading>.reader-layout>.manuscript-pane,.prt-resizable-reading>.reader-layout>.reference-pane{max-height:none;min-height:0}
-.prt-reading-height{position:absolute;z-index:8;left:0;right:0;width:100%;height:26px;min-height:26px;display:flex;align-items:center;justify-content:center;gap:9px;padding:0 12px;box-sizing:border-box;border:0;border-top:1px solid #c7aeb5;border-bottom:1px solid #c7aeb5;border-radius:0;background:#f5eaec;color:#642335;font-size:12px;font-weight:600;letter-spacing:.01em;line-height:1;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
-.prt-reading-height::before,.prt-reading-height::after{content:"";width:25px;height:3px;border-top:1px solid #a77b87;border-bottom:1px solid #a77b87}
-.prt-reading-height:hover,.prt-reading-height:focus-visible,.prt-reading-height.is-dragging{background:#ead3d8;color:#52192b}.prt-reading-height:focus-visible{outline:2px solid #8a233d;outline-offset:-3px}
+.prt-reading-edge{position:relative;z-index:8;flex:0 0 0;height:0;width:100%}
+.prt-reading-height{position:absolute;inset:-6px 0 auto;height:12px;cursor:row-resize;touch-action:none;user-select:none;outline:0}
+.prt-reading-edge.at-window-end .prt-reading-height{top:-12px}
+.prt-reading-edge::before{content:"";position:absolute;left:0;right:0;top:-1px;height:1px;background:#bdaeb2;pointer-events:none}
+.prt-reading-edge:has(.prt-reading-height:hover,.prt-reading-height:focus-visible,.prt-reading-height.is-dragging)::before{height:3px;top:-2px;background:#942b45}
 .prt-reading-footer{position:fixed;z-index:0;left:0;right:0;bottom:0;height:40px;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;padding:3px 12px;background:#f6f3f1;border-top:1px solid #d9ceca}.prt-reading-footer button{font-size:12px;padding:4px 9px}
 .prt-divider::after{content:"";position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);height:30px;width:4px;border-radius:2px;background:#a9838d;pointer-events:none}
-@media(max-width:760px){.prt-resizable-reading>.reader-layout{overflow:hidden;grid-template-rows:minmax(178px,1fr) minmax(170px,1fr);padding-bottom:34px}.prt-reading-height{height:34px;min-height:34px}.prt-reading-footer{height:42px;padding-right:8px}}
+@media(max-width:760px){
+  .prt-resizable-reading>.reader-layout{overflow:hidden;grid-template-rows:minmax(0,var(--prt-stacked-split,50%)) minmax(0,1fr)}
+  .prt-reading-height{height:20px;top:-10px}.prt-reading-edge.at-window-end .prt-reading-height{top:-20px}
+  .prt-reading-footer{height:42px;padding-right:8px}
+  .reader-layout>.prt-divider{display:block;left:0;right:0;top:var(--prt-stacked-split,50%);bottom:auto;width:100%;height:16px;transform:translateY(-50%);cursor:row-resize}
+  .reader-layout>.prt-divider::after{left:50%;top:50%;height:3px;width:30px}
+}
 
 /* Only the chosen pane intercepts drags; ordinary clicks retain their target. */
 .prt-hand-toggle{flex-shrink:0;padding:3px 7px;border-radius:4px;font-size:12px;white-space:nowrap}.prt-hand-toggle[aria-pressed="true"]{background:#74283e;color:white;border-color:#74283e}.paper-actions>.prt-hand-toggle{margin-left:0}.paper-actions:has(>.prt-hand-toggle)>label{margin-left:auto}.prt-hand-enabled,.prt-hand-enabled .paper-page,.prt-hand-enabled .source-image,.prt-hand-enabled .page-text-layer{cursor:grab;touch-action:pinch-zoom}.prt-hand-enabled,.prt-hand-enabled *{user-select:none!important;-webkit-user-select:none!important}.prt-hand-dragging,.prt-hand-dragging *{cursor:grabbing!important}.prt-hand-enabled input,.prt-hand-enabled textarea{user-select:text!important;-webkit-user-select:text!important}
