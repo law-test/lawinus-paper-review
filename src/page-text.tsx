@@ -79,8 +79,15 @@ export function copyManuscriptSelection(event:React.ClipboardEvent<HTMLElement>)
     const clipped=document.createRange();clipped.selectNodeContents(span);
     if(range.compareBoundaryPoints(Range.START_TO_START,clipped)>0)clipped.setStart(range.startContainer,range.startOffset);
     if(range.compareBoundaryPoints(Range.END_TO_END,clipped)<0)clipped.setEnd(range.endContainer,range.endOffset);
-    const value=clipped.toString();if(!value)continue;
-    if(output.length)output.push(span.dataset.joinBefore??'\n');
+    let value=clipped.toString();if(!value)continue;
+    if(output.length){
+      const join=span.dataset.joinBefore??'\n';
+      if(join===' '||join===''){
+        output[output.length-1]=output[output.length-1].trimEnd();
+        value=value.trimStart();
+      }
+      output.push(join);
+    }
     output.push(value);
   }
   if(!output.length)return;
