@@ -371,6 +371,72 @@
     positionRail();
     if(anchor&&scrollport)scrollport.scrollTop=anchor.offsetTop+offset;
   }
+  const handBindings=new WeakMap();
+  function bindHandScroll(port) {
+    if(handBindings.has(port))return handBindings.get(port);
+    let gesture=null;
+    let suppressClick=false;
+    const endGesture=()=>{
+      if(!gesture)return;
+      suppressClick=gesture.dragged;
+      gesture.listeners.abort();
+      if(port.hasPointerCapture?.(gesture.id))port.releasePointerCapture(gesture.id);
+      gesture=null;
+      port.classList.remove('prt-hand-dragging');
+    };
+    port.addEventListener('pointerdown',e=>{
+      if(!port.classList.contains('prt-hand-enabled') || !e.isPrimary || e.button!==0)return;
+      if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+      endGesture();suppressClick=false;
+      const listeners=new AbortController();
+      gesture={id:e.pointerId,x:e.clientX,y:e.clientY,left:port.scrollLeft,top:port.scrollTop,dragged:false,listeners};
+      const options={capture:true,passive:false,signal:listeners.signal};
+      const move=event=>{
+        const g=gesture;
+        if(!g || event.pointerId!==g.id)return;
+        const dx=event.clientX-g.x,dy=event.clientY-g.y;
+        if(!g.dragged&&Math.hypot(dx,dy)<6)return;
+        if(!g.dragged){
+          g.dragged=true;port.setPointerCapture(g.id);port.classList.add('prt-hand-dragging');
+        }
+        event.preventDefault();
+        port.scrollLeft=g.left-dx;port.scrollTop=g.top-dy;
+      };
+      window.addEventListener('pointermove',move,options);
+      const finish=event=>{if(gesture&&event.pointerId===gesture.id)endGesture();};
+      for(const name of ['pointerup','pointercancel'])window.addEventListener(name,finish,options);
+      window.addEventListener('blur',endGesture,{once:true,signal:listeners.signal});
+    });
+    port.addEventListener('lostpointercapture',endGesture);
+    // A drag beginning on a citation pans the page. An ordinary click still follows it.
+    port.addEventListener('click',e=>{
+      if(suppressClick && e.detail>0){e.preventDefault();e.stopImmediatePropagation();suppressClick=false;}
+    },true);
+    const binding={set(enabled){if(!enabled)endGesture();port.classList.toggle('prt-hand-enabled',enabled);}};
+    handBindings.set(port,binding);return binding;
+  }
+  function mountHandTool(pane,barSelector,portSelector,label){
+    if(!pane)return;
+    const bar=pane.querySelector(barSelector),port=pane.querySelector(portSelector);
+    if(!bar)return;
+    let tool=bar.querySelector('.prt-hand-toggle');
+    if(!port){if(tool)tool.hidden=true;return;}
+    if(!tool){
+      tool=button('손 도구',()=>{
+        const current=pane.querySelector(portSelector);
+        if(!current)return;
+        const enabled=tool.getAttribute('aria-pressed')!=='true';
+        tool.setAttribute('aria-pressed',String(enabled));
+        bindHandScroll(current).set(enabled);
+      },label+' 손 도구');
+      tool.className='prt-hand-toggle';
+      tool.setAttribute('aria-pressed','false');
+      tool.title='켜면 문서를 잡아 끌어 이동하고, 끄면 기본 선택 모드로 돌아갑니다.';
+      bar.append(tool);
+    }
+    tool.hidden=false;
+    bindHandScroll(port).set(tool.getAttribute('aria-pressed')==='true');
+  }
   function sync() {
     const header=document.querySelector('.examiner-header');
     const admitted=Boolean(header&&document.querySelector('.manuscript-pane')&&!document.querySelector('.gate'));
@@ -389,6 +455,8 @@
     const readingLayout=document.querySelector('.reader-layout');
     mountDivider(readingLayout);
     mountReadingHeight(readingLayout);
+    mountHandTool(document.querySelector('.manuscript-pane'),'.paper-actions','.paper-scroll','논문');
+    mountHandTool(document.querySelector('.reference-pane'),'.reference-toolbar','.source-dialog','원전');
 
     const toc=document.querySelector('.toc-pane');
     if(toc&&!toc.querySelector(':scope > .prt-grip')){
