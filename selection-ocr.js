@@ -127,7 +127,7 @@
   }
   function sync(){
     for(const [pane,b] of buttons){if(!pane.isConnected){if(armed===pane)setArmed(null);buttons.delete(pane);}}
-    for(const [selector,tools] of [['.manuscript-pane','.paper-actions'],['.reference-pane','.reference-toolbar']]){
+    for(const [selector,tools] of [['.reference-pane','.reference-toolbar']]){
       const pane=document.querySelector(selector),bar=pane?.querySelector(tools);
       if(!pane||!bar||buttons.has(pane))continue;
       const b=newButton('구절 인식',()=>{if(armed===pane)setArmed(null);else{close();setArmed(pane);}});
