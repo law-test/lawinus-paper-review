@@ -241,6 +241,26 @@
       }
     }catch{}
   }
+  function mountDivider(layout){
+    if(!layout||layout.querySelector(':scope > .prt-divider'))return;
+    const rail=el('div',undefined,'prt-divider');rail.tabIndex=0;rail.setAttribute('role','separator');
+    rail.setAttribute('aria-label','논문과 참고문헌 너비 조절');rail.setAttribute('aria-orientation','vertical');
+    rail.setAttribute('aria-valuemin','30');rail.setAttribute('aria-valuemax','70');layout.append(rail);
+    const setSplit=(fraction,save=true)=>{
+      const v=Math.max(30,Math.min(70,fraction));layout.style.setProperty('--paper-width',v+'%');
+      rail.setAttribute('aria-valuenow',String(Math.round(v)));if(save)write(layoutKey+':split',String(v));
+    };
+    const saved=Number(read(layoutKey+':split','53'));setSplit(Number.isFinite(saved)?saved:53,false);
+    let dragging=null;
+    rail.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dragging=e.pointerId;rail.setPointerCapture(e.pointerId);rail.focus();});
+    rail.addEventListener('pointermove',e=>{if(e.pointerId!==dragging)return;const r=layout.getBoundingClientRect();if(r.width)setSplit(100*(e.clientX-r.left)/r.width);});
+    for(const event of ['pointerup','pointercancel','lostpointercapture'])rail.addEventListener(event,()=>{dragging=null;});
+    rail.addEventListener('dblclick',()=>setSplit(50));
+    rail.addEventListener('keydown',e=>{
+      const v=Number(rail.getAttribute('aria-valuenow'));const move={Home:30,End:70,ArrowLeft:v-2,ArrowRight:v+2};
+      if(e.key in move){e.preventDefault();setSplit(move[e.key]);}
+    });
+  }
   function sync() {
     const header=document.querySelector('.examiner-header');
     const admitted=Boolean(header&&document.querySelector('.manuscript-pane')&&!document.querySelector('.gate'));
@@ -250,6 +270,14 @@
     }
     syncLogin();if(!wasAdmitted){wasAdmitted=true;autoDictionary();}
     if(!document.querySelector('.prt-tool-row'))mountTools(header);
+    const nav=header.querySelector('nav');
+    if(nav&&!nav.querySelector(':scope>.prt-grip')){
+      attachResize(nav,'상단 메뉴',{x:-1,y:1},({width,height})=>{
+        nav.style.setProperty('--prt-nav-width',width+'px');nav.style.setProperty('--prt-nav-height',height+'px');
+      },()=>[Math.min(160,innerWidth-28),Math.max(200,innerWidth-28),40,Math.max(100,innerHeight*.4)]);
+    }
+    mountDivider(document.querySelector('.reader-layout'));
+
     const toc=document.querySelector('.toc-pane');
     if(toc&&!toc.querySelector(':scope > .prt-grip')){
       attachResize(toc,'목차 메뉴',{x:1,y:1},({width,height})=>{
