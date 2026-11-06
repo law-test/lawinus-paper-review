@@ -10,15 +10,15 @@ export function expiration(value:string|number){
   return typeof value==='number'?(value<1e12?value*1000:value):new Date(value).getTime();
 }
 export function readSession():Session|null{
-  try{const s=JSON.parse(sessionStorage.getItem(storageKey)||'null');return s&&/^[a-f0-9]{64}$/i.test(s.token)&&expiration(s.expiresAt)>Date.now()?s:null;}
+  try{const s=JSON.parse(sessionStorage.getItem(storageKey)||'null');return s&&s.mode==='public-visit'&&/^[a-f0-9]{64}$/i.test(s.token)&&expiration(s.expiresAt)>Date.now()+30000?s:null;}
   catch{return null;}
 }
 export function storeSession(s:Session|null){
-  if(s)sessionStorage.setItem(storageKey,JSON.stringify(s));else sessionStorage.removeItem(storageKey);
+  if(s)sessionStorage.setItem(storageKey,JSON.stringify({...s,mode:'public-visit'}));else sessionStorage.removeItem(storageKey);
 }
 export class ReaderError extends Error{
   constructor(public status:number,public wait:number){
-    super(status===429?'열람 요청이 많습니다. 잠시 후 다시 시도해 주세요.':status===401||status===403?'입장 코드를 확인해 주세요.':'열람 자료를 불러오지 못했습니다.');
+    super(status===429?'열람 요청이 많습니다. 잠시 후 다시 시도해 주세요.':'열람 자료를 불러오지 못했습니다.');
   }
 }
 async function checked(name:string,options:RequestInit,reviewer=false){
@@ -29,10 +29,17 @@ async function checked(name:string,options:RequestInit,reviewer=false){
   }
   return response;
 }
-export async function enter(code:string):Promise<Session>{
-  const response=await checked('examiner-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+let memoryKey='';
+function browserKey(){
+  try{const saved=localStorage.getItem('paper-reading-browser');if(saved&&/^[a-f0-9]{64}$/i.test(saved))return saved;}catch{}
+  if(!memoryKey)memoryKey=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
+  try{localStorage.setItem('paper-reading-browser',memoryKey);}catch{}
+  return memoryKey;
+}
+export async function visit():Promise<Session>{
+  const response=await checked('examiner-visit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({browserKey:browserKey()})});
   const result=await response.json();
-  if(!/^[a-f0-9]{64}$/i.test(result.token)||!(expiration(result.expiresAt)>Date.now()))throw Error('입장 정보를 확인하지 못했습니다.');
+  if(!/^[a-f0-9]{64}$/i.test(result.token)||!(expiration(result.expiresAt)>Date.now()))throw Error('열람 연결을 시작하지 못했습니다.');
   return {token:result.token,expiresAt:result.expiresAt};
 }
 export function privateResource(session:Session,query:URLSearchParams,signal:AbortSignal){

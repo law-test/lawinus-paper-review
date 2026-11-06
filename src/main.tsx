@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import KuBrand from './ku-brand';
-import {Catalog,Citation,Note,Session,ReaderError,enter,expiration,privateResource,readSession,storeSession} from './reader-api';
+import {Catalog,Citation,Note,Session,ReaderError,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
 import './reader.css';
 
 function Photo({session,query,label,active=true}:{session:Session;query:string;label:string;active?:boolean}){
@@ -27,19 +27,6 @@ function Photo({session,query,label,active=true}:{session:Session;query:string;l
   if(!active)return null;
   if(error)return <div className="image-status" role="status">{error} <button onClick={()=>setRetry(n=>n+1)}>다시 시도</button></div>;
   return picture&&picture.query===query?<img src={picture.url} alt={label} draggable={false}/>:<div className="image-status" role="status">쪽을 불러오는 중…</div>;
-}
-
-function Gate({ready}:{ready:(s:Session)=>void}){
-  const [code,setCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  const submit=async(e:React.FormEvent)=>{
-    e.preventDefault();if(busy||!code.trim())return;
-    setBusy(true);setError('');
-    try{const s=await enter(code.trim());setCode('');ready(s);}catch(e){setError(e instanceof Error?e.message:'입장할 수 없습니다.');}finally{setBusy(false);}
-  };
-  return <div className="examiner-app gate"><header className="examiner-header"><KuBrand/><span>박사학위논문 심사 열람</span></header><main className="gate-main"><form onSubmit={submit}>
-    <h1>심사위원 열람</h1><label htmlFor="review-code">입장 코드</label><input id="review-code" type="password" autoCapitalize="off" autoComplete="off" spellCheck={false} value={code} onChange={e=>setCode(e.target.value)} required/>
-    {error&&<p role="alert">{error}</p>}<button type="submit" disabled={busy||!code.trim()}>{busy?'확인 중…':'입장'}</button>
-  </form></main></div>;
 }
 
 function DocumentPane({session,start,count,notes,onPage,onNote}:{session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onNote:(n:Note)=>void}){
@@ -73,7 +60,7 @@ function DocumentPane({session,start,count,notes,onPage,onNote}:{session:Session
     </article>)}</div></main>;
 }
 
-function Workspace({session,catalog,notes,logout}:{session:Session;catalog:Catalog;notes:Note[];logout:()=>void}){
+function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;notes:Note[]}){
   const initial=Math.max(1,Math.min(catalog.bodyStartPage||1,catalog.pageCount));
   const [page,setPage]=useState(initial),[pageInput,setPageInput]=useState(String(initial)),[toc,setToc]=useState(false),[query,setQuery]=useState(''),[list,setList]=useState(false),[own,setOwn]=useState<{page:number;number?:number;id?:string}|null>(null),[preview,setPreview]=useState<number|undefined>();
   const sources=useMemo(()=>new Map(catalog.sources.map(s=>[s.id,s])),[catalog]);
@@ -93,7 +80,7 @@ function Workspace({session,catalog,notes,logout}:{session:Session;catalog:Catal
   const jump=(p:number)=>window.dispatchEvent(new CustomEvent('paper:navigate',{detail:{page:Math.max(1,Math.min(p,catalog.pageCount))}}));
   const chooseNote=(n:Note)=>{setList(false);setOwn({page,number:n.number,id:n.sources[0]?.id});setPreview(undefined);};
   const chooseSource=(id:string)=>{const n=pageNotes.find(n=>n.sources.some(c=>c.id===id))||notes.find(n=>n.sources.some(c=>c.id===id));setList(false);setOwn({page,number:n?.number,id});setPreview(undefined);};
-  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차</button><button type="button" onClick={()=>setList(v=>!v)} aria-expanded={list}>참고문헌</button><button type="button" onClick={logout}>열람 종료</button></nav></header>
+  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차</button><button type="button" onClick={()=>setList(v=>!v)} aria-expanded={list}>참고문헌</button></nav></header>
     <section className="page-controls"><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button><form onSubmit={e=>{e.preventDefault();const n=Number(pageInput);if(Number.isInteger(n)&&n>0)jump(n);}}><input aria-label="논문 쪽" value={pageInput} onChange={e=>setPageInput(e.target.value)} inputMode="numeric"/> / {catalog.pageCount}쪽 <button>이동</button></form><button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button></section>
     <div className="reader-layout">{toc&&<aside className="toc-pane"><h2>목차</h2>{catalog.toc.map((row,i)=><button key={i} style={{paddingLeft:Math.min(4,row.level||1)*9+'px'}} onClick={()=>{jump(row.page);setToc(false);}}>{row.title}<small>{row.page}쪽</small></button>)}</aside>}
       <DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onNote={chooseNote}/>
@@ -112,24 +99,40 @@ function Workspace({session,catalog,notes,logout}:{session:Session;catalog:Catal
     </aside></div></div>;
 }
 
-function ReadingSession({session,logout}:{session:Session;logout:()=>void}){
+function ReadingSession({session}:{session:Session}){
   const [data,setData]=useState<{catalog:Catalog;notes:Note[]}|null>(null),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
   useEffect(()=>{const c=new AbortController();setError('');
     Promise.all(['catalog','citations'].map(k=>privateResource(session,new URLSearchParams({metadata:k}),c.signal).then(r=>r.json()))).then(([catalog,citations])=>{if(!c.signal.aborted)setData({catalog,notes:citations.notes});}).catch(e=>{if(!c.signal.aborted)setError(e.message);});
     return()=>c.abort();},[session,attempt]);
-  if(!data)return <main className="loading" role="status">{error||'열람 자료를 불러오는 중…'}{error&&<button onClick={()=>setAttempt(a=>a+1)}>다시 시도</button>}<button onClick={logout}>열람 종료</button></main>;
-  return <Workspace session={session} catalog={data.catalog} notes={data.notes} logout={logout}/>;
+  if(!data)return <Loading error={error} retry={()=>setAttempt(a=>a+1)}/>;
+  return <Workspace session={session} catalog={data.catalog} notes={data.notes}/>;
+}
+
+function Loading({error,retry}:{error:string;retry:()=>void}){
+  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · 김민규</small><h1>주택임차보증금반환채권의 행사 및 반환보장상의 법적 쟁점에 관한 연구</h1></div></header><section className="page-controls">논문 19 / 255쪽</section><div className="reader-layout"><main className="reader-pending"><strong>논문</strong><p role="status">{error||'논문을 불러오는 중…'}</p>{error&&<button onClick={retry}>다시 시도</button>}</main><aside className="reference-pane"><div className="reference-toolbar"><strong>참고문헌·원전</strong></div></aside></div></div>;
 }
 
 function App(){
   const [session,setSession]=useState<Session|null>(readSession);
-  const logout=useCallback(()=>{storeSession(null);setSession(null);},[]);
-  const leave=async()=>{
-    const flush=(window as Window&{paperFlushNotes?:()=>Promise<boolean>}).paperFlushNotes;
-    if(flush&&!await flush())return;
-    logout();
-  };
-  useEffect(()=>{if(!session)return;const timer=setTimeout(logout,Math.max(0,expiration(session.expiresAt)-Date.now()));window.addEventListener('paper:expired',logout);return()=>{clearTimeout(timer);window.removeEventListener('paper:expired',logout);};},[session,logout]);
-  return session?<ReadingSession session={session} logout={leave}/>:<Gate ready={s=>{storeSession(s);setSession(s);}}/>;
+  const [error,setError]=useState('');
+  const pending=useRef<Promise<void>|null>(null), retryTimer=useRef<number>(0);
+  const refresh=useCallback(()=>{
+    if(pending.current)return;
+    clearTimeout(retryTimer.current);
+    setError('');
+    pending.current=visit().then(s=>{storeSession(s);setSession(s);}).catch(e=>{
+      const wait=e instanceof ReaderError&&e.status===429?e.wait:12;
+      setError(e instanceof ReaderError?e.message:'열람 연결을 시작하지 못했습니다.');
+      retryTimer.current=window.setTimeout(refresh,wait*1000);
+    }).finally(()=>{pending.current=null;});
+  },[]);
+  useEffect(()=>{
+    if(!session)refresh();
+    const timer=session?window.setTimeout(refresh,Math.max(0,expiration(session.expiresAt)-Date.now()-30000)):0;
+    window.addEventListener('paper:expired',refresh);
+    return()=>{window.clearTimeout(timer);window.removeEventListener('paper:expired',refresh);};
+  },[session,refresh]);
+  useEffect(()=>()=>clearTimeout(retryTimer.current),[]);
+  return session?<ReadingSession session={session}/>:<Loading error={error} retry={refresh}/>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);
