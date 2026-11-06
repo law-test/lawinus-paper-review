@@ -1,9 +1,10 @@
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {ReaderError,type Session} from './reader-api';
 import {pageCache} from './visible-page-cache';
+import separators from './line-separators.json';
 
 export type Rect={x:number;y:number;w:number;h:number};
-export type TextLine=Rect&{text:string;size?:number};
+export type TextLine=Rect&{text:string;size?:number;index?:number};
 export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross';number?:number;targetPage?:number;noteNumber?:number;sourceId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
 type PageMetadata={lines:TextLine[];targets:PageTarget[];width?:number;height?:number};
 export type InlineLink={start:number;end:number;target:PageTarget};
@@ -12,7 +13,7 @@ function box(r:Rect){return [r.x,r.y,r.w,r.h].every(Number.isFinite)&&r.w>0&&r.h
 const openMetadata=pageCache<PageMetadata>(12,2*1024*1024,async response=>{
   const raw=(await response.json()) as PageMetadata;
   if(!Array.isArray(raw.lines))throw Error('쪽의 문자 정보를 확인하지 못했습니다.');
-  return {...raw,lines:raw.lines.filter(line=>typeof line.text==='string'&&box(line)),targets:(raw.targets||[]).filter(box)};
+  return {...raw,lines:raw.lines.flatMap((line,index)=>typeof line.text==='string'&&box(line)?[{...line,index}]:[]),targets:(raw.targets||[]).filter(box)};
 },data=>data.lines.reduce((bytes,line)=>bytes+line.text.length*2+80,0)+data.targets.reduce((bytes,t)=>bytes+(t.articleText?.length||0)*2+128,0));
 
 const mapCache=new Map<number,Promise<PageTarget[]>>();
@@ -67,6 +68,24 @@ function positioning(r:Rect){return {left:r.x*100+'%',top:r.y*100+'%',width:r.w*
 const within=(p:{x:number;y:number},r:Rect)=>p.x>=r.x&&p.y>=r.y&&p.x<=r.x+r.w&&p.y<=r.y+r.h;
 const targetPriority=(t:PageTarget)=>t.kind==='note'||t.kind==='cross'?0:1;
 
+export function copyManuscriptSelection(event:React.ClipboardEvent<HTMLElement>){
+  const selection=window.getSelection();
+  if(!selection||selection.isCollapsed||!selection.rangeCount)return;
+  const range=selection.getRangeAt(0);
+  if(!event.currentTarget.contains(range.commonAncestorContainer))return;
+  const output:string[]=[];
+  for(const span of event.currentTarget.querySelectorAll<HTMLElement>('.page-text-run')){
+    if(!range.intersectsNode(span))continue;
+    const clipped=document.createRange();clipped.selectNodeContents(span);
+    if(range.compareBoundaryPoints(Range.START_TO_START,clipped)>0)clipped.setStart(range.startContainer,range.startOffset);
+    if(range.compareBoundaryPoints(Range.END_TO_END,clipped)<0)clipped.setEnd(range.endContainer,range.endOffset);
+    const value=clipped.toString();if(!value)continue;
+    if(output.length)output.push(span.dataset.joinBefore??'\n');
+    output.push(value);
+  }
+  if(!output.length)return;
+  event.clipboardData.setData('text/plain',output.join(''));event.preventDefault();
+}
 export function PageLayer({session,query,active=true,fallback=[],label,onTarget,textAllowed=false}:{session:Session;query:string;active?:boolean;fallback?:PageTarget[];label:string;textAllowed?:boolean;onTarget?:(t:PageTarget)=>void}){
   const {data,error,retry}=usePageMetadata(session,query,active,textAllowed);
   const host=useRef<HTMLDivElement>(null);
@@ -86,22 +105,18 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
     const p={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};
     return targets.find(t=>within(p,t));
   }
+  const order=(separators as Record<string,string>)[new URLSearchParams(query).get('page')||'']||'';
   if(!active)return null;
   return <div ref={host} className={'page-text-layer'+(data?.lines?.length?' has-text':' links-only')} aria-label={label}
     onMouseMove={e=>{const n=host.current!;const t=hit(e); const title=t?targetLabel(t):'';if(n.title!==title)n.title=title;n.style.cursor=t?'pointer':data?.lines?.length?'text':'default';}}
-    onCopy={e=>{
-      const selection=window.getSelection();if(!selection||selection.isCollapsed||!selection.rangeCount)return;
-      // Ignore selections extending beyond this page so normal multi-page copy remains available.
-      const range=selection.getRangeAt(0);
-      if(!host.current?.contains(range.commonAncestorContainer))return;
-      e.clipboardData.setData('text/plain',selection.toString());e.preventDefault();
-    }}
     onPointerDown={e=>{start.current={x:e.clientX,y:e.clientY};}}
     onClick={e=>{
       if(!start.current||e.detail>1||Math.hypot(e.clientX-start.current.x,e.clientY-start.current.y)>4||window.getSelection()?.isCollapsed===false)return;
       const t=hit(e);if(t)activate(t);
     }}>
-    {data?.lines.map((line,i)=><TextRun key={i} line={line} width={size.w} height={size.h}/>)}
+    {data?.lines.map((line,i)=>{
+      const sep=order[line.index??i];return <TextRun key={i} line={line} width={size.w} height={size.h} joinBefore={sep==='C'?'':sep==='S'?' ':'\n'}/>;
+    })}
     {onTarget&&targets.map((t,i)=>{const url=officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':'각주';
       const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'aria-label':name+' 열기 · '+targetLabel(t)};
       return url?<a key={i} {...props} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>{if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();e.stopPropagation();activate(t);}}}/>: 
@@ -112,12 +127,12 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
 }
 let canvas:CanvasRenderingContext2D|null=null;
 const font='Arial,"Malgun Gothic",sans-serif';
-function TextRun({line,width,height}:{line:TextLine;width:number;height:number}){
+function TextRun({line,width,height,joinBefore}:{line:TextLine;width:number;height:number;joinBefore:string}){
   const h=line.h*height;
   if(!canvas)canvas=document.createElement('canvas').getContext('2d');
   const fontSize=Math.max(.1,h*.90);if(canvas)canvas.font=fontSize+'px '+font;
   const measured=canvas?.measureText(line.text).width||1;
-  return <span className="page-text-run" style={{left:line.x*100+'%',top:line.y*100+'%',height:h,fontSize,lineHeight:h+'px',fontFamily:font,transform:'scaleX('+line.w*width/measured+')'}}>{line.text}</span>;
+  return <span className="page-text-run" data-join-before={joinBefore} style={{left:line.x*100+'%',top:line.y*100+'%',height:h,fontSize,lineHeight:h+'px',fontFamily:font,transform:'scaleX('+line.w*width/measured+')'}}>{line.text}</span>;
 }
 
 export function NoteText({text,links,onTarget}:{text:string;links:InlineLink[];onTarget:(t:PageTarget)=>void}){

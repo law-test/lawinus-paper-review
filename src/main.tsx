@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {createRoot} from 'react-dom/client';
 import KuBrand from './ku-brand';
 import {Catalog,Citation,Note,Session,ReaderError,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
-import {PageLayer,LegalInfo,NoteText,inlineLinks,usePageMetadata,type PageTarget} from './page-text';
+import {PageLayer,LegalInfo,NoteText,inlineLinks,usePageMetadata,copyManuscriptSelection,type PageTarget} from './page-text';
 import ContentsSearch from './contents-search';
 import {getPageImage} from './visible-page-cache';
 import './reader.css';
@@ -29,9 +29,10 @@ function Photo({session,query,label,active=true,onReady}:{session:Session;query:
   return picture&&picture.token===session.token&&picture.query===query?<img src={picture.url} alt={label} draggable={false} onLoad={onReady}/>:<div className="image-status" role="status">쪽을 불러오는 중…</div>;
 }
 
-function DocumentPane({session,start,count,notes,onPage,onTarget,textAllowed}:{textAllowed:boolean;session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onTarget:(t:PageTarget,page:number)=>void}){
+function DocumentPane({session,start,count,notes,onPage,onTarget}:{session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onTarget:(t:PageTarget,page:number)=>void}){
   const host=useRef<HTMLDivElement>(null);
   const [visible,setVisible]=useState<number[]>([start]);
+  const [reading,setReading]=useState<number[]>([start]);
   const [zoom,setZoom]=useState(100);
   const positions=useMemo(()=>Array.from({length:count},(_,i)=>i+1),[count]);
   const noteMap=useMemo(()=>{const map=new Map<number,Note[]>();for(const n of notes){const row=map.get(n.page)||[];row.push(n);map.set(n.page,row);}return map;},[notes]);
@@ -49,14 +50,17 @@ function DocumentPane({session,start,count,notes,onPage,onTarget,textAllowed}:{t
     const observer=new IntersectionObserver(entries=>{
       setVisible(prev=>{const next=new Set(prev);for(const entry of entries){const page=Number((entry.target as HTMLElement).dataset.page);if(entry.isIntersecting)next.add(page);else next.delete(page);}return [...next];});
     },{root:scroll,rootMargin:'80% 0px'});
-    for(const item of items)observer.observe(item);
+    const textObserver=new IntersectionObserver(entries=>{
+      setReading(prev=>{const next=new Set(prev);for(const entry of entries){const page=Number((entry.target as HTMLElement).dataset.page);if(entry.isIntersecting)next.add(page);else next.delete(page);}return [...next];});
+    },{root:scroll});
+    for(const item of items){observer.observe(item);textObserver.observe(item);}
     jump(start);scroll.addEventListener('scroll',update,{passive:true});window.addEventListener('paper:navigate',navigate);
-    return()=>{observer.disconnect();scroll.removeEventListener('scroll',update);window.removeEventListener('paper:navigate',navigate);};
+    return()=>{observer.disconnect();textObserver.disconnect();scroll.removeEventListener('scroll',update);window.removeEventListener('paper:navigate',navigate);};
   },[count,start,onPage]);
-  return <main className="manuscript-pane" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
-    <div className="paper-scroll" ref={host} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} style={{width:zoom+'%'}} aria-label={'논문 '+page+'쪽'}>
+  return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
+    <div className="paper-scroll" ref={host} onCopy={copyManuscriptSelection} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} style={{width:zoom+'%'}} aria-label={'논문 '+page+'쪽'}>
       <Photo session={session} label={'논문 '+page+'쪽'} query={'edition=1103_85&page='+page} active={visible.includes(page)}/>
-      {visible.includes(page)&&<PageLayer session={session} textAllowed={textAllowed} query={'metadata=page&page='+page} label={'논문 '+page+'쪽 글자'}
+      {visible.includes(page)&&<PageLayer session={session} textAllowed={reading.includes(page)} query={'metadata=page&page='+page} label={'논문 '+page+'쪽 글자'}
         fallback={(noteMap.get(page)||[]).flatMap(n=>(n.markers||[]).map(m=>({...m,kind:'note' as const,number:n.number,label:'각주 '+n.number})))}
         onTarget={t=>onTarget(t,page)}/>}
     </article>)}</div></main>;
@@ -73,7 +77,7 @@ function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;note
   const entry=chosen?options.find(item=>item.note.number===chosen.number&&item.citation.id===chosen.id):options[0];
   const sourceId=chosen?.id||entry?.citation.id;
   const selectedNote=entry?.note||notes.find(n=>chosen?.number===n.number);
-  const noteMetadata=usePageMetadata(session,'metadata=page&page='+(selectedNote?.page||page),Boolean(selectedNote),catalog.textLayersEnabled===true);
+  const noteMetadata=usePageMetadata(session,'metadata=page&page='+(selectedNote?.page||page),Boolean(selectedNote));
   const noteLinks=useMemo(()=>selectedNote?inlineLinks(selectedNote.text,selectedNote.number,noteMetadata.data?.targets||[]):[],[selectedNote,noteMetadata.data]);
   const citation:Citation|undefined=entry?.citation||selectedNote?.sources.find(s=>s.id===sourceId);
   const source=sourceId?sources.get(sourceId):null;
@@ -112,7 +116,7 @@ function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;note
   return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>setList(v=>!v)} aria-expanded={list}>참고문헌</button></nav></header>
     <section className="page-controls"><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button><form onSubmit={e=>{e.preventDefault();const n=Number(pageInput);if(Number.isInteger(n)&&n>0)jump(n);}}><input aria-label="논문 쪽" value={pageInput} onChange={e=>setPageInput(e.target.value)} inputMode="numeric"/> / {catalog.pageCount}쪽 <button>이동</button></form><button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button></section>
     <div className="reader-layout">{toc&&<ContentsSearch session={session} catalog={catalog} notes={catalog.searchEnabled===true?notes:pageNotes} go={(p,n)=>{setToc(false);jump(p);if(n){setList(false);setOwn({page:p,number:n.number,id:n.sources[0]?.id});setPreview(undefined);}}}/>}
-      <DocumentPane session={session} textAllowed={catalog.textLayersEnabled===true} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}/>
+      <DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}/>
       <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={entry?entry.note.number+'/'+entry.citation.id:''} onChange={e=>{const opt=options.find(o=>o.note.number+'/'+o.citation.id===e.target.value);if(opt){setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);}}}><option value="" disabled>이 쪽의 인용자료</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
         <button onClick={()=>{setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
       {list?<section className="source-library"><h2>자료 목록</h2><label>자료 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label>{catalog.sources.filter(s=>s.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(s=><button key={s.id} onClick={()=>chooseSource(s.id)}>{s.title}</button>)}</section>:
@@ -120,7 +124,7 @@ function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;note
         {selectedNote&&<details key={selectedNote.number} open={!previewPage&&!citation?.excerpt}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,page)}/></p></details>}
         {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
-        {previewPage&&sourceId&&<><h3>확인된 인용면</h3><div className="preview-pages">{previews.map(p=><button aria-pressed={p===previewPage} key={p} onClick={()=>setPreview(p)}>자료 {p}쪽</button>)}</div><div className="source-image"><Photo session={session} label="인용면" query={new URLSearchParams({source:sourceId,page:String(previewPage)}).toString()} onReady={focusEvidence}/><PageLayer session={session} active={catalog.textLayersEnabled===true} textAllowed={catalog.textLayersEnabled===true} query={new URLSearchParams({source:sourceId,textPage:String(previewPage)}).toString()} label={'원전 '+previewPage+'쪽 글자'} onTarget={t=>targetAction(t,page)}/>{previewPage===citation?.page&&citation.highlights?.map((r,i)=><mark key={i} style={{left:r.x*100+"%",top:r.y*100+"%",width:r.w*100+"%",height:r.h*100+"%"}}/>)}</div></>}
+        {previewPage&&sourceId&&<><h3>확인된 인용면</h3><div className="preview-pages">{previews.map(p=><button aria-pressed={p===previewPage} key={p} onClick={()=>setPreview(p)}>자료 {p}쪽</button>)}</div><div className="source-image"><Photo session={session} label="인용면" query={new URLSearchParams({source:sourceId,page:String(previewPage)}).toString()} onReady={focusEvidence}/>{previewPage===citation?.page&&citation.highlights?.map((r,i)=><mark key={i} style={{left:r.x*100+"%",top:r.y*100+"%",width:r.w*100+"%",height:r.h*100+"%"}}/>)}</div></>}
         {!source&&!selectedNote&&<p>이 쪽에 연결된 인용자료가 없습니다.</p>}
         {source&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
       </section>}
