@@ -1,96 +1,129 @@
-import React,{useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
+import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import PdfPane from './pdf-viewer';
-import type {PdfTarget} from './pdf-viewer-model';
-import {LegalLinkProvider,LegalText,useLegalLinks} from './legal-links';
-import SourceText,{type SourceSegment} from './source-text';
-import {citationPdfTargets} from './citation-link-model';
-import SourceReader from './source-reader';
-import PaneResizer from './pane-resizer';
 import KuBrand from './ku-brand';
-import {pageReferences} from './page-references';
-import {parseEvidenceDocument,sha256Bytes,sourceNoteId,sourceNotes,type EvidenceDocument} from './source-evidence';
-import catalog from './paragraph-catalog.json';
-import toc from './thesis-toc-data.json';
-import lawData from './legal-pdf-targets.json';
-import citationPages from './citation-pages.json';
-import './examiner.css';
-import './pdf-base.css';
-type Obj=Record<string,any>;
-const publicManifest='./editions/human80/manifest.json';
-const pdf='./editions/human80/manuscript.pdf';
-const signedCache=new Map<string,{url:string;expires:number}>();
-let configPromise:Promise<Obj>|null=null;
-async function sourceUrl(source:Obj){
- const old=signedCache.get(source.id);if(old&&old.expires>Date.now())return old.url;
- const cfg=await(configPromise??=fetch('./config.json').then(r=>{if(!r.ok)throw Error('연결 설정을 불러오지 못했습니다.');return r.json();}));
- const endpoint=cfg.supabaseUrl+'/storage/v1/object/sign/'+cfg.storageBucket+'/'+source.storagePath;
- const response=await fetch(endpoint,{method:'POST',headers:{apikey:cfg.supabasePublishableKey,Authorization:'Bearer '+cfg.supabasePublishableKey,'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});
- if(!response.ok)throw Error('원전을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
- const result=await response.json(),path=result.signedURL||result.signedUrl;
- if(!path)throw Error('원전 주소를 확인하지 못했습니다.');
- const url=path.startsWith('http')?path:cfg.supabaseUrl+'/storage/v1'+path;
- signedCache.set(source.id,{url,expires:Date.now()+3300000});return url;
-}
-function App(){
- const [manifest,setManifest]=useState<Obj|null>(null),[error,setError]=useState('');
- const [page,setPage]=useState(20),[mode,setMode]=useState<'pdf'|'text'>('pdf'),[tocOpen,setTocOpen]=useState(false),[query,setQuery]=useState('');
- const [noteId,setNoteId]=useState<string|null>(null),[source,setSource]=useState<Obj|null>(null),[sourcePage,setSourcePage]=useState(1),[sourceHref,setSourceHref]=useState(''),[sourceText,setSourceText]=useState(''),[sourceError,setSourceError]=useState(''),[nav,setNav]=useState(0);
- const [sourceNote,setSourceNote]=useState<string|null>(null),[sourceByteHash,setSourceByteHash]=useState(''),[libraryOpen,setLibraryOpen]=useState(false),[libraryQuery,setLibraryQuery]=useState('');
- const [automatic,setAutomatic]=useState(false);
- const [evidence,setEvidence]=useState<EvidenceDocument|null>(null),[evidenceState,setEvidenceState]=useState<'loading'|'ready'|'error'>('loading');
- const sourceRequest=useRef(0),splitHost=useRef<HTMLDivElement>(null);
- const [split,setSplit]=useState(53);
- const openLaw=useLegalLinks();
- useEffect(()=>{fetch(publicManifest).then(r=>{if(!r.ok)throw Error('원고 정보를 불러오지 못했습니다.');return r.json();}).then(setManifest).catch(e=>setError(e.message));},[]);
- useEffect(()=>{let stopped=false;fetch('./editions/human80/source-evidence.json').then(r=>{if(!r.ok)throw Error('unavailable');return r.json();}).then(parseEvidenceDocument).then(value=>{if(!stopped){setEvidence(value);setEvidenceState('ready');}}).catch(()=>{if(!stopped)setEvidenceState('error');});return()=>{stopped=true;};},[]);
- const note=manifest?.notes.find((n:Obj)=>n.id===noteId);
- const sourceIndex=useMemo(()=>new Map<string,{id:string;title:string}>((manifest?.sources||[]).map((s:Obj)=>[s.id,s])),[manifest]);
- const pageChoices=useMemo(()=>pageReferences(manifest?.notes||[],sourceIndex,page),[manifest,sourceIndex,page]);
- const followedPage=useRef<number|null>(null);
- function followPage(){
-  const first=pageChoices[0];
-  setLibraryOpen(false);setNoteId(first?.noteId||null);
-  if(first)void openSource(first.sourceId,first.page,first.noteId,true);
-  else closeSource();
- }
- useLayoutEffect(()=>{
-  if(!manifest||followedPage.current===page)return;
-  followedPage.current=page;
-  if(!libraryOpen)followPage();
- },[manifest,page,libraryOpen]);
- const targets=useMemo(()=>manifest?[...manifest.notes.flatMap((n:Obj)=>n.clickTargets.map((t:Obj)=>({...t,noteId:n.id,number:n.number}))),...citationPdfTargets(),...lawData.targets] as PdfTarget[]:[],[manifest]);
- const paragraphs=catalog.paragraphs.filter(p=>query?p.text.includes(query):p.page===page);
- const entries=toc.entries.filter(x=>!query||x.title.includes(query));
- function go(p:number){setPage(Math.max(1,Math.min(266,p)));setNav(v=>v+1);if(window.innerWidth<900)setTocOpen(false);}
- async function openSource(id:string,p=1,requestedNote:string|null=noteId,follow=false){
-  const item=manifest?.sources.find((s:Obj)=>s.id===id);if(!item)return;
-  const request=++sourceRequest.current;
-  setAutomatic(follow);setLibraryOpen(false);setSource(item);setSourceNote(sourceNoteId(manifest!.notes,id,requestedNote));setSourcePage(p);setSourceHref('');setSourceText('');setSourceByteHash('');setSourceError('');
-  try{const url=await sourceUrl(item);if(request!==sourceRequest.current)return;setSourceHref(url);if(item.kind!=='pdf'){const r=await fetch(url);if(!r.ok)throw Error('원문을 불러오지 못했습니다.');const bytes=new Uint8Array(await r.arrayBuffer()),hash=await sha256Bytes(bytes);if(request!==sourceRequest.current)return;const value=new TextDecoder().decode(bytes);let text=value;try{const j=JSON.parse(value);text=j.text||j.content||j.body||j.fullText||JSON.stringify(j,null,2);}catch{}setSourceByteHash(hash);setSourceText(typeof text==='string'?text:JSON.stringify(text,null,2));}}catch(e:any){if(request===sourceRequest.current)setSourceError(e.message);}
- }
- function closeSource(){sourceRequest.current++;setSource(null);setSourceNote(null);setSourceHref('');setSourceText('');setSourceByteHash('');}
- function selectNote(id:string){setNoteId(id);setLibraryOpen(false);const selected=manifest?.notes.find((n:Obj)=>n.id===id),ref=selected?.sourceRefs?.[0];if(ref)void openSource(ref.sourceId,ref.targetPage||1,id);else closeSource();}
- function showLibrary(){closeSource();setNoteId(null);setLibraryOpen(true);}
- function reference(segment:SourceSegment,contextNote:string|null=noteId){if(segment.sourceId)void openSource(segment.sourceId,segment.page,contextNote);else if(segment.href)window.open(segment.href,'_blank','noopener,noreferrer');}
- function selectTarget(id:string,target?:PdfTarget){if(target?.legalId){const m=(lawData.mentions as Obj)[target.legalId];if(m)openLaw(m);return;}if(target?.sourceId){setNoteId(target.noteId);void openSource(target.sourceId,target.sourcePage||1,target.noteId);return;}selectNote(id);}
- if(error)return <main className="load-state" role="alert">{error}</main>;
- if(!manifest)return <main className="load-state">원고를 불러오는 중입니다…</main>;
- return <div className="examiner-app">
-  <header className="examiner-header"><div className="examiner-identity"><KuBrand/><div className="examiner-title"><p>박사학위논문 · 김민규</p><h1>{manifest.meta.title}</h1><span>{manifest.meta.subtitle}</span></div></div><nav aria-label="원고 열람"><button onClick={()=>setTocOpen(!tocOpen)} aria-expanded={tocOpen}>목차</button><button onClick={showLibrary} aria-expanded={libraryOpen}>참고문헌·원전</button><button onClick={()=>setMode(mode==='pdf'?'text':'pdf')}>{mode==='pdf'?'텍스트로 읽기':'PDF로 읽기'}</button><a href={pdf} download="박사논문_심사용.pdf">PDF 내려받기</a><a href="./editions/human80/original.hwp" download="박사논문_원본.hwp">한글 원본</a></nav></header>
-  <div className={'reader-layout'+(tocOpen?' with-toc':'')} ref={splitHost} style={{'--document-split':split+'%'} as React.CSSProperties}>
-   {tocOpen&&<aside className="toc-pane"><label>목차·본문 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="검색어"/></label><div className="toc-list">{entries.map(e=><button key={e.id} className={'level-'+e.level} onClick={()=>go(e.page)}><span>{e.title}</span><small>{e.printedPage??e.page}</small></button>)}</div>{query&&<section className="search-results"><h2>본문 검색 · {paragraphs.length}개</h2>{paragraphs.slice(0,100).map(p=><button key={p.id} onClick={()=>{go(p.page);setQuery('');}}>{p.text.slice(0,130)}<small>PDF {p.page}쪽</small></button>)}</section>}</aside>}
-   <main className="manuscript-pane" aria-label="심사용 원고">
-    {mode==='pdf'?<PdfPane id="human80" url={pdf} page={page} total={266} fitMode="width" quickTools pageSizes={manifest.pages} targets={targets} highlights={note?.noteHighlights||[]} onPageChange={setPage} onTarget={selectTarget} label="심사용 원고" persistenceKey="examiner-human80" navigationToken={nav}/>:<div className="text-reader"><div className="text-navigation"><button disabled={page<=1} onClick={()=>go(page-1)}>이전</button><label>PDF <input type="number" min="1" max="266" value={page} onChange={e=>go(Number(e.target.value)||1)}/> / 266쪽</label><button disabled={page>=266} onClick={()=>go(page+1)}>다음</button></div>{paragraphs.map(p=><section key={p.id} className={p.heading?'manuscript-heading':'manuscript-paragraph'}><LegalText text={p.text} contextId={'paragraph:'+p.id} onNote={selectNote}/></section>)}<section className="page-notes">{manifest.notes.filter((n:Obj)=>n.page===page).map((n:Obj)=><p key={n.id}><button onClick={()=>selectNote(n.id)}>{n.number})</button> <SourceText noteId={n.id} text={n.text} onReference={segment=>reference(segment,n.id)}/></p>)}</section></div>}
-   </main>
+import {Catalog,Citation,Note,Session,ReaderError,enter,expiration,privateResource,readSession,storeSession} from './reader-api';
+import './reader.css';
 
-   <PaneResizer className="document-divider" label="논문과 참고문헌 너비 조절" value={split} min={30} max={70} onChange={setSplit} unitsPerPixel={()=>100/Math.max(1,(splitHost.current?.clientWidth||1)-6)}/>
-   <aside className="reference-pane" aria-label="참고문헌 원전">
-    <div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{pageChoices.length>0&&<select aria-label={`논문 PDF ${page}쪽의 인용자료`} title="지금 읽는 쪽의 각주와 원전" value={source&&sourceNote&&pageChoices.some(c=>c.noteId===sourceNote&&c.sourceId===source.id)?sourceNote+'/'+source.id:''} onChange={e=>{const picked=pageChoices.find(c=>c.key===e.target.value);if(picked){setNoteId(picked.noteId);void openSource(picked.sourceId,picked.page,picked.noteId);}}}><option value="" disabled>이 쪽의 인용자료</option>{pageChoices.map(c=><option key={c.key} value={c.key}>각주 {c.number} · {c.title}</option>)}</select>}{libraryOpen&&<button onClick={followPage}>본문 따라가기</button>}<button onClick={()=>setSplit(50)}>같은 폭</button><button onClick={showLibrary}>자료 목록</button>{note&&<button onClick={()=>{closeSource();setLibraryOpen(false);}}>각주 {note.number} 상세</button>}</div></div>
-    {source&&<SourceReader key={source.id} automatic={automatic} source={{id:source.id,title:source.title,kind:source.kind,pages:source.pages}} href={sourceHref} text={sourceText} byteHash={sourceByteHash} error={sourceError} notes={manifest.notes} selectedNoteId={sourceNote} onNoteChange={id=>{setAutomatic(false);setSourceNote(id);setNoteId(id);}} page={sourcePage} onPageChange={setSourcePage} evidence={evidence} evidenceState={evidenceState} onClose={closeSource} onRetry={()=>void openSource(source.id,sourcePage,sourceNote,automatic)}/>} 
-    {!source&&<>{!libraryOpen&&!note&&<section className="reference-empty"><h2>PDF {page}쪽</h2><p>{pageChoices.length?'이 쪽의 인용자료를 선택해 주세요.':'이 쪽에 연결된 인용자료가 없습니다.'}</p><button onClick={showLibrary}>전체 자료 목록</button></section>}{libraryOpen&&<section className="source-library" aria-label="참고문헌·원전"><header><h2>참고문헌·원전</h2></header><label>자료 검색<input type="search" placeholder="저자, 자료명 또는 사건번호" value={libraryQuery} onChange={e=>setLibraryQuery(e.target.value)}/></label><div className="source-library-list">{manifest.sources.filter((s:Obj)=>!libraryQuery||s.title.toLocaleLowerCase().includes(libraryQuery.toLocaleLowerCase())).map((s:Obj)=>{const linked=sourceNotes(manifest.notes,s.id),count=evidence?.entries.filter(e=>e.sourceId===s.id&&e.status==='verified').length||0;return <button key={s.id} onClick={()=>void openSource(s.id,1,null)}><span>{s.title}</span><small>{linked.length}개 각주에서 인용{count?' · 표시 구절 있음':''}</small></button>;})}</div></section>}{!libraryOpen&&note&&<aside className="note-pane" aria-label={'각주 '+note.number}><header><h2>각주 {note.number}</h2><button onClick={()=>{setNoteId(null);setLibraryOpen(true);}} aria-label="각주 닫기">닫기 ×</button></header><div className="note-text"><SourceText noteId={note.id} text={note.text} onReference={segment=>reference(segment,note.id)}/></div><button className="locate-note" onClick={()=>go(note.page)}>원고 PDF {note.page}쪽 보기</button>{note.sourceRefs.length>0&&<section><h3>인용 원전</h3>{note.sourceRefs.map((ref:Obj)=>{const s=manifest.sources.find((x:Obj)=>x.id===ref.sourceId);const pages=((citationPages as Obj)[note.id]?.[ref.sourceId]?.pages||[]);return s&&<div className="source-card" key={s.id}><button onClick={()=>void openSource(s.id,ref.targetPage||1,note.id)}>{s.title}</button>{pages.length>0&&<div className="cited-pages">{pages.map((p:Obj)=><button key={p.page+'-'+p.printed} onClick={()=>void openSource(s.id,p.page,note.id)}>{p.printed}면</button>)}</div>}</div>;})}</section>}{note.crossRefs.length>0&&<div className="cross-notes">함께 인용한 각주 {[...new Set<string>(note.crossRefs)].map(id=><button key={id} onClick={()=>selectNote(id)}>{Number(id.slice(3))}</button>)}</div>}</aside>}</>}
-   </aside>
-  </div>
- </div>;
+function Photo({session,query,label,active=true}:{session:Session;query:string;label:string;active?:boolean}){
+  const [picture,setPicture]=useState<{query:string;url:string}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
+  useEffect(()=>{
+    if(!active)return;
+    const controller=new AbortController();
+    let image='',timer=0;
+    setError('');
+    privateResource(session,new URLSearchParams(query),controller.signal).then(async r=>{
+      if(!r.headers.get('Content-Type')?.startsWith('image/'))throw Error('열람 이미지를 확인하지 못했습니다.');
+      return r.blob();
+    }).then(blob=>{
+      if(controller.signal.aborted)return;
+      image=URL.createObjectURL(blob);setPicture({query,url:image});
+    }).catch(e=>{
+      if(controller.signal.aborted)return;
+      setError(e instanceof ReaderError?e.message:'열람 이미지를 불러오지 못했습니다.');
+      if(e instanceof ReaderError&&e.status===429)timer=window.setTimeout(()=>setRetry(n=>n+1),e.wait*1000);
+    });
+    return()=>{controller.abort();window.clearTimeout(timer);if(image)URL.revokeObjectURL(image);};
+  },[session,query,active,retry]);
+  if(!active)return null;
+  if(error)return <div className="image-status" role="status">{error} <button onClick={()=>setRetry(n=>n+1)}>다시 시도</button></div>;
+  return picture&&picture.query===query?<img src={picture.url} alt={label} draggable={false}/>:<div className="image-status" role="status">쪽을 불러오는 중…</div>;
 }
-createRoot(document.getElementById('root')!).render(<LegalLinkProvider><App/></LegalLinkProvider>);
+
+function Gate({ready}:{ready:(s:Session)=>void}){
+  const [code,setCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const submit=async(e:React.FormEvent)=>{
+    e.preventDefault();if(busy||!code.trim())return;
+    setBusy(true);setError('');
+    try{const s=await enter(code.trim());setCode('');ready(s);}catch(e){setError(e instanceof Error?e.message:'입장할 수 없습니다.');}finally{setBusy(false);}
+  };
+  return <div className="examiner-app gate"><header className="examiner-header"><KuBrand/><span>박사학위논문 심사 열람</span></header><main className="gate-main"><form onSubmit={submit}>
+    <h1>심사위원 열람</h1><label htmlFor="review-code">입장 코드</label><input id="review-code" type="password" autoCapitalize="off" autoComplete="off" spellCheck={false} value={code} onChange={e=>setCode(e.target.value)} required/>
+    {error&&<p role="alert">{error}</p>}<button type="submit" disabled={busy||!code.trim()}>{busy?'확인 중…':'입장'}</button>
+  </form></main></div>;
+}
+
+function DocumentPane({session,start,count,notes,onPage,onNote}:{session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onNote:(n:Note)=>void}){
+  const host=useRef<HTMLDivElement>(null);
+  const [visible,setVisible]=useState<number[]>([start]);
+  const [zoom,setZoom]=useState(100);
+  const positions=useMemo(()=>Array.from({length:count},(_,i)=>i+1),[count]);
+  const noteMap=useMemo(()=>{const map=new Map<number,Note[]>();for(const n of notes){const row=map.get(n.page)||[];row.push(n);map.set(n.page,row);}return map;},[notes]);
+  useLayoutEffect(()=>{
+    const scroll=host.current!;
+    const items=Array.from(scroll.querySelectorAll<HTMLElement>('.paper-page'));
+    const jump=(page:number)=>{const item=items[Math.max(0,Math.min(count-1,page-1))];if(item){scroll.scrollTop=item.offsetTop;onPage(Number(item.dataset.page));}};
+    const navigate=(event:Event)=>{const page=Number((event as CustomEvent).detail?.page);if(Number.isInteger(page))jump(page);};
+    const update=()=>{
+      const top=scroll.scrollTop+Math.min(120,scroll.clientHeight*.18);
+      let lo=0,hi=items.length-1;
+      while(lo<hi){const mid=Math.ceil((lo+hi)/2);if(items[mid].offsetTop<=top)lo=mid;else hi=mid-1;}
+      onPage(lo+1);
+    };
+    const observer=new IntersectionObserver(entries=>{
+      setVisible(prev=>{const next=new Set(prev);for(const entry of entries){const page=Number((entry.target as HTMLElement).dataset.page);if(entry.isIntersecting)next.add(page);else next.delete(page);}return [...next];});
+    },{root:scroll,rootMargin:'80% 0px'});
+    for(const item of items)observer.observe(item);
+    jump(start);scroll.addEventListener('scroll',update,{passive:true});window.addEventListener('paper:navigate',navigate);
+    return()=>{observer.disconnect();scroll.removeEventListener('scroll',update);window.removeEventListener('paper:navigate',navigate);};
+  },[count,start,onPage]);
+  return <main className="manuscript-pane" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
+    <div className="paper-scroll" ref={host} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} style={{width:zoom+'%'}} aria-label={'논문 '+page+'쪽'}>
+      <Photo session={session} label={'논문 '+page+'쪽'} query={'edition=1103_85&page='+page} active={visible.includes(page)}/>
+      {visible.includes(page)&&(noteMap.get(page)||[]).flatMap(n=>(n.markers||[]).map((m,i)=><button type="button" className="footnote-target" key={n.number+'-'+i} style={{left:m.x*100+'%',top:m.y*100+'%',width:m.w*100+'%',height:m.h*100+'%'}} onClick={()=>onNote(n)} aria-label={'각주 '+n.number+' 보기'} />))}
+    </article>)}</div></main>;
+}
+
+function Workspace({session,catalog,notes,logout}:{session:Session;catalog:Catalog;notes:Note[];logout:()=>void}){
+  const initial=Math.max(1,Math.min(catalog.bodyStartPage||1,catalog.pageCount));
+  const [page,setPage]=useState(initial),[pageInput,setPageInput]=useState(String(initial)),[toc,setToc]=useState(false),[query,setQuery]=useState(''),[list,setList]=useState(false),[own,setOwn]=useState<{page:number;number?:number;id?:string}|null>(null),[preview,setPreview]=useState<number|undefined>();
+  const sources=useMemo(()=>new Map(catalog.sources.map(s=>[s.id,s])),[catalog]);
+  const pageNotes=useMemo(()=>notes.filter(n=>n.page===page),[notes,page]);
+  const options=useMemo(()=>pageNotes.flatMap(n=>n.sources.filter(s=>sources.has(s.id)).map(s=>({note:n,citation:s}))),[pageNotes,sources]);
+  const chosen=own?.page===page?own:null;
+  const entry=chosen?options.find(item=>item.note.number===chosen.number&&item.citation.id===chosen.id):options[0];
+  const sourceId=chosen?.id||entry?.citation.id;
+  const selectedNote=entry?.note||notes.find(n=>chosen?.number===n.number);
+  const citation:Citation|undefined=entry?.citation||selectedNote?.sources.find(s=>s.id===sourceId);
+  const source=sourceId?sources.get(sourceId):null;
+  const previews=citation?.previewPages?.length?citation.previewPages:citation?.image&&citation.page?[citation.page]:[];
+  const previewPage=preview&&previews.includes(preview)?preview:previews[0];
+  const change=useCallback((p:number)=>{setPage(p);setPageInput(String(p));setPreview(undefined);setOwn(previous=>previous?.page===p?previous:null);},[]);
+  useEffect(()=>{window.dispatchEvent(new CustomEvent('paper:page',{detail:{page}}));},[page]);
+  const jump=(p:number)=>window.dispatchEvent(new CustomEvent('paper:navigate',{detail:{page:Math.max(1,Math.min(p,catalog.pageCount))}}));
+  const chooseNote=(n:Note)=>{setList(false);setOwn({page,number:n.number,id:n.sources[0]?.id});setPreview(undefined);};
+  const chooseSource=(id:string)=>{const n=pageNotes.find(n=>n.sources.some(c=>c.id===id))||notes.find(n=>n.sources.some(c=>c.id===id));setList(false);setOwn({page,number:n?.number,id});setPreview(undefined);};
+  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차</button><button type="button" onClick={()=>setList(v=>!v)} aria-expanded={list}>참고문헌</button><button type="button" onClick={logout}>열람 종료</button></nav></header>
+    <section className="page-controls"><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button><form onSubmit={e=>{e.preventDefault();const n=Number(pageInput);if(Number.isInteger(n)&&n>0)jump(n);}}><input aria-label="논문 쪽" value={pageInput} onChange={e=>setPageInput(e.target.value)} inputMode="numeric"/> / {catalog.pageCount}쪽 <button>이동</button></form><button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button></section>
+    <div className="reader-layout">{toc&&<aside className="toc-pane"><h2>목차</h2>{catalog.toc.map((row,i)=><button key={i} style={{paddingLeft:Math.min(4,row.level||1)*9+'px'}} onClick={()=>{jump(row.page);setToc(false);}}>{row.title}<small>{row.page}쪽</small></button>)}</aside>}
+      <DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onNote={chooseNote}/>
+      <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={entry?entry.note.number+'/'+entry.citation.id:''} onChange={e=>{const opt=options.find(o=>o.note.number+'/'+o.citation.id===e.target.value);if(opt){setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);}}}><option value="" disabled>이 쪽의 인용자료</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
+        <button onClick={()=>{setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
+      {list?<section className="source-library"><h2>자료 목록</h2><label>자료 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label>{catalog.sources.filter(s=>s.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(s=><button key={s.id} onClick={()=>chooseSource(s.id)}>{s.title}</button>)}</section>:
+      <section className="source-dialog"><h2>{source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
+        {selectedNote&&<details open><summary>각주 {selectedNote.number}</summary><p>{selectedNote.text}</p></details>}
+        {citation?.label&&<p className="citation-location">{citation.label}</p>}
+        {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
+        {previewPage&&sourceId&&<><h3>확인된 인용면</h3><div className="preview-pages">{previews.map(p=><button aria-pressed={p===previewPage} key={p} onClick={()=>setPreview(p)}>{p}면</button>)}</div><div className="source-image"><Photo session={session} label="인용면" query={new URLSearchParams({source:sourceId,page:String(previewPage)}).toString()}/>{previewPage===citation?.page&&citation.highlights?.map((r,i)=><mark key={i} style={{left:r.x*100+"%",top:r.y*100+"%",width:r.w*100+"%",height:r.h*100+"%"}}/>)}</div></>}
+        {!source&&!selectedNote&&<p>이 쪽에 연결된 인용자료가 없습니다.</p>}
+        {source&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
+      </section>}
+      {!list&&pageNotes.length>0&&<div className="note-list" aria-label="이 쪽의 각주">{pageNotes.map(n=><button key={n.number} onClick={()=>chooseNote(n)} aria-pressed={selectedNote?.number===n.number}>각주 {n.number}</button>)}</div>}
+    </aside></div></div>;
+}
+
+function ReadingSession({session,logout}:{session:Session;logout:()=>void}){
+  const [data,setData]=useState<{catalog:Catalog;notes:Note[]}|null>(null),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
+  useEffect(()=>{const c=new AbortController();setError('');
+    Promise.all(['catalog','citations'].map(k=>privateResource(session,new URLSearchParams({metadata:k}),c.signal).then(r=>r.json()))).then(([catalog,citations])=>{if(!c.signal.aborted)setData({catalog,notes:citations.notes});}).catch(e=>{if(!c.signal.aborted)setError(e.message);});
+    return()=>c.abort();},[session,attempt]);
+  if(!data)return <main className="loading" role="status">{error||'열람 자료를 불러오는 중…'}{error&&<button onClick={()=>setAttempt(a=>a+1)}>다시 시도</button>}<button onClick={logout}>열람 종료</button></main>;
+  return <Workspace session={session} catalog={data.catalog} notes={data.notes} logout={logout}/>;
+}
+
+function App(){
+  const [session,setSession]=useState<Session|null>(readSession);
+  const logout=useCallback(()=>{storeSession(null);setSession(null);},[]);
+  useEffect(()=>{if(!session)return;const timer=setTimeout(logout,Math.max(0,expiration(session.expiresAt)-Date.now()));window.addEventListener('paper:expired',logout);return()=>{clearTimeout(timer);window.removeEventListener('paper:expired',logout);};},[session,logout]);
+  return session?<ReadingSession session={session} logout={logout}/>:<Gate ready={s=>{storeSession(s);setSession(s);}}/>;
+}
+createRoot(document.getElementById('root')!).render(<App/>);
