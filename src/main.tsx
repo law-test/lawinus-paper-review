@@ -4,7 +4,7 @@ import KuBrand from './ku-brand';
 import {Catalog,Citation,Note,Session,ReaderError,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
 import './reader.css';
 
-function Photo({session,query,label,active=true}:{session:Session;query:string;label:string;active?:boolean}){
+function Photo({session,query,label,active=true,onReady}:{session:Session;query:string;label:string;active?:boolean;onReady?:()=>void}){
   const [picture,setPicture]=useState<{query:string;url:string}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   useEffect(()=>{
     if(!active)return;
@@ -26,7 +26,7 @@ function Photo({session,query,label,active=true}:{session:Session;query:string;l
   },[session,query,active,retry]);
   if(!active)return null;
   if(error)return <div className="image-status" role="status">{error} <button onClick={()=>setRetry(n=>n+1)}>다시 시도</button></div>;
-  return picture&&picture.query===query?<img src={picture.url} alt={label} draggable={false}/>:<div className="image-status" role="status">쪽을 불러오는 중…</div>;
+  return picture&&picture.query===query?<img src={picture.url} alt={label} draggable={false} onLoad={onReady}/>:<div className="image-status" role="status">쪽을 불러오는 중…</div>;
 }
 
 function DocumentPane({session,start,count,notes,onPage,onNote}:{session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onNote:(n:Note)=>void}){
@@ -74,6 +74,21 @@ function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;note
   const source=sourceId?sources.get(sourceId):null;
   const previews=citation?.previewPages?.length?citation.previewPages:citation?.image&&citation.page?[citation.page]:[];
   const previewPage=preview&&previews.includes(preview)?preview:previews[0];
+  const sourceScroll=useRef<HTMLElement>(null);
+  const focusEvidence=useCallback(()=>{
+    const pane=sourceScroll.current;if(!pane)return;
+    const mark=pane.querySelector<HTMLElement>('.source-image mark,blockquote mark');
+    if(!mark)return;
+    const heading=pane.querySelector('h2')?.getBoundingClientRect().height||0;
+    const goal=mark.getBoundingClientRect().top-pane.getBoundingClientRect().top+pane.scrollTop-heading-24;
+    pane.scrollTop=Math.max(0,goal);
+  },[]);
+  useLayoutEffect(()=>{
+    const pane=sourceScroll.current;if(!pane)return;
+    pane.scrollTop=0;
+    const img=pane.querySelector<HTMLImageElement>('.source-image img');
+    if(!img||img.complete&&img.naturalWidth>0)focusEvidence();
+  },[sourceId,selectedNote?.number,previewPage,focusEvidence]);
   const readingPage=useRef(initial);
   const change=useCallback((p:number)=>{if(readingPage.current===p)return;readingPage.current=p;setPage(p);setPageInput(String(p));setPreview(undefined);setOwn(previous=>previous?.page===p?previous:null);},[]);
   useEffect(()=>{window.dispatchEvent(new CustomEvent('paper:page',{detail:{page}}));},[page]);
@@ -87,11 +102,11 @@ function Workspace({session,catalog,notes}:{session:Session;catalog:Catalog;note
       <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={entry?entry.note.number+'/'+entry.citation.id:''} onChange={e=>{const opt=options.find(o=>o.note.number+'/'+o.citation.id===e.target.value);if(opt){setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);}}}><option value="" disabled>이 쪽의 인용자료</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
         <button onClick={()=>{setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
       {list?<section className="source-library"><h2>자료 목록</h2><label>자료 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label>{catalog.sources.filter(s=>s.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(s=><button key={s.id} onClick={()=>chooseSource(s.id)}>{s.title}</button>)}</section>:
-      <section className="source-dialog"><h2>{source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
-        {selectedNote&&<details open><summary>각주 {selectedNote.number}</summary><p>{selectedNote.text}</p></details>}
-        {citation?.label&&<p className="citation-location">{citation.label}</p>}
+      <section className="source-dialog" ref={sourceScroll}><h2>{source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
+        {selectedNote&&<details key={selectedNote.number} open={!previewPage&&!citation?.excerpt}><summary>각주 {selectedNote.number} 원문</summary><p>{selectedNote.text}</p></details>}
+        {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
-        {previewPage&&sourceId&&<><h3>확인된 인용면</h3><div className="preview-pages">{previews.map(p=><button aria-pressed={p===previewPage} key={p} onClick={()=>setPreview(p)}>{p}면</button>)}</div><div className="source-image"><Photo session={session} label="인용면" query={new URLSearchParams({source:sourceId,page:String(previewPage)}).toString()}/>{previewPage===citation?.page&&citation.highlights?.map((r,i)=><mark key={i} style={{left:r.x*100+"%",top:r.y*100+"%",width:r.w*100+"%",height:r.h*100+"%"}}/>)}</div></>}
+        {previewPage&&sourceId&&<><h3>확인된 인용면</h3><div className="preview-pages">{previews.map(p=><button aria-pressed={p===previewPage} key={p} onClick={()=>setPreview(p)}>자료 {p}쪽</button>)}</div><div className="source-image"><Photo session={session} label="인용면" query={new URLSearchParams({source:sourceId,page:String(previewPage)}).toString()} onReady={focusEvidence}/>{previewPage===citation?.page&&citation.highlights?.map((r,i)=><mark key={i} style={{left:r.x*100+"%",top:r.y*100+"%",width:r.w*100+"%",height:r.h*100+"%"}}/>)}</div></>}
         {!source&&!selectedNote&&<p>이 쪽에 연결된 인용자료가 없습니다.</p>}
         {source&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
       </section>}
