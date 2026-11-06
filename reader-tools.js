@@ -154,6 +154,40 @@
       if(!delta)return;
       e.preventDefault(); const rect=node.getBoundingClientRect(); resize(rect.width+delta[0],rect.height+delta[1]);
     });
+    // Grab the physical sides, including on a scrolled menu. Keep its corner for keyboard users.
+    function bindBorder(owner,xAxis,yAxis){
+      let held=null;
+      const borderAt=e=>{
+        const rect=owner.getBoundingClientRect(),slop=e.pointerType==='touch'?9:5;
+        return {x:xAxis&&Math.abs(e.clientX-(xAxis<0?rect.left:rect.right))<=slop?xAxis:0,
+          y:yAxis&&Math.abs(e.clientY-rect.bottom)<=slop?1:0};
+      };
+      owner.addEventListener('pointerdown',e=>{
+        if(!e.isPrimary||e.button!==0||e.target===grip)return;
+        const axis=borderAt(e);if(!axis.x&&!axis.y)return;
+        const r=node.getBoundingClientRect();
+        let height=r.height;
+        if(owner!==node){
+          const css=getComputedStyle(owner);
+          height=owner.clientHeight-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom);
+        }
+        held={id:e.pointerId,startX:e.clientX,startY:e.clientY,w:r.width,h:height,...axis};
+        owner.setPointerCapture(e.pointerId);e.preventDefault();e.stopPropagation();
+      },true);
+      owner.addEventListener('pointermove',e=>{
+        if(held&&e.pointerId===held.id){
+          e.preventDefault();
+          resize(held.w+held.x*(e.clientX-held.startX),held.h+held.y*(e.clientY-held.startY));
+        }
+        const axis=held||borderAt(e);
+        owner.style.cursor=axis.x?(axis.y?(axis.x>0?'nwse-resize':'nesw-resize'):'col-resize'):axis.y?'row-resize':'';
+      });
+      const release=e=>{if(held?.id===e.pointerId){held=null;owner.style.cursor='';}};
+      for(const type of ['pointerup','pointercancel','lostpointercapture'])owner.addEventListener(type,release);
+    }
+    const header=node.closest('.examiner-header');
+    bindBorder(node,axes.x,header?0:axes.y);
+    if(header)bindBorder(header,0,axes.y);
     try {const saved=JSON.parse(read(layoutKey+':'+kind,'null')); if(saved && Number.isFinite(saved.width)&&Number.isFinite(saved.height)) resize(saved.width,saved.height);}catch{}
   }
   function showBox(kind, anchor) {
@@ -246,29 +280,44 @@
     const rail=el('div',undefined,'prt-divider');rail.tabIndex=0;rail.setAttribute('role','separator');
     rail.setAttribute('aria-label','논문과 참고문헌 너비 조절');rail.setAttribute('aria-orientation','vertical');
     rail.setAttribute('aria-valuemin','30');rail.setAttribute('aria-valuemax','70');layout.append(rail);
+    const narrow=matchMedia('(max-width:760px)');
+    const key=()=>layoutKey+(narrow.matches?':stacked-split':':split');
     const setSplit=(fraction,save=true)=>{
-      const v=Math.max(30,Math.min(70,fraction));layout.style.setProperty('--paper-width',v+'%');
-      rail.setAttribute('aria-valuenow',String(Math.round(v)));if(save)write(layoutKey+':split',String(v));
+      const v=Math.max(30,Math.min(70,fraction));
+      layout.style.setProperty(narrow.matches?'--prt-stacked-split':'--paper-width',v+'%');
+      rail.setAttribute('aria-valuenow',String(Math.round(v)));if(save)write(key(),String(v));
     };
-    const saved=Number(read(layoutKey+':split','53'));setSplit(Number.isFinite(saved)?saved:53,false);
+    function orient(){
+      const vertical=!narrow.matches;
+      rail.setAttribute('aria-orientation',vertical?'vertical':'horizontal');
+      rail.setAttribute('aria-label',vertical?'논문과 참고문헌 너비 조절':'논문과 참고문헌 사이 높이 조절');
+      const value=Number(read(key(),vertical?'53':'50'));
+      setSplit(Number.isFinite(value)?value:50,false);
+    }
+    narrow.addEventListener('change',orient);orient();
     let dragging=null;
     rail.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dragging=e.pointerId;rail.setPointerCapture(e.pointerId);rail.focus();});
-    rail.addEventListener('pointermove',e=>{if(e.pointerId!==dragging)return;const r=layout.getBoundingClientRect();if(r.width)setSplit(100*(e.clientX-r.left)/r.width);});
+    rail.addEventListener('pointermove',e=>{
+      if(e.pointerId!==dragging)return;
+      const r=layout.getBoundingClientRect();
+      if(narrow.matches&&r.height)setSplit(100*(e.clientY-r.top)/r.height);
+      else if(r.width)setSplit(100*(e.clientX-r.left)/r.width);
+    });
     for(const event of ['pointerup','pointercancel','lostpointercapture'])rail.addEventListener(event,()=>{dragging=null;});
     rail.addEventListener('dblclick',()=>setSplit(50));
     rail.addEventListener('keydown',e=>{
-      const v=Number(rail.getAttribute('aria-valuenow'));const move={Home:30,End:70,ArrowLeft:v-2,ArrowRight:v+2};
+      const v=Number(rail.getAttribute('aria-valuenow'));
+      const move=narrow.matches?{Home:30,End:70,ArrowUp:v-2,ArrowDown:v+2}:{Home:30,End:70,ArrowLeft:v-2,ArrowRight:v+2};
       if(e.key in move){e.preventDefault();setSplit(move[e.key]);}
     });
   }
   // The shared reading surface grows independently of its two scrollable documents.
   function mountReadingHeight(layout) {
-    if (!layout || layout.querySelector(':scope > .prt-reading-height')) return;
+    if (!layout || layout.nextElementSibling?.classList.contains('prt-reading-edge')) return;
     const key = layoutKey + ':reading-height';
     const stored = Number(read(key, '0'));
     let manuallySized = Number.isFinite(stored) && stored > 0;
     let drag = null;
-    let frame = 0;
     const app = layout.closest('.examiner-app');
     const scrollport=layout.querySelector('.paper-scroll');
     const initialPage=pageFrom(app.querySelector('[aria-label="논문 쪽"]')?.value);
@@ -279,29 +328,34 @@
     const footer = el('footer', undefined, 'prt-reading-footer');
     const fit = button('화면 높이에 맞춤', fitToWindow);
     footer.append(fit);
-    layout.after(footer);
-    const rail = button('↕  읽기 영역 높이 조절', () => {}, '논문과 참고문헌 높이 조절');
-    rail.className = 'prt-reading-height';
+    const edge = el('div',undefined,'prt-reading-edge');
+    const rail = el('div',undefined,'prt-reading-height');
+    rail.tabIndex=0;
+    rail.setAttribute('role','separator');
+    rail.setAttribute('aria-label','논문과 참고문헌 높이 조절');
+    rail.setAttribute('aria-orientation','horizontal');
     rail.title = '위아래로 끌거나 방향키를 누르세요. 두 번 누르거나 End 키로 화면에 맞춥니다.';
     rail.setAttribute('aria-keyshortcuts','ArrowUp ArrowDown Home End');
-    layout.append(rail);
+    edge.append(rail);
+    layout.after(edge,footer);
 
     function minHeight() {return innerWidth <= 760 ? 396 : 214;}
-    function defaultHeight() {
+    function availableHeight() {
       const top = layout.getBoundingClientRect().top + window.scrollY;
-      return Math.max(minHeight(), innerHeight - top - footer.offsetHeight);
+      return Math.max(minHeight(), innerHeight - top);
     }
-    function positionRail() {
-      const bottom = layout.getBoundingClientRect().bottom;
-      rail.style.bottom = Math.max(0, bottom - innerHeight) + 'px';
-      const footTop = footer.getBoundingClientRect().top;
-      footer.inert = bottom > footTop + 2;
+    function defaultHeight() {
+      return Math.max(minHeight(),availableHeight()-footer.offsetHeight);
     }
     function setHeight(value) {
-      const px = Math.max(minHeight(), Math.round(value));
+      const px = Math.min(availableHeight(),Math.max(minHeight(), Math.round(value)));
       layout.style.setProperty('--prt-reading-height', px+'px');
-      rail.setAttribute('aria-description',px+'픽셀. 위아래 방향키로 조절하고 End 키로 화면에 맞춥니다.');
-      positionRail();
+      rail.setAttribute('aria-valuemin',String(minHeight()));
+      rail.setAttribute('aria-valuemax',String(availableHeight()));
+      rail.setAttribute('aria-valuenow',String(px));
+      rail.setAttribute('aria-valuetext',px+'픽셀');
+      edge.classList.toggle('at-window-end',px>=availableHeight()-1);
+      footer.inert=px>defaultHeight()+2;
       return px;
     }
     function fitToWindow() {
@@ -314,36 +368,21 @@
       if(!drag)return;
       persist(drag.height);
       drag=null;
-      cancelAnimationFrame(frame);
-      frame=0;
       rail.classList.remove('is-dragging');
-    }
-    function advanceEdge() {
-      if (!drag) return;
-      const distance = drag.y - (innerHeight - 16);
-      if (drag.moved && drag.down && distance > 0) {
-        const increment = Math.min(16, Math.max(2, Math.round(distance / 2)));
-        drag.height = setHeight(drag.height + increment);
-        window.scrollBy(0, increment);
-        positionRail();
-      }
-      frame=requestAnimationFrame(advanceEdge);
     }
     rail.addEventListener('pointerdown', event => {
       if(event.button!==0 || drag)return;
       event.preventDefault();
       rail.focus({preventScroll:true});
       rail.setPointerCapture(event.pointerId);
-      drag={id:event.pointerId,y:event.clientY,height:layout.getBoundingClientRect().height,moved:false,down:false};
+      const height=layout.getBoundingClientRect().height;
+      drag={id:event.pointerId,y:event.clientY,start:height,height};
       rail.classList.add('is-dragging');
-      frame=requestAnimationFrame(advanceEdge);
     });
     rail.addEventListener('pointermove', event => {
       if(!drag || event.pointerId!==drag.id)return;
       const delta=event.clientY-drag.y;
-      if(delta) {drag.moved=true;drag.down=delta>0;}
-      drag.y=event.clientY;
-      drag.height=setHeight(drag.height+delta);
+      drag.height=setHeight(drag.start+delta);
     });
     for(const type of ['pointerup','pointercancel','lostpointercapture'])rail.addEventListener(type,stopDrag);
     rail.addEventListener('dblclick',fitToWindow);
@@ -356,19 +395,16 @@
       persist(setHeight(next));
     });
     function refreshSize(){
-      if(!layout.isConnected){controller.abort();observer.disconnect();stopDrag();footer.remove();return;}
-      if(!manuallySized && !drag)setHeight(defaultHeight());
-      else positionRail();
+      if(!layout.isConnected){controller.abort();observer.disconnect();stopDrag();footer.remove();edge.remove();return;}
+      if(!drag)setHeight(manuallySized?Number(read(key,'0'))||defaultHeight():defaultHeight());
     }
     const observer=new ResizeObserver(refreshSize);
     for(const node of [app.querySelector('.examiner-header'),app.querySelector('.page-controls'),footer])if(node)observer.observe(node);
     window.addEventListener('resize',refreshSize,events);
-    window.addEventListener('scroll',positionRail,{...events,passive:true});
     // Size the row before releasing the viewport-height flex layout, so the
     // browser cannot briefly expand the scrollport to every manuscript page.
     setHeight(manuallySized?stored:defaultHeight());
     app.classList.add('prt-resizable-reading');
-    positionRail();
     if(anchor&&scrollport)scrollport.scrollTop=anchor.offsetTop+offset;
   }
   const handBindings=new WeakMap();
