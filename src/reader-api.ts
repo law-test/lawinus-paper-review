@@ -3,7 +3,7 @@ const storageKey='examiner-session';
 export type Session={token:string;expiresAt:string|number};
 declare global {interface Window {__paperReaderSession?:Session|null}}
 export type Toc={title:string;page:number;level:number};
-export type Source={id:string;title:string;kind?:string};
+export type Source={id:string;title:string;kind?:string;pageCount?:number};
 export type Catalog={title:string;subtitle?:string;author?:string;pageCount:number;bodyStartPage:number;searchEnabled?:boolean;toc:Toc[];sources:Source[]};
 export type Citation={id:string;page?:number;label?:string;excerpt?:string;verified?:boolean;image?:boolean;previewPages?:number[];highlights?:{x:number;y:number;w:number;h:number}[]};
 export type Note={number:number;page:number;text:string;sources:Citation[];markers?:{x:number;y:number;w:number;h:number}[]};
