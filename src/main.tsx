@@ -181,4 +181,4 @@ function App(){
   useEffect(()=>()=>clearTimeout(retryTimer.current),[]);
   return session?<ReadingSession session={session}/>:<Loading error={error} retry={refresh}/>;
 }
-createRoot(document.getElementById('root')!).render(<App/>);
+if(location.protocol!=='http:'||location.hostname!=='paper.lawinus.org')createRoot(document.getElementById('root')!).render(<App/>);

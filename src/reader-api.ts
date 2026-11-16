@@ -1,6 +1,7 @@
 const base='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/';
 const storageKey='examiner-session';
 export type Session={token:string;expiresAt:string|number};
+declare global {interface Window {__paperReaderSession?:Session|null}}
 export type Toc={title:string;page:number;level:number};
 export type Source={id:string;title:string;kind?:string};
 export type Catalog={title:string;subtitle?:string;author?:string;pageCount:number;bodyStartPage:number;searchEnabled?:boolean;toc:Toc[];sources:Source[]};
@@ -10,11 +11,14 @@ export function expiration(value:string|number){
   return typeof value==='number'?(value<1e12?value*1000:value):new Date(value).getTime();
 }
 export function readSession():Session|null{
+  const memory=window.__paperReaderSession;
+  if(memory&&expiration(memory.expiresAt)>Date.now()+30000)return memory;
   try{const s=JSON.parse(sessionStorage.getItem(storageKey)||'null');return s&&s.mode==='public-visit'&&/^[a-f0-9]{64}$/i.test(s.token)&&expiration(s.expiresAt)>Date.now()+30000?s:null;}
   catch{return null;}
 }
 export function storeSession(s:Session|null){
-  if(s)sessionStorage.setItem(storageKey,JSON.stringify({...s,mode:'public-visit'}));else sessionStorage.removeItem(storageKey);
+  window.__paperReaderSession=s;
+  try{if(s)sessionStorage.setItem(storageKey,JSON.stringify({...s,mode:'public-visit'}));else sessionStorage.removeItem(storageKey);}catch{}
 }
 export class ReaderError extends Error{
   constructor(public status:number,public wait:number){
@@ -22,12 +26,24 @@ export class ReaderError extends Error{
   }
 }
 async function checked(name:string,options:RequestInit,reviewer=false){
-  const response=await fetch(base+name,{...options,credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer'});
+  const controller=new AbortController();let timedOut=false;
+  const abort=()=>controller.abort();
+  if(options.signal?.aborted)controller.abort();else options.signal?.addEventListener('abort',abort,{once:true});
+  const timer=window.setTimeout(()=>{timedOut=true;controller.abort();},25000);
+  try{
+  const response=await fetch(base+name,{...options,signal:controller.signal,credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer'});
   if(!response.ok){
     if(reviewer&&(response.status===401||response.status===403))window.dispatchEvent(new Event('paper:expired'));
     throw new ReaderError(response.status,Math.min(120,Number(response.headers.get('Retry-After'))||12));
   }
-  return response;
+  // Keep the deadline through body download as mobile connections can stall
+  // after headers. The reader already consumes each response in full.
+  const body=await response.arrayBuffer();
+  return new Response(body,{status:response.status,statusText:response.statusText,headers:response.headers});
+  }catch(error){
+    if(timedOut)throw new Error('연결이 지연되고 있습니다. 다시 시도해 주세요.');
+    throw error;
+  }finally{window.clearTimeout(timer);options.signal?.removeEventListener('abort',abort);}
 }
 let memoryKey='';
 function browserKey(){
