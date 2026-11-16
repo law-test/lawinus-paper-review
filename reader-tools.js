@@ -30,7 +30,7 @@
   const notesEndpoint='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/examiner-notes?edition=1116_15';
   const cacheKey=memoPrefix+'drafts';
   let noteSession=null;
-  function getToken(){try{return JSON.parse(sessionStorage.getItem('examiner-session')||'null')?.token||'';}catch{return '';}}
+  function getToken(){if(window.__paperReaderSession?.token)return window.__paperReaderSession.token;try{return JSON.parse(sessionStorage.getItem('examiner-session')||'null')?.token||'';}catch{return '';}}
   function memoNumbers(){return [...(noteSession?.values.keys()||[])].filter(n=>noteSession.values.get(n)?.trim()).sort((a,b)=>a-b);}
   function memoValue(n){return noteSession?.values.get(n)||'';}
   function storeDrafts(state){
