@@ -6,8 +6,8 @@
     location.replace(dictionaryURL);
     return;
   }
-  const edition = '1103_85_';
-  const pageCount = 255;
+  const edition = '1116_15';
+  const pageCount = 253;
   const memoPrefix = 'paper:sticky:' + edition + ':';
   const layoutKey = 'paper:tools:layout:2';
   let currentPage = 1;
@@ -27,7 +27,7 @@
       dictionaryWindow.opener=null;dictionaryWindow.focus();return true;
     } catch { return false; }
   }
-  const notesEndpoint='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/examiner-notes';
+  const notesEndpoint='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/examiner-notes?edition=1116_15';
   const cacheKey=memoPrefix+'drafts';
   let noteSession=null;
   function getToken(){try{return JSON.parse(sessionStorage.getItem('examiner-session')||'null')?.token||'';}catch{return '';}}
@@ -242,7 +242,7 @@
       try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen(); closeBox();}
       catch {fullscreen.textContent='이 환경에서는 전체 화면을 사용할 수 없습니다.';}
     });
-    actions.append(el('span','논문 255쪽'),fullscreen);
+    actions.append(el('span','논문 253쪽'),fullscreen);
     const grid=el('div',undefined,'prt-grid');
     for(let n=1;n<=pageCount;n++){
       const b=button(String(n),()=>{closeBox(false);gotoPage(n);},'제출본 '+n+'쪽으로 이동');
