@@ -21,7 +21,7 @@ const mapCache=new Map<number,Promise<PageTarget[]>>();
 function pageMap(page:number){
   let pending=mapCache.get(page);
   if(!pending){
-    pending=fetch(new URL('link-maps/'+page+'.json',document.baseURI),{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
+    pending=fetch(new URL('link-maps/1116_15/'+page+'.json',document.baseURI),{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
       return (data.targets as PageTarget[]).filter(box);
@@ -40,7 +40,7 @@ export function usePageMetadata(session:Session,query:string,active=true,textAll
     const params=new URLSearchParams(query),page=params.get('metadata')==='page'?Number(params.get('page')):0;
     let targets:PageTarget[]=[],lines:TextLine[]=[];
     const publish=()=>{if(alive)setState({query,token:session.token,data:{lines,targets}});};
-    if(page>0&&page<=255){
+    if(page>0&&page<=253){
       pageMap(page).then(value=>{targets=value;publish();},()=>{if(alive)setState({query,token:session.token,error:'쪽 링크를 불러오지 못했습니다.'});});
     }
     if(!textAllowed)return ()=>{alive=false;};

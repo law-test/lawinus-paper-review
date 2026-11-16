@@ -43,5 +43,6 @@ export async function visit():Promise<Session>{
   return {token:result.token,expiresAt:result.expiresAt};
 }
 export function privateResource(session:Session,query:URLSearchParams,signal:AbortSignal){
+  query.set('edition','1116_15');
   return checked('examiner-page?'+query.toString(),{signal,headers:{Authorization:'Bearer '+session.token}},true);
 }

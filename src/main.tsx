@@ -59,7 +59,7 @@ function DocumentPane({session,start,count,notes,onPage,onTarget}:{session:Sessi
   },[count,start,onPage]);
   return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
     <div className="paper-scroll" ref={host} onCopy={copyManuscriptSelection} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} style={{width:zoom+'%'}} aria-label={'논문 '+page+'쪽'}>
-      <Photo session={session} label={'논문 '+page+'쪽'} query={'edition=1103_85&page='+page} active={visible.includes(page)}/>
+      <Photo session={session} label={'논문 '+page+'쪽'} query={'edition=1116_15&page='+page} active={visible.includes(page)}/>
       {visible.includes(page)&&<PageLayer session={session} textAllowed={reading.includes(page)} query={'metadata=page&page='+page} label={'논문 '+page+'쪽 글자'}
         fallback={(noteMap.get(page)||[]).flatMap(n=>(n.markers||[]).map(m=>({...m,kind:'note' as const,number:n.number,label:'각주 '+n.number})))}
         onTarget={t=>onTarget(t,page)}/>}
@@ -155,7 +155,7 @@ function ReadingSession({session}:{session:Session}){
 }
 
 function Loading({error,retry}:{error:string;retry:()=>void}){
-  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · 김민규</small><h1>주택임차보증금반환채권의 행사 및 반환보장상의 법적 쟁점에 관한 연구</h1></div></header><section className="page-controls">논문 19 / 255쪽</section><div className="reader-layout"><main className="reader-pending"><strong>논문</strong><p role="status">{error||'논문을 불러오는 중…'}</p>{error&&<button onClick={retry}>다시 시도</button>}</main><aside className="reference-pane"><div className="reference-toolbar"><strong>참고문헌·원전</strong></div></aside></div></div>;
+  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · 김민규</small><h1>주택임차보증금 회수에 관한 법적 쟁점의 연구</h1></div></header><section className="page-controls">논문 15 / 253쪽</section><div className="reader-layout"><main className="reader-pending"><strong>논문</strong><p role="status">{error||'논문을 불러오는 중…'}</p>{error&&<button onClick={retry}>다시 시도</button>}</main><aside className="reference-pane"><div className="reference-toolbar"><strong>참고문헌·원전</strong></div></aside></div></div>;
 }
 
 function App(){
