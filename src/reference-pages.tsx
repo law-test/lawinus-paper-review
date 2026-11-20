@@ -1,6 +1,7 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {privateResource,ReaderError,automaticRetryMessage,type Session} from './reader-api';
 import {alternateFolios,citationGroups,citedEdition,labelKey,lookupLabels,pageDescription,pageLabels,printedLabels,printedSpreads,type AlternateFolio,type CitationGroup} from './printed-pages';
+import ReferenceChrome from './reference-chrome';
 import './reference-pages.css';
 import type {CaseOriginal,CasePart} from './footnote-cases';
 
@@ -163,7 +164,9 @@ function ReferenceDocument({manifest,initialPage,explicitPage,caseOriginal,caseP
     let lastWidth=root.clientWidth;
     const measureHeader=()=>{
       const heading=root.querySelector('h2');
-      setStickyTop(heading&&getComputedStyle(heading).position==='sticky'?Math.max(0,heading.getBoundingClientRect().height-parseFloat(getComputedStyle(root).paddingTop||'0')):0);
+      const offset=heading&&getComputedStyle(heading).position==='sticky'?Math.max(0,heading.getBoundingClientRect().height-parseFloat(getComputedStyle(root).paddingTop||'0')):0;
+      setStickyTop(offset);
+      if(!caseOriginal)controls.current?.style.setProperty('--ref-sticky-top',offset+'px');
     };
     const readingTop=()=>{
       const heading=root.querySelector('h2');
@@ -223,7 +226,8 @@ function ReferenceDocument({manifest,initialPage,explicitPage,caseOriginal,caseP
     jump(matches[0].page,false,lookupLabels(matches[0]).find(label=>labelKey(label)===key));
   };
   return <div className="reference-pages" ref={host} data-reference-source={manifest.sourceId}>
-    <nav className="reference-page-controls" ref={controls} aria-label="원전 쪽 이동" style={{top:stickyTop}}>
+    <nav className={'reference-page-controls'+(caseOriginal?'':' has-fold-control')} ref={controls} aria-label="원전 쪽 이동" style={{top:caseOriginal?stickyTop:'var(--ref-sticky-top, '+stickyTop+'px)'}}>
+      <div className="reference-control-clip"><div className="reference-control-body">
       <button type="button" onClick={()=>jump(pages[currentIndex-1].page,false,undefined,true)} disabled={currentIndex===0}>이전 쪽</button>
       {byLabel.size>0&&<form onSubmit={submit}>
         <label>인쇄 쪽 <input ref={inputBox} aria-label="원전 인쇄 쪽" inputMode={hasRomanOrOther?'text':'numeric'} autoComplete="off" placeholder="쪽번호" value={input} onChange={e=>{setDraft(e.target.value);setInputError('');setAmbiguous([]);}}/></label>
@@ -237,6 +241,8 @@ function ReferenceDocument({manifest,initialPage,explicitPage,caseOriginal,caseP
       {inputError&&<div className="reference-page-message" role="status">{inputError}
         {ambiguous.map(p=><button key={p.page} type="button" onClick={()=>jump(p.page,false,lookupLabels(p).find(label=>labelKey(label)===labelKey(input)))}>{p.alternate?pageDescription(p):'수록 '+p.page+'번째 면'}</button>)}
       </div>}
+      </div></div>
+      {!caseOriginal&&<ReferenceChrome/>}
     </nav>
     {alternate&&<p className="reference-page-guide">{alternate.primaryName} 쪽번호와 {alternate.name} 쪽번호로 모두 이동할 수 있습니다.</p>}
     {!caseOriginal&&(!byLabel.size||manifest.availability==='excerpt')&&<p className="reference-page-guide">{!byLabel.size?'인쇄 쪽번호가 확인되지 않은 자료입니다. 이전·다음 쪽이나 스크롤로 이동할 수 있습니다.':'확보된 원문 범위에서 이동할 수 있습니다.'}</p>}

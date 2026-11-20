@@ -13,3 +13,19 @@
 .reference-page .source-image img{position:absolute;inset:0;width:100%;height:100%}
 .reference-page-placeholder{position:absolute;inset:0;background:#faf9f8}
 @media(max-width:760px){.source-dialog.has-reference-pages>h2{position:static}.reference-page-controls{font-size:12px;gap:5px}.reference-page-controls button{padding:4px 6px}.reference-page-guide{font-size:12px}}
+
+/* The small bottom edge remains reachable with the title and page tools folded. */
+.reference-page-controls:not(.has-fold-control) :is(.reference-control-clip,.reference-control-body){display:contents}
+.reference-page-controls.has-fold-control{display:block;padding:0;border:0}
+.reference-control-body{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:6px 0}
+.reference-chrome-bar{height:22px;display:flex;align-items:stretch;gap:6px;border-block:1px solid #dfd6d7;background:#fff}
+.reference-chrome-handle{flex:1;display:grid;place-items:center;min-width:32px;cursor:ns-resize;touch-action:none;user-select:none}
+.reference-chrome-handle span{width:34px;height:3px;border-radius:4px;background:#b4a0a6}
+.reference-page-controls .reference-chrome-toggle{padding:0 6px;border:0;background:white;color:#6a414c;font-size:12px;line-height:1}
+.reference-chrome-handle:focus-visible,.reference-chrome-toggle:focus-visible{outline:2px solid #84384e;outline-offset:-2px}
+.reference-pane[data-reference-chrome] .source-dialog{overflow-anchor:none}
+.reference-pane[data-reference-chrome=dragging]>.reference-toolbar{height:var(--ref-toolbar);min-height:0;padding-block:0;overflow:clip}
+.reference-pane[data-reference-chrome=dragging]>.source-dialog>h2{height:var(--ref-title);margin-block:0;padding-block:0;overflow:clip}
+.reference-pane[data-reference-chrome=dragging] .reference-control-clip{height:var(--ref-controls);overflow:clip}
+.reference-pane[data-reference-chrome=hidden]>.reference-toolbar,.reference-pane[data-reference-chrome=hidden]>.source-dialog>h2,.reference-pane[data-reference-chrome=hidden] .reference-control-clip{display:none}
+@media(max-width:760px){.reference-chrome-bar{height:26px}.reference-control-body{gap:5px;padding:4px 0}}
