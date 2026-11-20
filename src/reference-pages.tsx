@@ -2,6 +2,7 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {privateResource,type Session} from './reader-api';
 import {alternateFolios,citationGroups,citedEdition,labelKey,lookupLabels,pageDescription,pageLabels,printedLabels,printedSpreads,type AlternateFolio,type CitationGroup} from './printed-pages';
 import './reference-pages.css';
+import type {CaseOriginal,CasePart} from './footnote-cases';
 
 export type ReferencePage={page:number;width:number;height:number;label?:string;spread?:string[];alternate?:AlternateFolio};
 export type ReferenceManifest={sourceId:string;pageCount:number;pages:ReferencePage[];availability:'complete'|'excerpt'};
@@ -11,6 +12,8 @@ export type ReferencePagesProps={
   sourceId:string;
   initialPage:number;
   explicitPage?:number;
+  caseOriginal?:CaseOriginal;
+  casePart?:CasePart;
   citationPages?:number[];
   noteNumber?:number;
   highlightPage?:number;
@@ -67,7 +70,7 @@ function closestPage(pages:ReferencePage[],requested:number){
   return pages.reduce((best,item)=>Math.abs(item.page-requested)<Math.abs(best.page-requested)?item:best,pages[0]);
 }
 
-function ReferenceDocument({manifest,initialPage,explicitPage,citationPages=[],noteNumber,highlightPage=initialPage,highlights=[],focusCitation,focusKey,renderPage}:Omit<ReferencePagesProps,'session'|'sourceId'>&{manifest:ReferenceManifest}){
+function ReferenceDocument({manifest,initialPage,explicitPage,caseOriginal,casePart='order',citationPages=[],noteNumber,highlightPage=initialPage,highlights=[],focusCitation,focusKey,renderPage}:Omit<ReferencePagesProps,'session'|'sourceId'>&{manifest:ReferenceManifest}){
   const pages=manifest.pages,host=useRef<HTMLDivElement>(null),controls=useRef<HTMLElement>(null);
   const scrollRoot=useRef<HTMLElement|null>(null),items=useRef<HTMLElement[]>([]);
   const [active,setActive]=useState<number[]>([]);
@@ -99,7 +102,8 @@ function ReferenceDocument({manifest,initialPage,explicitPage,citationPages=[],n
   const hasRomanOrOther=useMemo(()=>[...byLabel.keys()].some(key=>!/^[0-9]+$/.test(key)),[byLabel]);
   const alternate=useMemo(()=>pages.find(page=>page.alternate)?.alternate,[pages]);
   const groups=useMemo(()=>citationGroups(manifest.sourceId,noteNumber,pages),[manifest.sourceId,noteNumber,pages]);
-  const landing=explicitPage??groups[0]?.start??initialPage;
+  const casePoint=caseOriginal?.[casePart];
+  const landing=casePoint?.page??explicitPage??groups[0]?.start??initialPage;
   const landingLabel=landing===groups[0]?.start?groups[0]?.printedStart:undefined;
   const showGroups=groups.length>1||groups.some(group=>group.start!==initialPage||group.start!==group.end||group.printedStart!==group.printedEnd);
   const insideGroup=(group:CitationGroup)=>{
@@ -129,19 +133,20 @@ function ReferenceDocument({manifest,initialPage,explicitPage,citationPages=[],n
     const root=scrollRoot.current;if(!root)return;
     const target=closestPage(pages,requested),index=pages.indexOf(target),item=items.current[index];if(!item)return;
     const picture=item.querySelector<HTMLElement>('.source-image');
-    const mark=evidence&&target.page===highlightPage?highlights[0]:undefined;
+    const mark=evidence&&target.page===casePoint?.page?casePoint:evidence&&target.page===highlightPage?highlights[0]:undefined;
     const imageRegion=(picture||item).getBoundingClientRect();
     const region=(mark?picture||item:item).getBoundingClientRect(),rootBox=root.getBoundingClientRect();
     const top=region.top-rootBox.top+root.scrollTop+(mark?region.height*mark.y:0);
     const heading=root.querySelector('h2');
     const headingSpace=heading&&getComputedStyle(heading).position==='sticky'?heading.getBoundingClientRect().height:0;
-    root.scrollTop=Math.max(0,top-headingSpace-(controls.current?.offsetHeight||0)-12);
+    const inset=casePoint?(parseFloat(getComputedStyle(root).paddingTop)||0):0;
+    root.scrollTop=Math.max(0,top-headingSpace-inset-(controls.current?.offsetHeight||0)-12);
     readingAnchor.current={index,fraction:mark?.y??(region.top-imageRegion.top)/imageRegion.height};
     if(!keepSeries)setPreferAlternate(Boolean(preferred&&target.alternate?.label===preferred));
     setCurrent(target.page);setChosenLabel(preferred?{page:target.page,label:preferred}:null);setDraft(null);setInputError('');setAmbiguous([]);
     // No image load handler moves the reader: page sizes are known before fetch.
     visible.current=new Set([index]);activate();
-  },[pages,highlightPage,highlights,activate]);
+  },[pages,highlightPage,highlights,casePoint,activate]);
 
   useLayoutEffect(()=>{
     const node=host.current,root=node?.closest<HTMLElement>('.source-dialog');if(!node||!root)return;
@@ -157,7 +162,8 @@ function ReferenceDocument({manifest,initialPage,explicitPage,citationPages=[],n
     const readingTop=()=>{
       const heading=root.querySelector('h2');
       const headingSpace=heading&&getComputedStyle(heading).position==='sticky'?heading.getBoundingClientRect().height:0;
-      return root.getBoundingClientRect().top+headingSpace+(controls.current?.offsetHeight||0)+12;
+      const inset=caseOriginal?(parseFloat(getComputedStyle(root).paddingTop)||0):0;
+      return root.getBoundingClientRect().top+headingSpace+inset+(controls.current?.offsetHeight||0)+12;
     };
     const updateCurrent=()=>{
       scrollFrame.current=0;
@@ -199,7 +205,7 @@ function ReferenceDocument({manifest,initialPage,explicitPage,citationPages=[],n
   // Only an explicit citation/source change initiates focus. Scrolling or a late
   // image response never re-enters this effect; callback props may change freely.
   const jumpRef=useRef(jump);jumpRef.current=jump;
-  useLayoutEffect(()=>{if(focusCitation)jumpRef.current(landing,true,landingLabel);},[manifest.sourceId,landing,landingLabel,focusCitation,focusKey]);
+  useLayoutEffect(()=>{if(focusCitation)jumpRef.current(landing,true,landingLabel);},[manifest.sourceId,landing,landingLabel,focusCitation,focusKey,casePart]);
 
   const submit=(event:React.FormEvent)=>{
     event.preventDefault();
@@ -227,11 +233,18 @@ function ReferenceDocument({manifest,initialPage,explicitPage,citationPages=[],n
       </div>}
     </nav>
     {alternate&&<p className="reference-page-guide">{alternate.primaryName} 쪽번호와 {alternate.name} 쪽번호로 모두 이동할 수 있습니다.</p>}
-    {(!byLabel.size||manifest.availability==='excerpt')&&<p className="reference-page-guide">{!byLabel.size?'인쇄 쪽번호가 확인되지 않은 자료입니다. 이전·다음 쪽이나 스크롤로 이동할 수 있습니다.':'확보된 원문 범위에서 이동할 수 있습니다.'}</p>}
+    {!caseOriginal&&(!byLabel.size||manifest.availability==='excerpt')&&<p className="reference-page-guide">{!byLabel.size?'인쇄 쪽번호가 확인되지 않은 자료입니다. 이전·다음 쪽이나 스크롤로 이동할 수 있습니다.':'확보된 원문 범위에서 이동할 수 있습니다.'}</p>}
     <div className="reference-page-stack">{pages.map((page,index)=><figure className="reference-page" key={page.page} data-reference-page={page.page} data-reference-index={index} aria-label={'원전 '+pageDescription(page)}>
       <figcaption>{pageDescription(page)}</figcaption>
       <div className="source-image" style={{aspectRatio:`${page.width} / ${page.height}`}}>
         {activeSet.has(page.page)?renderPage(page.page,manifest.sourceId,pageReady):<div className="reference-page-placeholder" aria-hidden="true"/>}
+        {caseOriginal&&(['order','reasons'] as const).map(part=>{
+          const point=caseOriginal[part];
+          if(point?.page!==page.page)return null;
+          return <span key={part} className="case-page-anchor" data-judgment-start={part==='order'?'':undefined}
+            data-judgment-reasons={part==='reasons'?'':undefined} aria-label={point.text}
+            style={{top:point.y*100+'%'}}/>;
+        })}
         {page.page===highlightPage&&highlights.map((rect,i)=><mark key={i} style={{left:rect.x*100+'%',top:rect.y*100+'%',width:rect.w*100+'%',height:rect.h*100+'%'}}/>)}
       </div>
     </figure>)}</div>

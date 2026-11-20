@@ -7,6 +7,7 @@ import {repairLawTargets} from './verified-law-targets';
 import {bibliographyURL,repairCitationTargets} from './citation-links';
 import sectionData from './section-link-data.json';
 import {sectionHref} from './section-navigation';
+import {footnoteCaseTargets} from './footnote-cases';
 
 export type Rect={x:number;y:number;w:number;h:number};
 export type TextLine=Rect&{text:string;size?:number;index?:number};
@@ -31,7 +32,7 @@ function pageMap(page:number){
     pending=fetch(url,{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
-      return [...repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[])),...(sectionTargets[page]||[])].filter(box);
+      return [...footnoteCaseTargets(page,repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[]))),...(sectionTargets[page]||[])].filter(box);
     });
     mapCache.set(page,pending);pending.catch(()=>{if(mapCache.get(page)===pending)mapCache.delete(page);});
     while(mapCache.size>12)mapCache.delete(mapCache.keys().next().value!);
@@ -180,12 +181,12 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
     })}
     <span ref={hover} className="page-target-hover" aria-hidden="true" hidden/>
     {onTarget&&targets.map((t,i)=>{const url=t.kind==='external'?bibliographyURL(t.url):officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':t.kind==='external'?'참고자료':t.kind==='section'?'논문 본문':'각주';
-      const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'aria-label':name+' 열기 · '+targetLabel(t)};
+      const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'data-case-number':t.caseNumber,'data-note-number':t.noteNumber,'aria-label':name+' 열기 · '+targetLabel(t)};
       if(t.kind==='section'&&t.targetPage&&t.targetY!==undefined)return <a key={i} {...props}
         data-target-page={t.targetPage} data-target-y={t.targetY} href={sectionHref(t.targetPage,t.targetY)}
         onClick={e=>{e.stopPropagation();if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();activate(t);}}}/>;
       return url?<a key={i} {...props} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>{e.stopPropagation();if(t.kind!=='external'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();activate(t);}}}/>:
-        (((t.kind==='note'||t.kind==='cross')&&t.number||t.articleText||t.status)?<button type="button" key={i} {...props} onClick={e=>{e.stopPropagation();activate(t);}}/>:null);
+        (((t.kind==='note'||t.kind==='cross')&&t.number||t.caseNumber||t.articleText||t.status)?<button type="button" key={i} {...props} onClick={e=>{e.stopPropagation();activate(t);}}/>:null);
     })}
     {error&&<button type="button" className="text-error" onClick={e=>{e.stopPropagation();retry();}}>다시 불러오기</button>}
   </div>;
@@ -204,11 +205,11 @@ export function NoteText({text,links,onTarget}:{text:string;links:InlineLink[];o
   let cursor=0;const parts:React.ReactNode[]=[];
   for(const link of [...links].sort((a,b)=>a.start-b.start)){
     if(link.start<cursor||link.end<=link.start||link.end>text.length)continue;
-    const url=officialURL(link.target.url),internal=link.target.kind==='note'||link.target.kind==='cross'||link.target.kind==='section';if(!internal&&!url&&!link.target.articleText&&!link.target.status)continue;
+    const url=officialURL(link.target.url),internal=link.target.kind==='note'||link.target.kind==='cross'||link.target.kind==='section'||(link.target.kind==='case'&&!url);if(!internal&&!url&&!link.target.articleText&&!link.target.status)continue;
     parts.push(text.slice(cursor,link.start));
     const phrase=text.slice(link.start,link.end);
-    parts.push((internal||!url)?<button key={link.start} type="button" className="inline-note-link" onClick={()=>onTarget(link.target)}>{phrase}</button>:
-      <a key={link.start} href={url} className="inline-note-link" target="_blank" rel="noopener noreferrer" onClick={e=>{if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.shiftKey){e.preventDefault();onTarget(link.target);}}}>{phrase}</a>);
+    parts.push((internal||!url)?<button key={link.start} type="button" className="inline-note-link" data-case-number={link.target.caseNumber} onClick={()=>onTarget(link.target)}>{phrase}</button>:
+      <a key={link.start} href={url} className="inline-note-link" data-case-number={link.target.caseNumber} target="_blank" rel="noopener noreferrer" onClick={e=>{if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.shiftKey){e.preventDefault();onTarget(link.target);}}}>{phrase}</a>);
     cursor=link.end;
   }
   parts.push(text.slice(cursor));return <>{parts}</>;
@@ -232,10 +233,10 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
     if((t.noteNumber??(t.sourceId?t.number:undefined))!==noteNumber||(t.kind==='note'&&!t.sourceId))continue;
     const label=(t.label||'').trim();if(!label)continue;
     const compact=label.replace(/\s/g,'');
-    if(t.kind==='section'){
+    if(t.kind==='section'||(t.kind==='case'&&t.noteStart!==undefined)){
       // Printed line offsets and unwrapped note offsets belong to different texts.
       const {noteStart:start,noteEnd:end}=t;
-      if(start!==undefined&&end!==undefined&&start>=0&&end>start&&end<=text.length&&text.slice(start,end).replace(/\s/g,'')===compact){
+      if(start!==undefined&&end!==undefined&&start>=0&&end>start&&end<=text.length&&(t.kind==='case'||text.slice(start,end).replace(/\s/g,'')===compact)){
         links.push({start,end,target:t});
       }
       continue;
