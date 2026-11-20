@@ -16,6 +16,10 @@
   const pageFrom = v => Number.isInteger(Number(v)) && Number(v)>0 && Number(v)<=pageCount ? Number(v) : null;
   function read(key, fallback) { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } }
   function write(key, value) { try { const store=localStorage; if (value === null)store.removeItem(key);else store.setItem(key,value); return true; } catch { return false; } }
+  function folio(page,compact=false) {
+    const sheet=document.querySelector('.paper-page[data-page="'+page+'"]');
+    return (compact?sheet?.dataset.folio:sheet?.dataset.folioDescription)||(compact?String(page):page+'쪽');
+  }
   function gotoPage(page) { window.dispatchEvent(new CustomEvent('paper:navigate', {detail:{page}})); }
   function el(tag, text, cls) { const node=document.createElement(tag); if(text!==undefined) node.textContent=text; if(cls)node.className=cls; return node; }
   function button(text, action, label) { const b=el('button',text);b.type='button';if(label)b.setAttribute('aria-label',label);b.addEventListener('click',action);return b; }
@@ -203,7 +207,7 @@
   }
   function renderNotes(page) {
     memoPage=page;body.replaceChildren();
-    const heading=el('label','제출본 '+page+'쪽');heading.htmlFor='prt-memo';
+    const heading=el('label','제출본 '+folio(page));heading.htmlFor='prt-memo';
     memoInput=el('textarea');memoInput.id='prt-memo';memoInput.rows=5;memoInput.maxLength=6000;memoInput.disabled=!noteSession?.loaded;memoInput.value=memoValue(page);memoInput.placeholder='이 쪽에 남길 메모';
     const status=el('small');status.dataset.status='';status.setAttribute('role','status');
     const retry=button('다시 시도',async()=>{const state=noteSession;if(!state)return;if(!state.loaded&&!state.loading)await loadRemote(state);if(state.pending.size)await flushState(state);});retry.dataset.retry='';
@@ -218,7 +222,7 @@
       const pages=memoNumbers(); list.replaceChildren();
       if(pages.length)list.append(el('h3','메모가 있는 쪽'));
       for(const n of pages){
-        const b=button(n+'쪽',()=>{renderNotes(n);gotoPage(n);});
+        const b=button(folio(n),()=>{renderNotes(n);gotoPage(n);});
         b.setAttribute('aria-current',n===page?'page':'false');b.title=memoValue(n).slice(0,100);list.append(b);
       }
       markPages();
@@ -231,7 +235,7 @@
       const n=pageFrom(page.dataset.page); const old=page.querySelector(':scope > .prt-note-marker');
       if(!n||!withMemos.has(n)){old?.remove();continue;}
       if(old)continue;
-      const b=button('메모',()=>{if(active!=='notes')showBox('notes',tools.querySelector('[data-tool="notes"]'));renderNotes(n);},n+'쪽 포스트잇 열기');
+      const b=button('메모',()=>{if(active!=='notes')showBox('notes',tools.querySelector('[data-tool="notes"]'));renderNotes(n);},folio(n)+' 포스트잇 열기');
       b.className='prt-note-marker';page.append(b);
     }
   }
@@ -242,10 +246,10 @@
       try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen(); closeBox();}
       catch {fullscreen.textContent='이 환경에서는 전체 화면을 사용할 수 없습니다.';}
     });
-    actions.append(el('span','논문 253쪽'),fullscreen);
+    actions.append(el('span','논문 인쇄 쪽'),fullscreen);
     const grid=el('div',undefined,'prt-grid');
     for(let n=1;n<=pageCount;n++){
-      const b=button(String(n),()=>{closeBox(false);gotoPage(n);},'제출본 '+n+'쪽으로 이동');
+      const b=button(folio(n,true),()=>{closeBox(false);gotoPage(n);},'제출본 '+folio(n)+' 이동');
       if(n===currentPage)b.setAttribute('aria-current','page');
       grid.append(b);
     }
@@ -326,7 +330,7 @@
     let menuFraction=Number.isFinite(savedFraction)?Math.max(0,Math.min(1,savedFraction)):1;
     let compactHeight=null;
     const scrollport=layout.querySelector('.paper-scroll');
-    const initialPage=pageFrom(app.querySelector('[aria-label="논문 쪽"]')?.value);
+    const initialPage=pageFrom(app.querySelector('.page-controls')?.dataset.currentSheet)||pageFrom(app.querySelector('[aria-label="논문 쪽"]')?.value);
     const anchor=initialPage&&scrollport?.querySelector('[data-page="'+initialPage+'"]');
     const offset=anchor?Math.max(0,Math.min(anchor.offsetHeight-1,scrollport.scrollTop-anchor.offsetTop)):0;
     const controller = new AbortController();
