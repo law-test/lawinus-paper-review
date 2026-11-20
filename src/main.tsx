@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import KuBrand from './ku-brand';
-import {Catalog,Citation,Note,Session,ReaderError,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
+import {Catalog,Citation,Note,Session,ReaderError,automaticRetryMessage,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
 import {PageLayer,NoteText,useNoteLinks,copyManuscriptSelection,printedFootnotes,type PageTarget} from './page-text';
 import ContentsSearch from './contents-search';
 import {getPageImage} from './visible-page-cache';
@@ -140,7 +140,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const displayedNumber=caseTarget?.caseNumber||caseTarget?.label;
   const selectedCaseOption=displayedNumber?options.find(o=>(!caseNote||o.note.number===caseNote)&&
     (catalogCase(o.citation.id)===displayedNumber||caseOriginal(displayedNumber)?.sourceId===o.citation.id)):undefined;
-  const shownOption=caseTarget?selectedCaseOption:entry;
+  const shownOption=caseTarget?selectedCaseOption:(chosen?.noteOnly?undefined:entry);
   function openCase(number:string,noteNumber?:number){
     setReferenceFocus(v=>v+1);
     setLegal(null);
@@ -207,7 +207,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
           setLegal(null);setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);
           const number=catalogCase(opt.citation.id)||casesInNote(opt.note.number).find(id=>caseOriginal(id)?.sourceId===opt.citation.id);
           if(number)openCase(number,opt.note.number);else setCaseTarget(null);
-        }}}><option value="" disabled>이 쪽의 인용자료</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
+        }}}><option value="" disabled>{chosen?.noteOnly&&!caseTarget?'각주 원문 · 인용자료 선택':'이 쪽의 인용자료'}</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
         <button onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
       {legal?<LawPane session={session} target={legal} onClose={()=>setLegal(null)}/>:caseTarget?<CasePane session={session} target={caseTarget} onClose={returnToNote} focusKey={referenceFocus} renderReference={renderCasePages}
         navigation={<>
@@ -221,8 +221,8 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
         {selectedNote&&<details ref={noteDetail} key={selectedNote.number} open={chosen?.showNote||(!previewPage&&!citation?.excerpt)}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,page)}/></p></details>}
         {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
-        {listedCase&&<CasePane session={session} number={listedCase} focusKey={referenceFocus} focusJudgment={focusListedCase} renderReference={renderCasePages}/>}
-        {previewPage&&sourceId&&<ReferencePages key={sourceId} session={session} sourceId={sourceId} initialPage={previewPage} explicitPage={preview} noteNumber={selectedNote?.number} citationPages={previews} highlightPage={citation?.page} highlights={citation?.highlights} focusCitation={true} focusKey={selectedNote?.number+'/'+previewPage+'/'+referenceFocus} renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'참고문헌 PDF '+p+'쪽'} query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>}
+        {listedCase&&!chosen?.noteOnly&&<CasePane session={session} number={listedCase} focusKey={referenceFocus} focusJudgment={focusListedCase} renderReference={renderCasePages}/>}
+        {previewPage&&sourceId&&!chosen?.noteOnly&&<ReferencePages key={sourceId} session={session} sourceId={sourceId} initialPage={previewPage} explicitPage={preview} noteNumber={selectedNote?.number} citationPages={previews} highlightPage={citation?.page} highlights={citation?.highlights} focusCitation={true} focusKey={selectedNote?.number+'/'+previewPage+'/'+referenceFocus} renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'참고문헌 PDF '+p+'쪽'} query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>}
         {!source&&!selectedNote&&<p>이 쪽에 연결된 인용자료가 없습니다.</p>}
         {source&&!listedCase&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
       </section>}
@@ -232,28 +232,48 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
 
 function ReadingSession({session}:{session:Session}){
   const [data,setData]=useState<{catalog:Catalog;notes:Note[]}|null>(null),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
-  useEffect(()=>{const c=new AbortController();setError('');
-    Promise.all(['catalog','citations'].map(k=>privateResource(session,new URLSearchParams({metadata:k}),c.signal).then(r=>r.json()))).then(([catalog,citations])=>{if(!c.signal.aborted)setData({catalog,notes:citations.notes});}).catch(e=>{if(!c.signal.aborted)setError(e.message);});
-    return()=>c.abort();},[session,attempt]);
-  if(!data)return <Loading error={error} retry={()=>setAttempt(a=>a+1)}/>;
+  const [waiting,setWaiting]=useState(false);
+  useEffect(()=>{
+    const controller=new AbortController();
+    let retryTimer=0,catalog:Catalog|undefined;
+    async function open(){
+      setError('');setWaiting(false);
+      try{
+        const metadata=async(key:string)=>(await privateResource(session,new URLSearchParams({metadata:key}),controller.signal)).json();
+        catalog??=await metadata('catalog') as Catalog;
+        const citations=await metadata('citations');
+        if(!controller.signal.aborted)setData({catalog,notes:citations.notes});
+      }catch(e){
+        if(controller.signal.aborted)return;
+        if(e instanceof ReaderError&&e.status===429){
+          setWaiting(true);setError(automaticRetryMessage(e));
+          retryTimer=window.setTimeout(open,e.wait*1000);
+        }else setError(e instanceof Error?e.message:'논문을 불러오지 못했습니다.');
+      }
+    }
+    void open();
+    return()=>{clearTimeout(retryTimer);controller.abort();};
+  },[session,attempt]);
+  if(!data)return <Loading error={error} waiting={waiting} retry={()=>setAttempt(a=>a+1)}/>;
   return <Workspace session={session} catalog={data.catalog} notes={data.notes}/>;
 }
 
-function Loading({error,retry}:{error:string;retry:()=>void}){
-  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · 김민규</small><h1>주택임차보증금 회수에 관한 법적 쟁점의 연구</h1></div></header><section className="page-controls">인쇄 1 / {lastPrintedFolio}쪽</section><div className="reader-layout"><main className="reader-pending"><strong>논문</strong><p role="status">{error||'논문을 불러오는 중…'}</p>{error&&<button onClick={retry}>다시 시도</button>}</main><aside className="reference-pane"><div className="reference-toolbar"><strong>참고문헌·원전</strong></div></aside></div></div>;
+function Loading({error,retry,waiting=false}:{error:string;retry:()=>void;waiting?:boolean}){
+  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · 김민규</small><h1>주택임차보증금 회수에 관한 법적 쟁점의 연구</h1></div></header><section className="page-controls">인쇄 1 / {lastPrintedFolio}쪽</section><div className="reader-layout"><main className="reader-pending"><strong>논문</strong><p role="status">{error||'논문을 불러오는 중…'}</p>{error&&!waiting&&<button onClick={retry}>다시 시도</button>}</main><aside className="reference-pane"><div className="reference-toolbar"><strong>참고문헌·원전</strong></div></aside></div></div>;
 }
 
 function App(){
   const [session,setSession]=useState<Session|null>(readSession);
-  const [error,setError]=useState('');
+  const [error,setError]=useState(''),[waiting,setWaiting]=useState(false);
   const pending=useRef<Promise<void>|null>(null), retryTimer=useRef<number>(0);
   const refresh=useCallback(()=>{
     if(pending.current)return;
     clearTimeout(retryTimer.current);
-    setError('');
+    setError('');setWaiting(false);
     pending.current=visit().then(s=>{storeSession(s);setSession(s);}).catch(e=>{
       const wait=e instanceof ReaderError&&e.status===429?e.wait:12;
-      setError(e instanceof ReaderError?e.message:'열람 연결을 시작하지 못했습니다.');
+      const limited=e instanceof ReaderError&&e.status===429;
+      setWaiting(limited);setError(limited?automaticRetryMessage(e):e instanceof ReaderError?e.message:'열람 연결을 시작하지 못했습니다.');
       retryTimer.current=window.setTimeout(refresh,wait*1000);
     }).finally(()=>{pending.current=null;});
   },[]);
@@ -264,6 +284,6 @@ function App(){
     return()=>{window.clearTimeout(timer);window.removeEventListener('paper:expired',refresh);};
   },[session,refresh]);
   useEffect(()=>()=>clearTimeout(retryTimer.current),[]);
-  return session?<ReadingSession session={session}/>:<Loading error={error} retry={refresh}/>;
+  return session?<ReadingSession session={session}/>:<Loading error={error} waiting={waiting} retry={refresh}/>;
 }
 if(location.protocol!=='http:'||location.hostname!=='paper.lawinus.org')createRoot(document.getElementById('root')!).render(<App/>);

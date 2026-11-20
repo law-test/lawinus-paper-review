@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
-import {privateResource,type Session} from './reader-api';
+import {privateResource,ReaderError,automaticRetryMessage,type Session} from './reader-api';
 import {alternateFolios,citationGroups,citedEdition,labelKey,lookupLabels,pageDescription,pageLabels,printedLabels,printedSpreads,type AlternateFolio,type CitationGroup} from './printed-pages';
 import './reference-pages.css';
 import type {CaseOriginal,CasePart} from './footnote-cases';
@@ -42,10 +42,10 @@ function readManifest(value:unknown):ReferenceManifest{
 }
 
 export function useReferenceManifest(session:Session,sourceId:string){
-  const [state,setState]=useState<{sourceId:string;session:Session;data?:ReferenceManifest;error?:string}>();
+  const [state,setState]=useState<{sourceId:string;session:Session;data?:ReferenceManifest;error?:string;waiting?:boolean}>();
   const [attempt,setAttempt]=useState(0);
   useEffect(()=>{
-    const controller=new AbortController();
+    const controller=new AbortController();let retryTimer=0;
     let cache=manifests.get(session);
     if(!cache){cache=new Map();manifests.set(session,cache);}
     const saved=cache.get(sourceId);
@@ -57,12 +57,18 @@ export function useReferenceManifest(session:Session,sourceId:string){
         cache!.set(sourceId,data);
         if(cache!.size>24)cache!.delete(cache!.keys().next().value!);
         setState({sourceId,session,data});
-      }).catch(error=>{if(!controller.signal.aborted)setState({sourceId,session,error:error instanceof Error?error.message:'원전 쪽 정보를 불러오지 못했습니다.'});});
-    return()=>controller.abort();
+      }).catch(error=>{
+        if(controller.signal.aborted)return;
+        if(error instanceof ReaderError&&error.status===429){
+          setState({sourceId,session,error:automaticRetryMessage(error),waiting:true});
+          retryTimer=window.setTimeout(()=>setAttempt(n=>n+1),error.wait*1000);
+        }else setState({sourceId,session,error:error instanceof Error?error.message:'원전 쪽 정보를 불러오지 못했습니다.'});
+      });
+    return()=>{clearTimeout(retryTimer);controller.abort();};
   },[session,sourceId,attempt]);
   const current=state?.sourceId===sourceId&&state.session===session?state:undefined;
   const retry=useCallback(()=>setAttempt(n=>n+1),[]);
-  return {data:current?.data,loading:!current?.data&&!current?.error,error:current?.error,retry};
+  return {data:current?.data,loading:!current?.data&&!current?.error,error:current?.error,waiting:current?.waiting,retry};
 }
 
 const pageReady=()=>{};
@@ -253,8 +259,8 @@ function ReferenceDocument({manifest,initialPage,explicitPage,caseOriginal,caseP
 
 export default function ReferencePages(props:ReferencePagesProps){
   const edition=citedEdition(props.sourceId,props.noteNumber);
-  const {data,error,retry}=useReferenceManifest(props.session,edition);
-  if(error)return <p className="reference-page-message" role="status">{error} <button type="button" onClick={retry}>다시 시도</button></p>;
+  const {data,error,waiting,retry}=useReferenceManifest(props.session,edition);
+  if(error)return <p className="reference-page-message" role="status">{error} {!waiting&&<button type="button" onClick={retry}>다시 시도</button>}</p>;
   if(!data)return <p className="reference-page-message" role="status">원전 쪽 정보를 불러오는 중…</p>;
   // A reflowed author copy has different page breaks and highlight coordinates
   // from the published edition. Only the latter's citation map can position it.

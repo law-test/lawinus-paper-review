@@ -1,5 +1,5 @@
 import React,{useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
-import type {Session} from './reader-api';
+import {ReaderError,automaticRetryMessage,type Session} from './reader-api';
 import {pageCache} from './visible-page-cache';
 import {officialURL,type PageTarget} from './page-text';
 import {caseDestination} from './citation-links';
@@ -43,6 +43,7 @@ export default function CasePane({session,target,number:catalogNumber,onClose,na
 }){
   const number=catalogNumber||target?.caseNumber||(target?.label||target?.title||'').match(/\d{2,4}[가-힣]{1,5}\d{1,8}/)?.[0]||'';
   const [loaded,setRecord]=useState<CaseRecord|null>(null),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
+  const [waiting,setWaiting]=useState(false);
   const [jump,setJump]=useState<{number:string;key:number;part:CasePart;sequence:number}>();
   const requested=jump?.number===number&&jump.key===focusKey?jump:undefined;
   const part=requested?.part??'order';
@@ -50,17 +51,23 @@ export default function CasePane({session,target,number:catalogNumber,onClose,na
   const original=caseOriginal(number);
   const record=localCases.get(number)??(loaded?.caseNumber===number?loaded:null);
   useEffect(()=>{
-    setError('');
+    setError('');setWaiting(false);
     if(pane.current)pane.current.scrollTop=0;
     if(!number){setError('사건번호를 확인할 수 없습니다.');return;}
     if(localCases.has(number))return;
-    let current=true;
+    let current=true,retryTimer=0;
     const item=readCase(session,new URLSearchParams({metadata:'case',case:number}).toString());
     item.promise.then(data=>{
       if(data.caseNumber!==number)throw Error('판례 정보의 사건번호가 일치하지 않습니다.');
       if(current)setRecord(data);
-    }).catch(e=>{if(current)setError(e instanceof Error?e.message:'판례를 불러오지 못했습니다.');});
-    return ()=>{current=false;item.release();};
+    }).catch(e=>{
+      if(!current)return;
+      if(e instanceof ReaderError&&e.status===429){
+        setError(automaticRetryMessage(e));setWaiting(true);
+        retryTimer=window.setTimeout(()=>setAttempt(n=>n+1),e.wait*1000);
+      }else setError(e instanceof Error?e.message:'판례를 불러오지 못했습니다.');
+    });
+    return ()=>{current=false;clearTimeout(retryTimer);item.release();};
   },[session,number,attempt]);
   const blocks=useMemo(()=>judgmentBlocks(record?.content||[]),[record]);
   useLayoutEffect(()=>{
@@ -88,7 +95,7 @@ export default function CasePane({session,target,number:catalogNumber,onClose,na
       {record?.sourceLabel&&<p className="case-source">{record.sourceLabel}{record.scope&&' · '+record.scope}</p>}
       {(record?.notice||original?.note)&&<p className="case-source">{record?.notice||original?.note}</p>}
       {url&&<a className="case-official-link" href={url} target="_blank" rel="noopener noreferrer">{urlLabel} ↗</a>}
-      {error?<p className="case-status" role="status">{error} <button type="button" onClick={()=>setAttempt(n=>n+1)}>다시 불러오기</button></p>:
+      {error?<p className="case-status" role="status">{error} {!waiting&&<button type="button" onClick={()=>setAttempt(n=>n+1)}>다시 불러오기</button>}</p>:
         !record?<p className="case-status" role="status">판결문을 불러오는 중…</p>:
         !record.available?<p className="case-status" role="status">{record.message||'이 판례의 공개 원문은 현재 연결되어 있지 않습니다.'}</p>:
         record.format==='pages'&&record.sourceId?renderReference?.(record.sourceId,original,part,focusKey+'/'+(requested?.sequence??0)):

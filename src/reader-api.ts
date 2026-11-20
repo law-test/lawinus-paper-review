@@ -25,7 +25,19 @@ export class ReaderError extends Error{
     super(status===429?'열람 요청이 많습니다. 잠시 후 다시 시도해 주세요.':'열람 자료를 불러오지 못했습니다.');
   }
 }
+export function automaticRetryMessage(error:ReaderError){
+  return '열람 요청이 잠시 제한됐습니다. '+error.wait+'초 후 자동으로 다시 연결합니다.';
+}
+const nextRequestAt={page:0,visit:0};
+function waitSeconds(header:string|null){
+  if(!header)return 60;
+  const seconds=/^\d+$/.test(header)?Number(header):(Date.parse(header)-Date.now())/1000;
+  return Number.isFinite(seconds)&&seconds>0?Math.ceil(seconds):60;
+}
 async function checked(name:string,options:RequestInit,reviewer=false){
+  const group=reviewer?'page':'visit';
+  const remaining=Math.ceil((nextRequestAt[group]-Date.now())/1000);
+  if(remaining>0)throw new ReaderError(429,remaining);
   const controller=new AbortController();let timedOut=false;
   const abort=()=>controller.abort();
   if(options.signal?.aborted)controller.abort();else options.signal?.addEventListener('abort',abort,{once:true});
@@ -34,7 +46,12 @@ async function checked(name:string,options:RequestInit,reviewer=false){
   const response=await fetch(base+name,{...options,signal:controller.signal,credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer'});
   if(!response.ok){
     if(reviewer&&(response.status===401||response.status===403))window.dispatchEvent(new Event('paper:expired'));
-    throw new ReaderError(response.status,Math.min(120,Number(response.headers.get('Retry-After'))||12));
+    if(response.status===429){
+      const seconds=waitSeconds(response.headers.get('Retry-After'));
+      nextRequestAt[group]=Math.max(nextRequestAt[group],Date.now()+seconds*1000);
+      throw new ReaderError(429,Math.ceil((nextRequestAt[group]-Date.now())/1000));
+    }
+    throw new ReaderError(response.status,12);
   }
   // Keep the deadline through body download as mobile connections can stall
   // after headers. The reader already consumes each response in full.
