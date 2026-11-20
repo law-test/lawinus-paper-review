@@ -97,6 +97,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const previews=citation?.previewPages?.length?citation.previewPages:citation?.image&&citation.page?[citation.page]:[];
   const previewPage=preview??previews[0]??(source?.pageCount?1:undefined);
   const listedCase=!previewPage?catalogCase(sourceId):undefined;
+  const focusListedCase=Boolean(listedCase&&(!chosen?.showNote||selectedNote?.sources.length===1));
   const sourceScroll=useRef<HTMLElement>(null);
   const noteDetail=useRef<HTMLDetailsElement>(null);
   const focusEvidence=useCallback(()=>{
@@ -109,14 +110,14 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     pane.scrollTop=Math.max(0,goal);
   },[chosen?.showNote,previewPage]);
   useLayoutEffect(()=>{
-    if(previewPage)return;
+    if(previewPage||focusListedCase)return;
     const pane=sourceScroll.current;if(!pane)return;
     pane.scrollTop=0;
     const img=pane.querySelector<HTMLImageElement>('.source-image img');
     if(!img||img.complete&&img.naturalWidth>0)focusEvidence();
-  },[sourceId,selectedNote?.number,previewPage,focusEvidence]);
+  },[sourceId,selectedNote?.number,previewPage,focusEvidence,focusListedCase]);
   useLayoutEffect(()=>{
-    if(!chosen?.showNote||!noteDetail.current||!sourceScroll.current||list)return;
+    if(focusListedCase||!chosen?.showNote||!noteDetail.current||!sourceScroll.current||list)return;
     noteDetail.current.open=true;
     if(previewPage)return;
     sourceScroll.current.scrollTop=0;
@@ -126,7 +127,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
       if(note.bottom>bounds.bottom)pane.scrollTop=Math.max(0,note.top-bounds.top-4);
       if(bounds.bottom<0||bounds.top>=window.innerHeight)pane.scrollIntoView({block:'center'});
     }
-  },[chosen,list,previewPage]);
+  },[chosen,list,previewPage,focusListedCase]);
   const readingPage=useRef(initial);
   const change=useCallback((p:number)=>{if(readingPage.current===p)return;readingPage.current=p;setPage(p);setPageInput(String(p));setPreview(undefined);setOwn(previous=>previous?.page===p?previous:null);},[]);
   useEffect(()=>{window.dispatchEvent(new CustomEvent('paper:page',{detail:{page}}));},[page]);
@@ -137,7 +138,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
       window.dispatchEvent(new CustomEvent('paper:section',{detail:{fromPage,page:t.targetPage,y:t.targetY,title:t.title}}));
       return;
     }
-    if(t.kind==='case'){setLegal(null);setCaseTarget(t);setList(false);return;}
+    if(t.kind==='case'){setReferenceFocus(v=>v+1);setLegal(null);setCaseTarget(t);setList(false);return;}
     if(t.kind==='law'){setCaseTarget(null);setLegal(t);setList(false);return;}
     setLegal(null);setCaseTarget(null);
     const n=notes.find(item=>item.number===t.number);
@@ -149,6 +150,11 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     setList(false);setOwn({page:dest,number:n.number,id:linked,showNote:true});setPreview(t.sourceId===linked?t.sourcePage:undefined);
   }
   const chooseSource=(id:string)=>{const n=pageNotes.find(n=>n.sources.some(c=>c.id===id))||notes.find(n=>n.sources.some(c=>c.id===id));setReferenceFocus(v=>v+1);setLegal(null);setCaseTarget(null);setList(false);setOwn({page,number:n?.number,id});setPreview(undefined);};
+  const renderCasePages=(id:string)=>(
+    <ReferencePages key={id} session={session} sourceId={id} initialPage={1} focusCitation={true}
+      renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'판결문 PDF '+p+'쪽'}
+        query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>
+  );
   return <div className="examiner-app"><div id="reading-menus" className="reading-menus"><div className="reading-menus-content"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);}} aria-expanded={list}>참고문헌</button></nav></header>
     <section className="page-controls"><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button><form onSubmit={e=>{e.preventDefault();const n=Number(pageInput);if(Number.isInteger(n)&&n>0)jump(n);}}><input aria-label="논문 쪽" value={pageInput} onChange={e=>setPageInput(e.target.value)} inputMode="numeric"/> / {catalog.pageCount}쪽 <button>이동</button></form><button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button></section>
     </div></div>
@@ -156,12 +162,12 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
       <DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}/>
       <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={entry?entry.note.number+'/'+entry.citation.id:''} onChange={e=>{const opt=options.find(o=>o.note.number+'/'+o.citation.id===e.target.value);if(opt){setLegal(null);setCaseTarget(null);setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);}}}><option value="" disabled>이 쪽의 인용자료</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
         <button onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
-      {legal?<LawPane session={session} target={legal} onClose={()=>setLegal(null)}/>:caseTarget?<CasePane session={session} target={caseTarget} onClose={()=>setCaseTarget(null)} renderReference={id=><ReferencePages key={id} session={session} sourceId={id} initialPage={1} focusCitation={true} renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'판결문 PDF '+p+'쪽'} query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>}/>:list?<section className="source-library"><h2>자료 목록</h2><label>자료 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label>{catalog.sources.filter(s=>s.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(s=><button key={s.id} onClick={()=>chooseSource(s.id)}>{s.title}</button>)}</section>:
+      {legal?<LawPane session={session} target={legal} onClose={()=>setLegal(null)}/>:caseTarget?<CasePane session={session} target={caseTarget} onClose={()=>setCaseTarget(null)} focusKey={referenceFocus} renderReference={renderCasePages}/>:list?<section className="source-library"><h2>자료 목록</h2><label>자료 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label>{catalog.sources.filter(s=>s.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(s=><button key={s.id} onClick={()=>chooseSource(s.id)}>{s.title}</button>)}</section>:
       <section className={'source-dialog'+(chosen?.showNote?' showing-note':'')} ref={sourceScroll}><h2>{source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
         {selectedNote&&<details ref={noteDetail} key={selectedNote.number} open={chosen?.showNote||(!previewPage&&!citation?.excerpt)}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,page)}/></p></details>}
         {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
-        {listedCase&&<CasePane session={session} number={listedCase}/>}
+        {listedCase&&<CasePane session={session} number={listedCase} focusKey={referenceFocus} focusJudgment={focusListedCase} renderReference={renderCasePages}/>}
         {previewPage&&sourceId&&<ReferencePages key={sourceId} session={session} sourceId={sourceId} initialPage={previewPage} explicitPage={preview} noteNumber={selectedNote?.number} citationPages={previews} highlightPage={citation?.page} highlights={citation?.highlights} focusCitation={true} focusKey={selectedNote?.number+'/'+previewPage+'/'+referenceFocus} renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'참고문헌 PDF '+p+'쪽'} query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>}
         {!source&&!selectedNote&&<p>이 쪽에 연결된 인용자료가 없습니다.</p>}
         {source&&!listedCase&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
