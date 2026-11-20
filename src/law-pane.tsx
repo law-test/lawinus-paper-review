@@ -2,17 +2,19 @@ import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {privateResource,type Session} from './reader-api';
 import {officialURL,type PageTarget} from './page-text';
 import {getPageImage} from './visible-page-cache';
-import {LAW_VERSIONS} from './law-index';
+import {isPublicLawEdition,readerLawEditions as LAW_VERSIONS} from './verified-law-targets';
 import './law-pane.css';
 
 type LawBlock={type:'article'|'heading'|'supplement';id?:string;title?:string;text?:string;paragraphs?:string[]};
 export type LawRecord={key:string;name:string;status:'current'|'historical'|'foreign';jurisdiction?:string;available:boolean;format:'articles';effectiveDate?:string;versionLabel?:string;retrievedAt?:string;currentKey?:string;officialUrl?:string;sourceLabel?:string;scope?:string;articles:LawBlock[];supplements?:LawBlock[]};
 export function citedArticle(target:PageTarget){
+  if(target.articleId)return target.articleId;
   const pattern=/제\s*(\d+)\s*조(?:\s*의\s*(\d+))?/;
   const match=target.label?.match(pattern)??target.title?.match(pattern);
   return match?String(Number(match[1]))+(match[2]?'-'+Number(match[2]):''):'';
 }
 export function linkedLawKey(target:PageTarget){
+  if(target.lawKey&&LAW_VERSIONS.some(v=>v.key===target.lawKey))return target.lawKey;
   if(target.status==='proposal'||target.status==='unresolved'||target.status==='bill-proposal')return '';
   if(target.status==='foreign'){
     try{const u=new URL(target.url||''),name=(target.title||'').replace(/\s+제\d+조.*$/,'');
@@ -24,6 +26,10 @@ export function linkedLawKey(target:PageTarget){
   try{const url=new URL(target.url||'');if(!/(^|\.)law\.go\.kr$/.test(url.hostname))return '';const mst=url.searchParams.get('lsiSeq');return mst&&LAW_VERSIONS.some(v=>v.key==='kr-'+mst)?'kr-'+mst:'';}catch{return '';}
 }
 function date(s?:string){return s?.match(/^\d{8}$/)?s.slice(0,4)+'. '+Number(s.slice(4,6))+'. '+Number(s.slice(6))+'.':s;}
+function supplementArticle(block:LawBlock,text:string){
+  const number=text.match(/^제\s*(\d+)\s*조(?:\s*의\s*(\d+))?/);
+  return number?block.id+'-'+number[1]+(number[2]?'-'+number[2]:''):undefined;
+}
 function jump(host:HTMLElement|null,id:string){const node=host?.querySelector<HTMLElement>('[data-law-id="'+id+'"]');if(host&&node){const top=node.getBoundingClientRect().top-host.getBoundingClientRect().top+host.scrollTop;host.scrollTop=Math.max(0,top-72);return true;}return false;}
 function ProposalPages({session,page,bill=false}:{session:Session;page:number;bill?:boolean}){
   const [pictures,setPictures]=useState<{page:number;url:string}[]>([]),[error,setError]=useState(''),[retry,setRetry]=useState(0);const container=useRef<HTMLDivElement>(null);
@@ -37,22 +43,25 @@ function ProposalPages({session,page,bill=false}:{session:Session;page:number;bi
 export default function LawPane({session,target,onClose}:{session:Session;target:PageTarget;onClose:()=>void}){
   const [selectedKey,setSelectedKey]=useState(()=>linkedLawKey(target)),[record,setRecord]=useState<LawRecord|null>(null),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[jumpInput,setJumpInput]=useState(''),[notice,setNotice]=useState('');
   const host=useRef<HTMLElement>(null),article=citedArticle(target),bill=target.status==='bill-proposal',proposal=target.status==='proposal'||bill;
-  useEffect(()=>{const key=linkedLawKey(target);setSelectedKey(key);setJumpInput(article.replace('-','조의'));if(!key&&target.status!=='proposal'&&target.status!=='bill-proposal'&&host.current)host.current.scrollTop=0;},[target,article]);
+  useEffect(()=>{const key=linkedLawKey(target);setSelectedKey(key);setJumpInput(article.startsWith('supplement-')?(target.label||''):article.replace('-','조의'));if(!key&&target.status!=='proposal'&&target.status!=='bill-proposal'&&host.current)host.current.scrollTop=0;},[target,article]);
   useEffect(()=>{
     const c=new AbortController();setRecord(null);setError('');setNotice('');if(host.current)host.current.scrollTop=0;
     if(!selectedKey||proposal)return()=>c.abort();
-    privateResource(session,new URLSearchParams({metadata:'law',law:selectedKey}),c.signal).then(r=>r.json()).then((data:LawRecord)=>{
+    const resource=isPublicLawEdition(selectedKey)
+      ?fetch(new URL('law-editions/'+selectedKey+'.json',document.baseURI),{signal:c.signal,credentials:'same-origin'})
+      :privateResource(session,new URLSearchParams({metadata:'law',law:selectedKey}),c.signal);
+    resource.then(r=>{if(!r.ok)throw Error('법령 원문을 불러오지 못했습니다.');return r.json();}).then((data:LawRecord)=>{
       if(c.signal.aborted)return;if(data.key!==selectedKey||data.format!=='articles'||!Array.isArray(data.articles))throw Error('법령 원문을 확인하지 못했습니다.');setRecord(data);
     }).catch(e=>{if(!c.signal.aborted)setError(e instanceof Error?e.message:'법령 원문을 불러오지 못했습니다.');});return()=>c.abort();
   },[session,selectedKey,attempt,proposal]);
-  useLayoutEffect(()=>{if(!record||record.key!==selectedKey)return;setNotice('');if(article&&!jump(host.current,article))setNotice('이 판본에서 '+(target.label||'인용 조문')+'을 찾지 못했습니다. 법령명·판본·본문과 부칙의 구분을 확인해 주세요.');},[record,selectedKey,article,target]);
+  useLayoutEffect(()=>{if(!record||record.key!==selectedKey)return;setNotice('');if(article.startsWith('supplement-')&&selectedKey!==linkedLawKey(target))return;if(article&&!jump(host.current,article))setNotice('이 판본에서 '+(target.label||'인용 조문')+'을 찾지 못했습니다. 법령명·판본·본문과 부칙의 구분을 확인해 주세요.');},[record,selectedKey,article,target]);
   const targetUrl=officialURL(target.url);
   const deepLink=targetUrl?new URL(targetUrl):null;
   const citedEdition=selectedKey&&selectedKey===linkedLawKey(target);
   const edition=LAW_VERSIONS.find(v=>v.key===selectedKey);
-  const exactArticle=citedEdition&&deepLink?.hostname==='www.law.go.kr'&&deepLink.pathname==='/LSW/lsInfoR.do'&&/^#Y\d{6}$/.test(deepLink.hash);
+  const exactArticle=citedEdition&&!!target.articleId&&!!deepLink;
   const url=exactArticle?targetUrl:officialURL(edition?.officialUrl)||targetUrl;
-  const choices=LAW_VERSIONS.filter(v=>v.status==='current'||v.status==='foreign'||v.key==='kr-59258');
+  const choices=LAW_VERSIONS.filter(v=>v.status==='current'||v.status==='foreign'||v.key==='kr-59258'||v.key===linkedLawKey(target));
   const unidentified=!selectedKey&&!proposal;
   return <section className="source-dialog law-pane" ref={host} aria-label={bill?'국회 발의안 설명':proposal?'논문 입법시안 원문':'법령 전문'}>
     <div className="law-pane-actions"><strong>{bill?'국회 발의안 설명':proposal?'논문 입법시안':'법령 전문'}</strong><button type="button" onClick={onClose}>인용자료로 돌아가기</button></div>
@@ -64,7 +73,7 @@ export default function LawPane({session,target,onClose}:{session:Session;target
       {url&&<a className="law-official" href={url} target="_blank" rel="noopener noreferrer">공식 원문에서도 보기 ↗</a>}
       {record&&<form className="law-jump" onSubmit={e=>{e.preventDefault();const m=jumpInput.match(/(?:제\s*)?(\d+)(?:\s*조)?(?:\s*(?:의|-)\s*(\d+))?/);const id=m?String(Number(m[1]))+(m[2]?'-'+Number(m[2]):''):'';setNotice(id&&jump(host.current,id)?'':'입력한 조문을 이 판본에서 찾지 못했습니다.');}}><label>조문 이동<input aria-label="이동할 조문 번호" value={jumpInput} onChange={e=>setJumpInput(e.target.value)} placeholder="150 또는 3조의2"/></label><button type="submit">이동</button><button type="button" onClick={()=>setNotice(jump(host.current,article)?'':'이 판본에서 인용 조문을 찾지 못했습니다.')}>인용 조문으로 돌아가기</button></form>}
       {notice&&<p className="law-scope" role="status">{notice}</p>}{error?<p className="law-status" role="status">{error} <button onClick={()=>setAttempt(n=>n+1)}>다시 불러오기</button></p>:selectedKey&&!record?<p role="status">법령 전문을 불러오는 중…</p>:null}
-      {record&&<div className="law-original">{record.articles.map((b,i)=>b.type==='heading'?<h3 className="law-division" key={'heading-'+i}>{b.text}</h3>:<article key={b.id||i} data-law-id={b.id} className={b.id===article?'law-article cited':'law-article'}><h3>{b.title}</h3>{b.paragraphs?.map((p,j)=><p key={j}>{p}</p>)}</article>)}{!!record.supplements?.length&&<h3 className="law-division">부칙</h3>}{record.supplements?.map((b,i)=><article className="law-supplement" key={b.id||i} data-law-id={b.id}><h3>{b.title}</h3>{b.paragraphs?.map((p,j)=><p key={j}>{p}</p>)}</article>)}</div>}
+      {record&&<div className="law-original">{record.articles.map((b,i)=>b.type==='heading'?<h3 className="law-division" key={'heading-'+i}>{b.text}</h3>:<article key={b.id||i} data-law-id={b.id} className={b.id===article?'law-article cited':'law-article'}><h3>{b.title}</h3>{b.paragraphs?.map((p,j)=><p key={j}>{p}</p>)}</article>)}{!!record.supplements?.length&&<h3 className="law-division">부칙</h3>}{record.supplements?.map((b,i)=><article className="law-supplement" key={b.id||i} data-law-id={b.id}><h3>{b.title}</h3>{b.paragraphs?.map((p,j)=><p key={j} data-law-id={supplementArticle(b,p)} className={supplementArticle(b,p)===article?'cited':undefined}>{p}</p>)}</article>)}</div>}
     </>}
   </section>;
 }

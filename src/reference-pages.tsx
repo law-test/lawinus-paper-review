@@ -10,6 +10,7 @@ export type ReferencePagesProps={
   session:Session;
   sourceId:string;
   initialPage:number;
+  explicitPage?:number;
   citationPages?:number[];
   noteNumber?:number;
   highlightPage?:number;
@@ -66,7 +67,7 @@ function closestPage(pages:ReferencePage[],requested:number){
   return pages.reduce((best,item)=>Math.abs(item.page-requested)<Math.abs(best.page-requested)?item:best,pages[0]);
 }
 
-function ReferenceDocument({manifest,initialPage,citationPages=[],noteNumber,highlightPage=initialPage,highlights=[],focusCitation,focusKey,renderPage}:Omit<ReferencePagesProps,'session'|'sourceId'>&{manifest:ReferenceManifest}){
+function ReferenceDocument({manifest,initialPage,explicitPage,citationPages=[],noteNumber,highlightPage=initialPage,highlights=[],focusCitation,focusKey,renderPage}:Omit<ReferencePagesProps,'session'|'sourceId'>&{manifest:ReferenceManifest}){
   const pages=manifest.pages,host=useRef<HTMLDivElement>(null),controls=useRef<HTMLElement>(null);
   const scrollRoot=useRef<HTMLElement|null>(null),items=useRef<HTMLElement[]>([]);
   const [active,setActive]=useState<number[]>([]);
@@ -98,8 +99,8 @@ function ReferenceDocument({manifest,initialPage,citationPages=[],noteNumber,hig
   const hasRomanOrOther=useMemo(()=>[...byLabel.keys()].some(key=>!/^[0-9]+$/.test(key)),[byLabel]);
   const alternate=useMemo(()=>pages.find(page=>page.alternate)?.alternate,[pages]);
   const groups=useMemo(()=>citationGroups(manifest.sourceId,noteNumber,pages),[manifest.sourceId,noteNumber,pages]);
-  const landing=groups[0]?.start??initialPage;
-  const landingLabel=groups[0]?.printedStart;
+  const landing=explicitPage??groups[0]?.start??initialPage;
+  const landingLabel=landing===groups[0]?.start?groups[0]?.printedStart:undefined;
   const showGroups=groups.length>1||groups.some(group=>group.start!==initialPage||group.start!==group.end||group.printedStart!==group.printedEnd);
   const insideGroup=(group:CitationGroup)=>{
     if(current<group.start||current>group.end)return false;
@@ -244,6 +245,6 @@ export default function ReferencePages(props:ReferencePagesProps){
   if(!data)return <p className="reference-page-message" role="status">원전 쪽 정보를 불러오는 중…</p>;
   // A reflowed author copy has different page breaks and highlight coordinates
   // from the published edition. Only the latter's citation map can position it.
-  const selection=edition===props.sourceId?props:{...props,initialPage:data.pages[0].page,citationPages:[],highlights:[],highlightPage:undefined};
+  const selection=edition===props.sourceId?props:{...props,initialPage:data.pages[0].page,explicitPage:undefined,citationPages:[],highlights:[],highlightPage:undefined};
   return <ReferenceDocument key={data.sourceId} {...selection} manifest={data}/>;
 }

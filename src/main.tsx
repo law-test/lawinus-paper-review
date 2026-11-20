@@ -2,11 +2,12 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {createRoot} from 'react-dom/client';
 import KuBrand from './ku-brand';
 import {Catalog,Citation,Note,Session,ReaderError,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
-import {PageLayer,NoteText,inlineLinks,usePageMetadata,copyManuscriptSelection,printedFootnotes,type PageTarget} from './page-text';
+import {PageLayer,NoteText,useNoteLinks,copyManuscriptSelection,printedFootnotes,type PageTarget} from './page-text';
 import ContentsSearch from './contents-search';
 import {getPageImage} from './visible-page-cache';
 import ReferencePages from './reference-pages';
 import {extraCitationSources} from './printed-pages';
+import {catalogCase} from './citation-links';
 import CasePane from './case-pane';
 import LawPane from './law-pane';
 import './reader.css';
@@ -87,12 +88,12 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const entry=chosen?options.find(item=>item.note.number===chosen.number&&item.citation.id===chosen.id):options[0];
   const sourceId=chosen?.id||entry?.citation.id;
   const selectedNote=entry?.note||notes.find(n=>chosen?.number===n.number);
-  const noteMetadata=usePageMetadata(session,'metadata=page&page='+(selectedNote?.page||page),Boolean(selectedNote));
-  const noteLinks=useMemo(()=>selectedNote?inlineLinks(selectedNote.text,selectedNote.number,noteMetadata.data?.targets||[]):[],[selectedNote,noteMetadata.data]);
+  const noteLinks=useNoteLinks(selectedNote);
   const citation:Citation|undefined=entry?.citation||selectedNote?.sources.find(s=>s.id===sourceId);
   const source=sourceId?sources.get(sourceId):null;
   const previews=citation?.previewPages?.length?citation.previewPages:citation?.image&&citation.page?[citation.page]:[];
-  const previewPage=preview&&previews.includes(preview)?preview:previews[0]||(source?.pageCount?1:undefined);
+  const previewPage=preview??previews[0]??(source?.pageCount?1:undefined);
+  const listedCase=!previewPage?catalogCase(sourceId):undefined;
   const sourceScroll=useRef<HTMLElement>(null);
   const noteDetail=useRef<HTMLDetailsElement>(null);
   const focusEvidence=useCallback(()=>{
@@ -137,8 +138,8 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     setReferenceFocus(v=>v+1);
     const dest=t.kind==='cross'?(t.targetPage||n.page):fromPage;
     if(t.kind==='cross')jump(dest);else if(page!==dest)change(dest);
-    const linked=t.sourceId&&n.sources.some(c=>c.id===t.sourceId)?t.sourceId:n.sources[0]?.id;
-    setList(false);setOwn({page:dest,number:n.number,id:linked,showNote:true});setPreview(undefined);
+    const linked=t.sourceId&&sources.has(t.sourceId)?t.sourceId:n.sources[0]?.id;
+    setList(false);setOwn({page:dest,number:n.number,id:linked,showNote:true});setPreview(t.sourceId===linked?t.sourcePage:undefined);
   }
   const chooseSource=(id:string)=>{const n=pageNotes.find(n=>n.sources.some(c=>c.id===id))||notes.find(n=>n.sources.some(c=>c.id===id));setReferenceFocus(v=>v+1);setLegal(null);setCaseTarget(null);setList(false);setOwn({page,number:n?.number,id});setPreview(undefined);};
   return <div className="examiner-app"><div id="reading-menus" className="reading-menus"><div className="reading-menus-content"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);}} aria-expanded={list}>참고문헌</button></nav></header>
@@ -153,9 +154,10 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
         {selectedNote&&<details ref={noteDetail} key={selectedNote.number} open={chosen?.showNote||(!previewPage&&!citation?.excerpt)}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,page)}/></p></details>}
         {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
-        {previewPage&&sourceId&&<ReferencePages key={sourceId} session={session} sourceId={sourceId} initialPage={previewPage} noteNumber={selectedNote?.number} citationPages={previews} highlightPage={citation?.page} highlights={citation?.highlights} focusCitation={true} focusKey={selectedNote?.number+'/'+previewPage+'/'+referenceFocus} renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'참고문헌 PDF '+p+'쪽'} query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>}
+        {listedCase&&<CasePane session={session} number={listedCase}/>}
+        {previewPage&&sourceId&&<ReferencePages key={sourceId} session={session} sourceId={sourceId} initialPage={previewPage} explicitPage={preview} noteNumber={selectedNote?.number} citationPages={previews} highlightPage={citation?.page} highlights={citation?.highlights} focusCitation={true} focusKey={selectedNote?.number+'/'+previewPage+'/'+referenceFocus} renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'참고문헌 PDF '+p+'쪽'} query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>}
         {!source&&!selectedNote&&<p>이 쪽에 연결된 인용자료가 없습니다.</p>}
-        {source&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
+        {source&&!listedCase&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
       </section>}
       {!legal&&!caseTarget&&!list&&pageNotes.length>0&&<div className="note-list" aria-label="이 쪽의 각주">{pageNotes.map(n=><button key={n.number} onClick={()=>chooseNote(n)} aria-pressed={selectedNote?.number===n.number}>각주 {n.number}</button>)}</div>}
     </aside></div></div>;

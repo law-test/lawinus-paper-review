@@ -1,0 +1,3752 @@
+{
+  "extraEditions": [
+    {
+      "key": "kr-97050",
+      "name": "상고심절차에 관한 특례법",
+      "status": "current",
+      "effectiveDate": "20091102",
+      "officialUrl": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=97050&efYd=20091102"
+    },
+    {
+      "key": "kr-58431",
+      "name": "민법",
+      "status": "historical",
+      "effectiveDate": "19600101",
+      "currentKey": "kr-284415",
+      "officialUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=58431&efYd=19600101&chrClsCd=010202"
+    },
+    {
+      "key": "kr-60306",
+      "name": "주택임대차보호법",
+      "status": "historical",
+      "effectiveDate": "19840101",
+      "currentKey": "kr-276291",
+      "officialUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=60306&efYd=19840101&chrClsCd=010202"
+    },
+    {
+      "key": "kr-249999",
+      "name": "주택임대차보호법",
+      "status": "historical",
+      "effectiveDate": "20230719",
+      "currentKey": "kr-276291",
+      "officialUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=249999&efYd=20230719&chrClsCd=010202"
+    },
+    {
+      "key": "kr-58284",
+      "name": "파산법",
+      "status": "historical",
+      "effectiveDate": "19930101",
+      "currentKey": null,
+      "officialUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=58284&efYd=19930101&chrClsCd=010202"
+    },
+    {
+      "key": "kr-251347",
+      "name": "전세사기피해자 지원 및 주거안정에 관한 특별법",
+      "status": "historical",
+      "effectiveDate": "20230601",
+      "currentKey": "kr-285963",
+      "officialUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=251347&efYd=20230601&chrClsCd=010202"
+    }
+  ],
+  "anchors": {
+    "kr-198564": [
+      "22"
+    ],
+    "kr-249285": [
+      "1"
+    ],
+    "kr-249999": [
+      "3-3"
+    ],
+    "kr-251347": [
+      "3"
+    ],
+    "kr-268837": [
+      "16",
+      "28",
+      "30",
+      "31",
+      "33",
+      "34",
+      "41",
+      "44",
+      "46",
+      "49",
+      "53",
+      "57",
+      "58",
+      "59",
+      "80",
+      "84",
+      "87",
+      "88",
+      "101",
+      "102",
+      "135",
+      "136",
+      "145",
+      "148",
+      "149",
+      "151",
+      "152",
+      "154",
+      "155",
+      "157",
+      "160",
+      "161",
+      "223",
+      "224",
+      "227",
+      "229",
+      "231",
+      "246",
+      "248",
+      "264",
+      "265",
+      "266",
+      "267",
+      "268",
+      "273",
+      "274"
+    ],
+    "kr-272613": [
+      "43"
+    ],
+    "kr-272631": [
+      "23",
+      "48",
+      "50",
+      "53",
+      "82"
+    ],
+    "kr-273629": [
+      "682"
+    ],
+    "kr-276291": [
+      "2",
+      "3",
+      "3-2",
+      "3-3",
+      "3-4",
+      "3-5",
+      "4",
+      "8",
+      "10"
+    ],
+    "kr-276995": [
+      "49"
+    ],
+    "kr-279651": [
+      "5"
+    ],
+    "kr-284415": [
+      "2",
+      "103",
+      "303",
+      "318",
+      "322",
+      "342",
+      "349",
+      "352",
+      "353",
+      "357",
+      "360",
+      "368",
+      "370",
+      "371",
+      "387",
+      "449",
+      "450",
+      "451",
+      "480",
+      "481",
+      "482",
+      "483",
+      "485",
+      "487",
+      "493",
+      "618",
+      "621",
+      "627",
+      "1005",
+      "1022",
+      "1026",
+      "1028"
+    ],
+    "kr-284455": [
+      "12"
+    ],
+    "kr-285279": [
+      "38"
+    ],
+    "kr-285963": [
+      "3",
+      "25-10",
+      "25-13"
+    ],
+    "kr-287183": [
+      "10",
+      "11"
+    ],
+    "kr-287467": [
+      "13"
+    ],
+    "kr-289999": [
+      "35"
+    ],
+    "kr-290113": [
+      "216"
+    ],
+    "kr-290139": [
+      "71"
+    ],
+    "kr-290631": [
+      "58",
+      "61",
+      "118",
+      "119",
+      "124",
+      "141",
+      "144",
+      "145",
+      "179",
+      "251",
+      "252",
+      "256",
+      "317",
+      "335",
+      "340",
+      "348",
+      "359",
+      "384",
+      "391",
+      "395",
+      "396",
+      "399",
+      "411",
+      "412",
+      "413",
+      "415",
+      "416",
+      "417",
+      "418",
+      "421",
+      "422",
+      "423",
+      "424",
+      "473",
+      "479",
+      "492",
+      "496",
+      "497",
+      "557",
+      "566",
+      "567",
+      "580",
+      "581",
+      "582",
+      "583",
+      "586",
+      "589",
+      "600",
+      "603",
+      "604",
+      "610",
+      "611",
+      "613",
+      "614",
+      "615",
+      "619",
+      "621",
+      "624",
+      "625"
+    ],
+    "kr-290639": [
+      "81",
+      "101",
+      "103"
+    ],
+    "kr-290655": [
+      "3",
+      "25-13"
+    ],
+    "kr-290669": [
+      "9",
+      "12",
+      "14"
+    ],
+    "kr-290683": [
+      "76",
+      "98",
+      "100"
+    ],
+    "kr-58284": [
+      "64"
+    ],
+    "kr-58431": [
+      "186",
+      "303"
+    ],
+    "kr-59258": [
+      "39",
+      "84"
+    ],
+    "kr-60306": [
+      "12"
+    ],
+    "kr-97050": [
+      "4",
+      "5"
+    ]
+  },
+  "overrides": {
+    "4/2": {
+      "label": "제600조제3항",
+      "lawKey": "kr-290631"
+    },
+    "4/3": {
+      "label": "제600조제3항",
+      "lawKey": "kr-290631"
+    },
+    "21/0": {
+      "label": "제589조",
+      "kind": "note",
+      "number": 22,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 207
+    },
+    "21/1": {
+      "label": "제600조",
+      "kind": "note",
+      "number": 22,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 376
+    },
+    "21/2": {
+      "label": "제581조",
+      "kind": "note",
+      "number": 22,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 105
+    },
+    "21/3": {
+      "label": "제589조",
+      "kind": "note",
+      "number": 24,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 207
+    },
+    "21/4": {
+      "label": "제600조",
+      "kind": "note",
+      "number": 24,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 376
+    },
+    "29/5": {
+      "label": "제58조제3항",
+      "lawKey": "kr-268837"
+    },
+    "29/6": {
+      "label": "제59조제3항",
+      "lawKey": "kr-268837"
+    },
+    "29/7": {
+      "label": "제59조제3항",
+      "lawKey": "kr-268837"
+    },
+    "41/2": {
+      "label": "제3조의2제2항",
+      "lawKey": "kr-276291"
+    },
+    "43/0": {
+      "label": "제3조의2제2항",
+      "lawKey": "kr-276291"
+    },
+    "43/1": {
+      "label": "제8조",
+      "lawKey": "kr-276291"
+    },
+    "45/0": {
+      "label": "제8조",
+      "lawKey": "kr-276291"
+    },
+    "45/1": {
+      "label": "제3조의2제2항",
+      "lawKey": "kr-276291"
+    },
+    "48/0": {
+      "label": "제3조의3제5항",
+      "lawKey": "kr-276291"
+    },
+    "63/2": {
+      "label": "제3조의5",
+      "lawKey": "kr-276291"
+    },
+    "67/4": {
+      "label": "제148조",
+      "kind": "note",
+      "number": 106,
+      "sourceId": "src-201",
+      "sourcePage": 7
+    },
+    "84/1": {
+      "label": "제353조제2항",
+      "lawKey": "kr-284415"
+    },
+    "94/2": {
+      "label": "제493조제2항",
+      "lawKey": "kr-284415"
+    },
+    "95/2": {
+      "label": "제352조",
+      "lawKey": "kr-284415"
+    },
+    "95/4": {
+      "label": "제352조",
+      "lawKey": "kr-284415"
+    },
+    "96/6": {
+      "label": "제371조",
+      "kind": "note",
+      "number": 149,
+      "sourceId": "src-197",
+      "sourcePage": 5
+    },
+    "99/0": {
+      "label": "제3조의2제7항",
+      "lawKey": "kr-276291"
+    },
+    "106/1": {
+      "label": "제10조",
+      "lawKey": "kr-287183"
+    },
+    "106/2": {
+      "label": "제11조",
+      "lawKey": "kr-287183"
+    },
+    "111/4": {
+      "label": "제58조제1항제2호",
+      "lawKey": "kr-290631"
+    },
+    "111/5": {
+      "label": "제58조제1항제2호",
+      "lawKey": "kr-290631"
+    },
+    "111/6": {
+      "label": "제256조제1항",
+      "lawKey": "kr-290631"
+    },
+    "111/7": {
+      "label": "제256조제1항",
+      "lawKey": "kr-290631"
+    },
+    "112/4": {
+      "label": "제359조",
+      "lawKey": "kr-290631"
+    },
+    "116/7": {
+      "label": "제3조제1항",
+      "lawKey": "kr-285963"
+    },
+    "116/8": {
+      "label": "제3조제1항",
+      "lawKey": "kr-285963"
+    },
+    "117/0": {
+      "label": "제415조제1항",
+      "lawKey": "kr-290631"
+    },
+    "123/6": {
+      "label": "제416조",
+      "lawKey": "kr-290631"
+    },
+    "124/10": {
+      "label": "제417조",
+      "lawKey": "kr-290631"
+    },
+    "124/11": {
+      "label": "제418조",
+      "lawKey": "kr-290631"
+    },
+    "124/12": {
+      "label": "제421조제1항",
+      "lawKey": "kr-290631"
+    },
+    "125/2": {
+      "label": "제252조제1항",
+      "lawKey": "kr-290631"
+    },
+    "125/3": {
+      "label": "제141조제1항",
+      "lawKey": "kr-290631"
+    },
+    "127/6": {
+      "label": "제141조제1항",
+      "lawKey": "kr-290631"
+    },
+    "128/2": {
+      "label": "제10조",
+      "lawKey": "kr-287183"
+    },
+    "128/3": {
+      "label": "제11조",
+      "lawKey": "kr-287183"
+    },
+    "132/3": {
+      "label": "제252조제1항",
+      "lawKey": "kr-290631"
+    },
+    "132/4": {
+      "label": "제252조",
+      "lawKey": "kr-290631"
+    },
+    "132/5": {
+      "label": "제251조",
+      "lawKey": "kr-290631"
+    },
+    "139/1": {
+      "label": "제251조",
+      "lawKey": "kr-290631"
+    },
+    "139/2": {
+      "label": "제625조제2항제1호",
+      "lawKey": "kr-290631"
+    },
+    "142/0": {
+      "label": "제603조제4항",
+      "lawKey": "kr-290631"
+    },
+    "142/1": {
+      "label": "제600조제1항제2호",
+      "lawKey": "kr-290631"
+    },
+    "142/2": {
+      "label": "제600조제2항",
+      "lawKey": "kr-290631"
+    },
+    "143/6": {
+      "label": "제603조",
+      "lawKey": "kr-290631"
+    },
+    "143/7": {
+      "label": "제604조",
+      "lawKey": "kr-290631"
+    },
+    "143/8": {
+      "label": "제600조제1항제3호",
+      "lawKey": "kr-290631"
+    },
+    "143/9": {
+      "label": "제586조",
+      "kind": "note",
+      "number": 218,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 154
+    },
+    "144/3": {
+      "label": "제604조제1항",
+      "lawKey": "kr-290631"
+    },
+    "145/0": {
+      "label": "제604조",
+      "lawKey": "kr-290631"
+    },
+    "145/1": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "145/2": {
+      "label": "제603조",
+      "lawKey": "kr-290631"
+    },
+    "145/3": {
+      "label": "제604조",
+      "lawKey": "kr-290631"
+    },
+    "145/7": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "146/1": {
+      "label": "제600조제2항",
+      "lawKey": "kr-290631"
+    },
+    "146/2": {
+      "label": "제600조제2항",
+      "lawKey": "kr-290631"
+    },
+    "147/4": {
+      "label": "제580조제2항",
+      "lawKey": "kr-290631"
+    },
+    "147/5": {
+      "label": "제615조제2항",
+      "lawKey": "kr-290631"
+    },
+    "147/7": {
+      "label": "제580조",
+      "kind": "note",
+      "number": 225,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 83
+    },
+    "147/8": {
+      "label": "제615조",
+      "kind": "note",
+      "number": 225,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 624
+    },
+    "148/4": {
+      "label": "제600조",
+      "kind": "note",
+      "number": 226,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 386
+    },
+    "149/2": {
+      "label": "제256조제1항",
+      "lawKey": "kr-290631"
+    },
+    "149/7": {
+      "label": "제615조",
+      "kind": "note",
+      "number": 229,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 630
+    },
+    "150/0": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "150/1": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "150/6": {
+      "label": "제615조",
+      "kind": "note",
+      "number": 230,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 630
+    },
+    "152/1": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "152/6": {
+      "label": "제4조제1항",
+      "lawKey": "kr-97050"
+    },
+    "152/7": {
+      "label": "제5조",
+      "lawKey": "kr-97050"
+    },
+    "155/5": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "157/4": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "158/3": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "160/3": {
+      "label": "제619조제2항",
+      "lawKey": "kr-290631"
+    },
+    "165/3": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "167/1": {
+      "label": "제600조제2항",
+      "lawKey": "kr-290631"
+    },
+    "167/2": {
+      "label": "제586조",
+      "kind": "note",
+      "number": 261,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 154
+    },
+    "168/0": {
+      "label": "제580조제2항",
+      "lawKey": "kr-290631"
+    },
+    "168/1": {
+      "label": "제615조제2항",
+      "lawKey": "kr-290631"
+    },
+    "168/2": {
+      "label": "제615조제2항",
+      "lawKey": "kr-290631"
+    },
+    "168/3": {
+      "label": "제580조제2항",
+      "lawKey": "kr-290631"
+    },
+    "168/4": {
+      "label": "제580조제1항",
+      "lawKey": "kr-290631"
+    },
+    "168/5": {
+      "label": "제611조제2항제3호",
+      "lawKey": "kr-290631"
+    },
+    "168/6": {
+      "label": "제580조",
+      "lawKey": "kr-290631"
+    },
+    "168/7": {
+      "label": "제580조",
+      "kind": "note",
+      "number": 263,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 83
+    },
+    "168/8": {
+      "label": "제615조",
+      "kind": "note",
+      "number": 263,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 625
+    },
+    "168/9": {
+      "label": "제615조제2항",
+      "lawKey": "kr-290631"
+    },
+    "169/0": {
+      "label": "제600조",
+      "lawKey": "kr-290631"
+    },
+    "169/1": {
+      "label": "제580조제1항",
+      "lawKey": "kr-290631"
+    },
+    "169/2": {
+      "label": "제600조제1항",
+      "lawKey": "kr-290631"
+    },
+    "169/3": {
+      "label": "제615조제2항",
+      "lawKey": "kr-290631"
+    },
+    "169/4": {
+      "label": "제615조제2항",
+      "lawKey": "kr-290631"
+    },
+    "169/5": {
+      "label": "제580조제1항",
+      "lawKey": "kr-290631"
+    },
+    "169/6": {
+      "label": "제600조제1항",
+      "lawKey": "kr-290631"
+    },
+    "170/0": {
+      "label": "제600조제1항제2호",
+      "lawKey": "kr-290631"
+    },
+    "170/1": {
+      "label": "제600조제1항제2호",
+      "lawKey": "kr-290631"
+    },
+    "171/0": {
+      "label": "제600조제3항",
+      "lawKey": "kr-290631"
+    },
+    "171/1": {
+      "label": "제615조제3항",
+      "lawKey": "kr-290631"
+    },
+    "172/0": {
+      "label": "제589조",
+      "kind": "note",
+      "number": 269,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 205
+    },
+    "175/1": {
+      "label": "제625조제2항",
+      "lawKey": "kr-290631"
+    },
+    "175/2": {
+      "label": "제415조",
+      "lawKey": "kr-290631"
+    },
+    "176/0": {
+      "label": "제625조제2항제1호",
+      "lawKey": "kr-290631"
+    },
+    "178/0": {
+      "label": "제625조제2항제1호",
+      "lawKey": "kr-290631"
+    },
+    "180/0": {
+      "label": "제621조제2항",
+      "lawKey": "kr-290631"
+    },
+    "182/2": {
+      "label": "제603조제4항",
+      "lawKey": "kr-290631"
+    },
+    "189/0": {
+      "label": "제580조제2항",
+      "lawKey": "kr-290631"
+    },
+    "192/0": {
+      "label": "제619조제2항",
+      "lawKey": "kr-290631"
+    },
+    "192/1": {
+      "label": "제619조제2항",
+      "lawKey": "kr-290631"
+    },
+    "192/2": {
+      "label": "제614조",
+      "lawKey": "kr-290631"
+    },
+    "192/3": {
+      "label": "제611조제6항",
+      "lawKey": "kr-290631"
+    },
+    "201/5": {
+      "label": "제619조",
+      "lawKey": "kr-290631"
+    },
+    "204/4": {
+      "label": "제600조",
+      "lawKey": "kr-290631"
+    },
+    "207/1": {
+      "label": "제603조제3항",
+      "lawKey": "kr-290631"
+    },
+    "208/0": {
+      "label": "제603조",
+      "lawKey": "kr-290631"
+    },
+    "214/0": {
+      "label": "제267조",
+      "lawKey": "kr-268837"
+    },
+    "216/1": {
+      "label": "제141조제1항",
+      "lawKey": "kr-290631"
+    },
+    "221/2": {
+      "label": "제600조제3항",
+      "lawKey": "kr-290631"
+    },
+    "223/4": {
+      "label": "제619조",
+      "lawKey": "kr-290631"
+    },
+    "226/0": {
+      "label": "제625조제2항제1호",
+      "lawKey": "kr-290631"
+    },
+    "226/1": {
+      "label": "제603조제4항",
+      "lawKey": "kr-290631"
+    },
+    "227/0": {
+      "label": "제625조",
+      "lawKey": "kr-290631"
+    },
+    "227/1": {
+      "label": "제625조",
+      "lawKey": "kr-290631"
+    },
+    "229/1": {
+      "label": "제619조",
+      "lawKey": "kr-290631"
+    },
+    "232/0": {
+      "label": "제600조제1항제2호",
+      "lawKey": "kr-290631"
+    },
+    "234/0": {
+      "label": "제615조",
+      "kind": "note",
+      "number": 225,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 620
+    },
+    "234/1": {
+      "label": "제148조",
+      "kind": "note",
+      "number": 106,
+      "sourceId": "src-201",
+      "sourcePage": 1
+    },
+    "235/0": {
+      "label": "제580조",
+      "kind": "note",
+      "number": 225,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 81
+    },
+    "235/1": {
+      "label": "제581조",
+      "kind": "note",
+      "number": 22,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 99
+    },
+    "235/2": {
+      "label": "제586조",
+      "kind": "note",
+      "number": 218,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 144
+    },
+    "235/3": {
+      "label": "제371조",
+      "kind": "note",
+      "number": 149,
+      "sourceId": "src-197",
+      "sourcePage": 1
+    },
+    "235/4": {
+      "label": "제589조",
+      "kind": "note",
+      "number": 22,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 183
+    },
+    "235/5": {
+      "label": "제600조",
+      "kind": "note",
+      "number": 22,
+      "sourceId": "v15-e7d9f54aab88025e",
+      "sourcePage": 367
+    },
+    "251/3": {
+      "label": "제348조",
+      "lawKey": "kr-290631"
+    },
+    "251/4": {
+      "label": "제424조",
+      "lawKey": "kr-290631"
+    },
+    "251/5": {
+      "label": "제557조",
+      "lawKey": "kr-290631"
+    },
+    "252/3": {
+      "label": "제582조",
+      "lawKey": "kr-290631"
+    },
+    "252/4": {
+      "label": "제600조제1항",
+      "lawKey": "kr-290631"
+    },
+    "253/3": {
+      "label": "제600조제3항",
+      "lawKey": "kr-290631"
+    },
+    "48/2": {
+      "label": "제6조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "src-264",
+      "sourcePage": 2
+    },
+    "48/3": {
+      "label": "제7조제1항",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "src-264",
+      "sourcePage": 2
+    },
+    "48/4": {
+      "label": "제9조제2항",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "src-264",
+      "sourcePage": 3
+    },
+    "48/5": {
+      "label": "제10조제1항",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "src-264",
+      "sourcePage": 3
+    },
+    "48/6": {
+      "label": "제11조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "src-264",
+      "sourcePage": 3
+    },
+    "49/1": {
+      "label": "제10조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-b8e6844ac2442f50",
+      "sourcePage": 17
+    },
+    "49/2": {
+      "label": "제15조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-b8e6844ac2442f50",
+      "sourcePage": 18
+    },
+    "49/3": {
+      "label": "제19조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-b8e6844ac2442f50",
+      "sourcePage": 20
+    },
+    "49/4": {
+      "label": "제20조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-b8e6844ac2442f50",
+      "sourcePage": 21
+    },
+    "49/5": {
+      "label": "제7조제2항",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-0ac55a453871bf7b",
+      "sourcePage": 6
+    },
+    "49/6": {
+      "label": "제8조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-0ac55a453871bf7b",
+      "sourcePage": 7
+    },
+    "49/7": {
+      "label": "제9조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-0ac55a453871bf7b",
+      "sourcePage": 7
+    },
+    "49/8": {
+      "label": "제17조",
+      "kind": "note",
+      "number": 83,
+      "sourceId": "v15-0ac55a453871bf7b",
+      "sourcePage": 9
+    },
+    "223/1": {
+      "label": "제2조제1항",
+      "kind": "note",
+      "number": 322,
+      "sourceId": "src-153",
+      "sourcePage": 286
+    },
+    "223/2": {
+      "label": "제2조제1항",
+      "kind": "note",
+      "number": 322,
+      "sourceId": "src-153",
+      "sourcePage": 284
+    },
+    "223/3": {
+      "label": "제2조제4항",
+      "kind": "note",
+      "number": 322,
+      "sourceId": "src-153",
+      "sourcePage": 286
+    },
+    "248/0": {
+      "label": "제2조",
+      "kind": "note",
+      "number": 322,
+      "sourceId": "src-153",
+      "sourcePage": 284
+    },
+    "248/1": {
+      "label": "제2조",
+      "kind": "note",
+      "number": 322,
+      "sourceId": "src-153",
+      "sourcePage": 286
+    },
+    "25/1": {
+      "label": "제186조",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-58431",
+      "id": "186",
+      "title": "민법 제186조",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=58431&efYd=19600101&chrClsCd=010202#Y018600"
+    },
+    "25/2": {
+      "label": "제303조",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-58431",
+      "id": "303",
+      "title": "민법 제303조",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=58431&efYd=19600101&chrClsCd=010202#Y030300"
+    },
+    "25/3": {
+      "label": "제12조",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-60306",
+      "id": "12",
+      "title": "주택임대차보호법 제12조",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=60306&efYd=19840101&chrClsCd=010202#Y001200"
+    },
+    "47/1": {
+      "label": "제3조의3제3항",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-249999",
+      "id": "3-3",
+      "title": "주택임대차보호법 제3조의3제3항",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=249999&efYd=20230719&chrClsCd=010202#Y000303"
+    },
+    "47/2": {
+      "label": "제3조의3제3항",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-249999",
+      "id": "3-3",
+      "title": "주택임대차보호법 제3조의3제3항",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=249999&efYd=20230719&chrClsCd=010202#Y000303"
+    },
+    "47/3": {
+      "label": "제3조의3제3항",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-249999",
+      "id": "3-3",
+      "title": "주택임대차보호법 제3조의3제3항",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=249999&efYd=20230719&chrClsCd=010202#Y000303"
+    },
+    "125/4": {
+      "label": "제64조제1호",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-58284",
+      "id": "64",
+      "title": "파산법 제64조제1호",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=58284&efYd=19930101&chrClsCd=010202#Y006400"
+    },
+    "143/0": {
+      "label": "제39조",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-59258",
+      "id": "39",
+      "title": "개인채무자회생법 제39조",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=59258&efYd=20040923&chrClsCd=010202#Y003900"
+    },
+    "173/1": {
+      "label": "제84조제2항",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-59258",
+      "id": "84",
+      "title": "개인채무자회생법 제84조제2항",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=59258&efYd=20040923&chrClsCd=010202#Y008400"
+    },
+    "143/1": {
+      "label": "제582조",
+      "kind": "law",
+      "status": "current",
+      "lawKey": "kr-290631",
+      "id": "582",
+      "title": "채무자 회생 및 파산에 관한 법률 제582조",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290631&efYd=20261002&chrClsCd=010202#Y058200"
+    },
+    "116/9": {
+      "label": "제3조",
+      "kind": "law",
+      "status": "historical",
+      "lawKey": "kr-251347",
+      "id": "3",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 제3조",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=251347&efYd=20230601&chrClsCd=010202#Y000300"
+    },
+    "196/0": {
+      "label": "제1306조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제1306조",
+      "url": "https://uscode.house.gov/us/usc/t11/s1306/",
+      "lawKey": "us-title11",
+      "id": "1306"
+    },
+    "196/1": {
+      "label": "제1327조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제1327조",
+      "url": "https://uscode.house.gov/us/usc/t11/s1327/",
+      "lawKey": "us-title11",
+      "id": "1327"
+    },
+    "196/2": {
+      "label": "제362조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제362조",
+      "url": "https://uscode.house.gov/us/usc/t11/s362/",
+      "lawKey": "us-title11",
+      "id": "362"
+    },
+    "196/3": {
+      "label": "제362조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제362조",
+      "url": "https://uscode.house.gov/us/usc/t11/s362/",
+      "lawKey": "us-title11",
+      "id": "362"
+    },
+    "197/2": {
+      "label": "제362조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제362조",
+      "url": "https://uscode.house.gov/us/usc/t11/s362/",
+      "lawKey": "us-title11",
+      "id": "362"
+    },
+    "197/3": {
+      "label": "제361조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제361조",
+      "url": "https://uscode.house.gov/us/usc/t11/s361/",
+      "lawKey": "us-title11",
+      "id": "361"
+    },
+    "197/4": {
+      "label": "제362조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제362조",
+      "url": "https://uscode.house.gov/us/usc/t11/s362/",
+      "lawKey": "us-title11",
+      "id": "362"
+    },
+    "197/5": {
+      "label": "제361조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제361조",
+      "url": "https://uscode.house.gov/us/usc/t11/s361/",
+      "lawKey": "us-title11",
+      "id": "361"
+    },
+    "197/6": {
+      "label": "제361조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "미국 연방파산법 제361조",
+      "url": "https://uscode.house.gov/us/usc/t11/s361/",
+      "lawKey": "us-title11",
+      "id": "361"
+    },
+    "198/0": {
+      "label": "제49조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제49조",
+      "url": "https://www.gesetze-im-internet.de/inso/__49.html",
+      "lawKey": "de-inso",
+      "id": "49"
+    },
+    "198/1": {
+      "label": "제165조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제165조",
+      "url": "https://www.gesetze-im-internet.de/inso/__165.html",
+      "lawKey": "de-inso",
+      "id": "165"
+    },
+    "198/2": {
+      "label": "제166조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제166조",
+      "url": "https://www.gesetze-im-internet.de/inso/__166.html",
+      "lawKey": "de-inso",
+      "id": "166"
+    },
+    "198/3": {
+      "label": "제173조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제173조",
+      "url": "https://www.gesetze-im-internet.de/inso/__173.html",
+      "lawKey": "de-inso",
+      "id": "173"
+    },
+    "198/4": {
+      "label": "제49조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제49조",
+      "url": "https://www.gesetze-im-internet.de/inso/__49.html",
+      "lawKey": "de-inso",
+      "id": "49"
+    },
+    "198/5": {
+      "label": "제87조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제87조",
+      "url": "https://www.gesetze-im-internet.de/inso/__87.html",
+      "lawKey": "de-inso",
+      "id": "87"
+    },
+    "198/6": {
+      "label": "제89조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제89조",
+      "url": "https://www.gesetze-im-internet.de/inso/__89.html",
+      "lawKey": "de-inso",
+      "id": "89"
+    },
+    "198/7": {
+      "label": "제165조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제165조",
+      "url": "https://www.gesetze-im-internet.de/inso/__165.html",
+      "lawKey": "de-inso",
+      "id": "165"
+    },
+    "198/8": {
+      "label": "제29조제1항제1호",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제29조제1항제1호",
+      "url": "https://www.gesetze-im-internet.de/inso/__29.html",
+      "lawKey": "de-inso",
+      "id": "29"
+    },
+    "199/0": {
+      "label": "제173조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제173조",
+      "url": "https://www.gesetze-im-internet.de/inso/__173.html",
+      "lawKey": "de-inso",
+      "id": "173"
+    },
+    "200/0": {
+      "label": "제551조제3항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 민법 제551조제3항",
+      "url": "https://www.gesetze-im-internet.de/bgb/__551.html",
+      "lawKey": "de-bgb",
+      "id": "551"
+    },
+    "200/1": {
+      "label": "제47조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "독일 도산법 제47조",
+      "url": "https://www.gesetze-im-internet.de/inso/__47.html",
+      "lawKey": "de-inso",
+      "id": "47"
+    },
+    "200/4": {
+      "label": "제31조제1항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제31조제1항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=31",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "31"
+    },
+    "200/5": {
+      "label": "제39조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제39조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=39",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "39"
+    },
+    "200/6": {
+      "label": "제53조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제53조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=第五十三条",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "53"
+    },
+    "200/7": {
+      "label": "제184조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제184조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=184",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "184"
+    },
+    "200/8": {
+      "label": "제39조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제39조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=39",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "39"
+    },
+    "200/9": {
+      "label": "제53조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제53조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=第五十三条",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "53"
+    },
+    "200/10": {
+      "label": "제184조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제184조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=184",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "184"
+    },
+    "201/0": {
+      "label": "제197조제1항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제197조제1항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=197",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "197"
+    },
+    "201/1": {
+      "label": "제197조제2항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제197조제2항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=197",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "197"
+    },
+    "201/2": {
+      "label": "제31조제2항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제31조제2항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=31",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "31"
+    },
+    "201/3": {
+      "label": "제31조제1항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제31조제1항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=31",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "31"
+    },
+    "201/4": {
+      "label": "제197조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제197조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=197",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "197"
+    },
+    "201/6": {
+      "label": "제31조제1항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제31조제1항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=31",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "31"
+    },
+    "201/7": {
+      "label": "제197조제1항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제197조제1항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=197",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "197"
+    },
+    "201/8": {
+      "label": "제31조제1항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제31조제1항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=31",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "31"
+    },
+    "201/9": {
+      "label": "제197조제2항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제197조제2항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=197",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "197"
+    },
+    "202/0": {
+      "label": "제31조제3항",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제31조제3항",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=31",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "31"
+    },
+    "249/0": {
+      "label": "제31조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제31조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=31",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "31"
+    },
+    "249/1": {
+      "label": "제39조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제39조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=39",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "39"
+    },
+    "249/2": {
+      "label": "제53조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제53조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=第五十三条",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "53"
+    },
+    "249/3": {
+      "label": "제184조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제184조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=184",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "184"
+    },
+    "249/4": {
+      "label": "제197조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제197조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=197",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "197"
+    },
+    "249/5": {
+      "label": "제197조",
+      "kind": "law",
+      "status": "foreign",
+      "title": "일본 민사재생법 제197조",
+      "url": "https://laws.e-gov.go.jp/api/1/articles;lawId=411AC0000000225;article=197",
+      "lawKey": "jp-civil-rehabilitation",
+      "id": "197"
+    },
+    "22/3": {
+      "label": "제411조",
+      "kind": "note",
+      "number": 10,
+      "sourceId": "v15-7f9c66c65808eab0",
+      "sourcePage": 156,
+      "title": "이경미 외 연구보고서 · 제411조"
+    },
+    "22/4": {
+      "label": "제415조",
+      "kind": "note",
+      "number": 10,
+      "sourceId": "v15-7f9c66c65808eab0",
+      "sourcePage": 157,
+      "title": "이경미 외 연구보고서 · 제415조"
+    },
+    "22/5": {
+      "label": "제600조",
+      "kind": "note",
+      "number": 10,
+      "sourceId": "v15-7f9c66c65808eab0",
+      "sourcePage": 158,
+      "title": "이경미 외 연구보고서 · 제600조"
+    },
+    "211/2": {
+      "label": "제411조",
+      "kind": "note",
+      "number": 10,
+      "sourceId": "v15-7f9c66c65808eab0",
+      "sourcePage": 156,
+      "title": "이경미 외 연구보고서 · 제411조"
+    },
+    "211/3": {
+      "label": "제415조",
+      "kind": "note",
+      "number": 10,
+      "sourceId": "v15-7f9c66c65808eab0",
+      "sourcePage": 157,
+      "title": "이경미 외 연구보고서 · 제415조"
+    },
+    "211/4": {
+      "label": "제600조제1항제2호",
+      "kind": "note",
+      "number": 10,
+      "sourceId": "v15-7f9c66c65808eab0",
+      "sourcePage": 158,
+      "title": "이경미 외 연구보고서 · 제600조제1항제2호"
+    },
+    "204/0": {
+      "label": "제415조의3",
+      "kind": "note",
+      "number": 308,
+      "sourceId": "src-169",
+      "sourcePage": 3,
+      "title": "국회 의안 제2216282호 · 제415조의3"
+    },
+    "204/1": {
+      "label": "제415조",
+      "kind": "note",
+      "number": 308,
+      "sourceId": "src-171",
+      "sourcePage": 3,
+      "title": "국회 의안 제2217769호 · 제415조"
+    },
+    "204/2": {
+      "label": "제415조",
+      "kind": "note",
+      "number": 308,
+      "sourceId": "src-171",
+      "sourcePage": 3,
+      "title": "국회 의안 제2217769호 · 제415조"
+    },
+    "204/5": {
+      "label": "제566조제10호",
+      "kind": "note",
+      "number": 307,
+      "sourceId": "src-167",
+      "sourcePage": 3,
+      "title": "국회 의안 제2213186호 · 제566조제10호"
+    },
+    "204/6": {
+      "label": "제625조제2항제9호",
+      "kind": "note",
+      "number": 307,
+      "sourceId": "src-167",
+      "sourcePage": 4,
+      "title": "국회 의안 제2213186호 · 제625조제2항제9호"
+    },
+    "204/7": {
+      "label": "제566조제7호",
+      "kind": "note",
+      "number": 307,
+      "sourceId": "src-169",
+      "sourcePage": 4,
+      "title": "국회 의안 제2216282호 · 제566조제7호"
+    },
+    "204/8": {
+      "label": "제625조제2항제9호",
+      "kind": "note",
+      "number": 307,
+      "sourceId": "src-169",
+      "sourcePage": 4,
+      "title": "국회 의안 제2216282호 · 제625조제2항제9호"
+    },
+    "204/9": {
+      "label": "제566조제10호",
+      "kind": "note",
+      "number": 307,
+      "sourceId": "src-171",
+      "sourcePage": 3,
+      "title": "국회 의안 제2217769호 · 제566조제10호"
+    },
+    "204/10": {
+      "label": "제625조제2항제1호",
+      "kind": "note",
+      "number": 307,
+      "sourceId": "src-171",
+      "sourcePage": 3,
+      "title": "국회 의안 제2217769호 · 제625조제2항제1호"
+    },
+    "204/11": {
+      "label": "제415조의3",
+      "kind": "note",
+      "number": 308,
+      "sourceId": "src-169",
+      "sourcePage": 3,
+      "title": "국회 의안 제2216282호 · 제415조의3"
+    },
+    "204/12": {
+      "label": "제2조",
+      "kind": "note",
+      "number": 308,
+      "sourceId": "src-169",
+      "sourcePage": 4,
+      "title": "국회 의안 제2216282호 · 제2조"
+    },
+    "204/13": {
+      "label": "제415조제4항",
+      "kind": "note",
+      "number": 308,
+      "sourceId": "src-171",
+      "sourcePage": 3,
+      "title": "국회 의안 제2217769호 · 제415조제4항"
+    },
+    "204/14": {
+      "label": "제2조",
+      "kind": "note",
+      "number": 308,
+      "sourceId": "src-171",
+      "sourcePage": 4,
+      "title": "국회 의안 제2217769호 · 제2조"
+    },
+    "191/0": {
+      "label": "제415조의4",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 251,
+      "title": "필자의 입법시안 · 제415조의4"
+    },
+    "211/0": {
+      "label": "제415조의3",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 250,
+      "title": "필자의 입법시안 · 제415조의3"
+    },
+    "211/5": {
+      "label": "제415조의3",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 250,
+      "title": "필자의 입법시안 · 제415조의3"
+    },
+    "212/0": {
+      "label": "제415조의4",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 251,
+      "title": "필자의 입법시안 · 제415조의4"
+    },
+    "214/1": {
+      "label": "제415조의4",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 251,
+      "title": "필자의 입법시안 · 제415조의4"
+    },
+    "214/2": {
+      "label": "제600조의2",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 252,
+      "title": "필자의 입법시안 · 제600조의2"
+    },
+    "218/0": {
+      "label": "제600조의2",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 252,
+      "title": "필자의 입법시안 · 제600조의2"
+    },
+    "218/1": {
+      "label": "제600조의2",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 252,
+      "title": "필자의 입법시안 · 제600조의2"
+    },
+    "220/1": {
+      "label": "제615조제4항",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 253,
+      "title": "필자의 입법시안 · 제615조제4항"
+    },
+    "221/0": {
+      "label": "제600조의2",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 252,
+      "title": "필자의 입법시안 · 제600조의2"
+    },
+    "221/1": {
+      "label": "제615조",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 253,
+      "title": "필자의 입법시안 · 제615조"
+    },
+    "229/0": {
+      "label": "제600조의2",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 252,
+      "title": "필자의 입법시안 · 제600조의2"
+    },
+    "250/0": {
+      "label": "제415조의3",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 250,
+      "title": "필자의 입법시안 · 제415조의3"
+    },
+    "251/0": {
+      "label": "제415조의4",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 251,
+      "title": "필자의 입법시안 · 제415조의4"
+    },
+    "251/1": {
+      "label": "제415조의3",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 250,
+      "title": "필자의 입법시안 · 제415조의3"
+    },
+    "251/2": {
+      "label": "제415조의3제1항",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 250,
+      "title": "필자의 입법시안 · 제415조의3제1항"
+    },
+    "252/0": {
+      "label": "제600조의2",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 252,
+      "title": "필자의 입법시안 · 제600조의2"
+    },
+    "253/0": {
+      "label": "제615조",
+      "kind": "law",
+      "status": "proposal",
+      "targetPage": 253,
+      "title": "필자의 입법시안 · 제615조"
+    },
+    "72/10": {
+      "label": "제1조",
+      "kind": "law",
+      "status": "historical",
+      "title": "국세기본법 부칙(법률 제19189호) 제1조",
+      "lawKey": "kr-289999",
+      "id": "supplement-67-1",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=289999&efYd=20261002&chrClsCd=010202#ar12980213btn"
+    },
+    "72/11": {
+      "label": "제3조",
+      "kind": "law",
+      "status": "historical",
+      "title": "국세기본법 부칙(법률 제19189호) 제3조",
+      "lawKey": "kr-289999",
+      "id": "supplement-67-3",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=289999&efYd=20261002&chrClsCd=010202#ar12980213btn"
+    },
+    "72/12": {
+      "label": "제1조",
+      "kind": "law",
+      "status": "historical",
+      "title": "지방세기본법 부칙(법률 제19401호) 제1조",
+      "lawKey": "kr-290139",
+      "id": "supplement-15-1",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290139&efYd=20261002&chrClsCd=010202#ar12981445btn"
+    },
+    "72/13": {
+      "label": "제2조",
+      "kind": "law",
+      "status": "historical",
+      "title": "지방세기본법 부칙(법률 제19401호) 제2조",
+      "lawKey": "kr-290139",
+      "id": "supplement-15-2",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290139&efYd=20261002&chrClsCd=010202#ar12981445btn"
+    },
+    "116/4": {
+      "label": "제2조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제19425호) 제2조",
+      "lawKey": "kr-285963",
+      "id": "supplement-1-2",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000793btn"
+    },
+    "116/5": {
+      "label": "제4조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제19425호) 제4조",
+      "lawKey": "kr-285963",
+      "id": "supplement-1-4",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000793btn"
+    },
+    "116/6": {
+      "label": "제2조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제20956호) 제2조",
+      "lawKey": "kr-285963",
+      "id": "supplement-3-2",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000797btn"
+    },
+    "116/10": {
+      "label": "제6조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제21634호) 제6조",
+      "lawKey": "kr-285963",
+      "id": "supplement-6-6",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000803btn"
+    },
+    "228/0": {
+      "label": "제2조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제19425호) 제2조",
+      "lawKey": "kr-285963",
+      "id": "supplement-1-2",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000793btn"
+    },
+    "228/1": {
+      "label": "제4조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제19425호) 제4조",
+      "lawKey": "kr-285963",
+      "id": "supplement-1-4",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000793btn"
+    },
+    "228/2": {
+      "label": "제4조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제19425호) 제4조",
+      "lawKey": "kr-285963",
+      "id": "supplement-1-4",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000793btn"
+    },
+    "228/3": {
+      "label": "제2조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제20956호) 제2조",
+      "lawKey": "kr-285963",
+      "id": "supplement-3-2",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000797btn"
+    },
+    "230/1": {
+      "label": "제1조",
+      "kind": "law",
+      "status": "historical",
+      "title": "전세사기피해자 지원 및 주거안정에 관한 특별법 부칙(법률 제21634호) 제1조",
+      "lawKey": "kr-285963",
+      "id": "supplement-6-1",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285963&efYd=20261113&chrClsCd=010202#ar13000803btn"
+    }
+  },
+  "additions": {
+    "30": [
+      {
+        "x": 0.785064,
+        "y": 0.678799,
+        "w": 0.072389,
+        "h": 0.012354,
+        "label": "제566a조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 민법 제566a조",
+        "url": "https://www.gesetze-im-internet.de/bgb/__566a.html",
+        "lawKey": "de-bgb",
+        "articleId": "566a",
+        "line": 19,
+        "noteNumber": 42,
+        "start": 167,
+        "end": 173
+      }
+    ],
+    "196": [
+      {
+        "x": 0.210641,
+        "y": 0.797802,
+        "w": 0.071161,
+        "h": 0.012363,
+        "label": "362(c)(1)",
+        "kind": "law",
+        "status": "foreign",
+        "title": "미국 연방파산법 제362조",
+        "url": "https://uscode.house.gov/us/usc/t11/s362/",
+        "lawKey": "us-title11",
+        "articleId": "362",
+        "line": 18,
+        "noteNumber": 298,
+        "start": 153,
+        "end": 162
+      }
+    ],
+    "198": [
+      {
+        "x": 0.624699,
+        "y": 0.407868,
+        "w": 0.072259,
+        "h": 0.015723,
+        "label": "제30d조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30d조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30d.html",
+        "lawKey": "de-zvg",
+        "articleId": "30d",
+        "line": 9
+      },
+      {
+        "x": 0.757981,
+        "y": 0.663956,
+        "w": 0.063192,
+        "h": 0.012363,
+        "label": "제30d조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30d조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30d.html",
+        "lawKey": "de-zvg",
+        "articleId": "30d",
+        "line": 17,
+        "noteNumber": 302,
+        "start": 45,
+        "end": 50
+      },
+      {
+        "x": 0.832544,
+        "y": 0.663956,
+        "w": 0.058998,
+        "h": 0.012363,
+        "label": "제30f조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30f조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30f.html",
+        "lawKey": "de-zvg",
+        "articleId": "30f",
+        "line": 17,
+        "noteNumber": 302,
+        "start": 51,
+        "end": 56
+      },
+      {
+        "x": 0.614447,
+        "y": 0.687033,
+        "w": 0.030051,
+        "h": 0.012363,
+        "label": "165",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제165조",
+        "url": "https://www.gesetze-im-internet.de/inso/__165.html",
+        "lawKey": "de-inso",
+        "articleId": "165",
+        "line": 18,
+        "noteNumber": 302,
+        "start": 113,
+        "end": 116
+      },
+      {
+        "x": 0.320854,
+        "y": 0.755769,
+        "w": 0.062493,
+        "h": 0.012363,
+        "label": "제30e조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30e조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30e.html",
+        "lawKey": "de-zvg",
+        "articleId": "30e",
+        "line": 21,
+        "noteNumber": 302,
+        "start": 286,
+        "end": 291
+      },
+      {
+        "x": 0.456466,
+        "y": 0.778846,
+        "w": 0.063192,
+        "h": 0.012363,
+        "label": "제30d조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30d조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30d.html",
+        "lawKey": "de-zvg",
+        "articleId": "30d",
+        "line": 22,
+        "noteNumber": 302,
+        "start": 353,
+        "end": 358
+      },
+      {
+        "x": 0.648932,
+        "y": 0.801758,
+        "w": 0.058998,
+        "h": 0.012363,
+        "label": "제30f조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30f조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30f.html",
+        "lawKey": "de-zvg",
+        "articleId": "30f",
+        "line": 23,
+        "noteNumber": 302,
+        "start": 424,
+        "end": 429
+      }
+    ],
+    "199": [
+      {
+        "x": 0.474874,
+        "y": 0.43622,
+        "w": 0.070861,
+        "h": 0.015723,
+        "label": "제30e조",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30e조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30e.html",
+        "lawKey": "de-zvg",
+        "articleId": "30e",
+        "line": 11
+      }
+    ],
+    "249": [
+      {
+        "x": 0.397282,
+        "y": 0.273096,
+        "w": 0.16334,
+        "h": 0.015165,
+        "label": "§ 551 Abs. 3 Satz 3",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 민법 제551조",
+        "url": "https://www.gesetze-im-internet.de/bgb/__551.html",
+        "lawKey": "de-bgb",
+        "articleId": "551"
+      },
+      {
+        "x": 0.573437,
+        "y": 0.273096,
+        "w": 0.114641,
+        "h": 0.015165,
+        "label": "§ 566a Satz 2",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 민법 제566a조",
+        "url": "https://www.gesetze-im-internet.de/bgb/__566a.html",
+        "lawKey": "de-bgb",
+        "articleId": "566a"
+      },
+      {
+        "x": 0.764738,
+        "y": 0.305074,
+        "w": 0.032155,
+        "h": 0.015165,
+        "label": "30d",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30d조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30d.html",
+        "lawKey": "de-zvg",
+        "articleId": "30d"
+      },
+      {
+        "x": 0.807379,
+        "y": 0.305074,
+        "w": 0.028575,
+        "h": 0.015165,
+        "label": "30f",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 강제경매법 제30f조",
+        "url": "https://www.gesetze-im-internet.de/zvg/__30f.html",
+        "lawKey": "de-zvg",
+        "articleId": "30f"
+      },
+      {
+        "x": 0.366058,
+        "y": 0.340679,
+        "w": 0.021437,
+        "h": 0.015165,
+        "label": "47",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제47조",
+        "url": "https://www.gesetze-im-internet.de/inso/__47.html",
+        "lawKey": "de-inso",
+        "articleId": "47"
+      },
+      {
+        "x": 0.396583,
+        "y": 0.340679,
+        "w": 0.021437,
+        "h": 0.015165,
+        "label": "49",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제49조",
+        "url": "https://www.gesetze-im-internet.de/inso/__49.html",
+        "lawKey": "de-inso",
+        "articleId": "49"
+      },
+      {
+        "x": 0.427107,
+        "y": 0.340679,
+        "w": 0.021437,
+        "h": 0.015165,
+        "label": "87",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제87조",
+        "url": "https://www.gesetze-im-internet.de/inso/__87.html",
+        "lawKey": "de-inso",
+        "articleId": "87"
+      },
+      {
+        "x": 0.457631,
+        "y": 0.340679,
+        "w": 0.021437,
+        "h": 0.015165,
+        "label": "89",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제89조",
+        "url": "https://www.gesetze-im-internet.de/inso/__89.html",
+        "lawKey": "de-inso",
+        "articleId": "89"
+      },
+      {
+        "x": 0.488155,
+        "y": 0.340679,
+        "w": 0.032155,
+        "h": 0.015165,
+        "label": "165",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제165조",
+        "url": "https://www.gesetze-im-internet.de/inso/__165.html",
+        "lawKey": "de-inso",
+        "articleId": "165"
+      },
+      {
+        "x": 0.529398,
+        "y": 0.340679,
+        "w": 0.032155,
+        "h": 0.015165,
+        "label": "166",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제166조",
+        "url": "https://www.gesetze-im-internet.de/inso/__166.html",
+        "lawKey": "de-inso",
+        "articleId": "166"
+      },
+      {
+        "x": 0.570641,
+        "y": 0.340679,
+        "w": 0.032155,
+        "h": 0.015165,
+        "label": "173",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제173조",
+        "url": "https://www.gesetze-im-internet.de/inso/__173.html",
+        "lawKey": "de-inso",
+        "articleId": "173"
+      },
+      {
+        "x": 0.387961,
+        "y": 0.371338,
+        "w": 0.032155,
+        "h": 0.015165,
+        "label": "361",
+        "kind": "law",
+        "status": "foreign",
+        "title": "미국 연방파산법 제361조",
+        "url": "https://uscode.house.gov/us/usc/t11/s361/",
+        "lawKey": "us-title11",
+        "articleId": "361"
+      },
+      {
+        "x": 0.429204,
+        "y": 0.371338,
+        "w": 0.055839,
+        "h": 0.015165,
+        "label": "362(c)",
+        "kind": "law",
+        "status": "foreign",
+        "title": "미국 연방파산법 제362조",
+        "url": "https://uscode.house.gov/us/usc/t11/s362/",
+        "lawKey": "us-title11",
+        "articleId": "362"
+      },
+      {
+        "x": 0.562252,
+        "y": 0.371338,
+        "w": 0.042874,
+        "h": 0.015165,
+        "label": "1306",
+        "kind": "law",
+        "status": "foreign",
+        "title": "미국 연방파산법 제1306조",
+        "url": "https://uscode.house.gov/us/usc/t11/s1306/",
+        "lawKey": "us-title11",
+        "articleId": "1306"
+      },
+      {
+        "x": 0.614214,
+        "y": 0.371338,
+        "w": 0.042874,
+        "h": 0.015165,
+        "label": "1327",
+        "kind": "law",
+        "status": "foreign",
+        "title": "미국 연방파산법 제1327조",
+        "url": "https://uscode.house.gov/us/usc/t11/s1327/",
+        "lawKey": "us-title11",
+        "articleId": "1327"
+      },
+      {
+        "x": 0.726058,
+        "y": 0.578041,
+        "w": 0.032155,
+        "h": 0.015165,
+        "label": "165",
+        "kind": "law",
+        "status": "foreign",
+        "title": "독일 도산법 제165조",
+        "url": "https://www.gesetze-im-internet.de/inso/__165.html",
+        "lawKey": "de-inso",
+        "articleId": "165"
+      }
+    ]
+  },
+  "positions": {
+    "21/0": [
+      22,
+      6,
+      11
+    ],
+    "21/1": [
+      22,
+      73,
+      78
+    ],
+    "21/2": [
+      22,
+      103,
+      108
+    ],
+    "21/3": [
+      24,
+      6,
+      11
+    ],
+    "21/4": [
+      24,
+      44,
+      49
+    ],
+    "22/3": [
+      30,
+      31,
+      36
+    ],
+    "22/4": [
+      30,
+      47,
+      52
+    ],
+    "22/5": [
+      30,
+      53,
+      58
+    ],
+    "27/1": [
+      36,
+      7,
+      16
+    ],
+    "27/2": [
+      36,
+      17,
+      22
+    ],
+    "27/3": [
+      36,
+      23,
+      32
+    ],
+    "29/2": [
+      41,
+      6,
+      10
+    ],
+    "29/3": [
+      41,
+      11,
+      15
+    ],
+    "29/4": [
+      41,
+      18,
+      22
+    ],
+    "29/5": [
+      41,
+      152,
+      160
+    ],
+    "29/6": [
+      41,
+      161,
+      169
+    ],
+    "29/7": [
+      41,
+      161,
+      169
+    ],
+    "34/0": [
+      54,
+      4,
+      12
+    ],
+    "39/4": [
+      62,
+      9,
+      16
+    ],
+    "40/4": [
+      64,
+      9,
+      16
+    ],
+    "41/4": [
+      68,
+      9,
+      16
+    ],
+    "41/5": [
+      68,
+      31,
+      35
+    ],
+    "41/6": [
+      68,
+      36,
+      40
+    ],
+    "44/1": [
+      71,
+      45,
+      54
+    ],
+    "44/2": [
+      71,
+      55,
+      62
+    ],
+    "47/3": [
+      80,
+      9,
+      18
+    ],
+    "48/1": [
+      82,
+      17,
+      21
+    ],
+    "48/2": [
+      83,
+      42,
+      45
+    ],
+    "48/3": [
+      83,
+      46,
+      53
+    ],
+    "48/4": [
+      83,
+      54,
+      61
+    ],
+    "48/5": [
+      83,
+      66,
+      74
+    ],
+    "48/6": [
+      83,
+      75,
+      79
+    ],
+    "49/1": [
+      83,
+      139,
+      143
+    ],
+    "49/2": [
+      83,
+      146,
+      150
+    ],
+    "49/3": [
+      83,
+      153,
+      157
+    ],
+    "49/4": [
+      83,
+      158,
+      162
+    ],
+    "49/5": [
+      83,
+      212,
+      219
+    ],
+    "49/6": [
+      83,
+      220,
+      223
+    ],
+    "49/7": [
+      83,
+      224,
+      227
+    ],
+    "49/8": [
+      83,
+      228,
+      232
+    ],
+    "50/1": [
+      85,
+      9,
+      18
+    ],
+    "50/2": [
+      85,
+      20,
+      29
+    ],
+    "55/1": [
+      95,
+      6,
+      11
+    ],
+    "56/1": [
+      95,
+      260,
+      264
+    ],
+    "65/6": [
+      102,
+      102,
+      111
+    ],
+    "67/4": [
+      106,
+      6,
+      11
+    ],
+    "70/4": [
+      107,
+      32,
+      41
+    ],
+    "70/5": [
+      108,
+      6,
+      14
+    ],
+    "70/6": [
+      108,
+      32,
+      40
+    ],
+    "72/3": [
+      109,
+      6,
+      14
+    ],
+    "72/4": [
+      109,
+      23,
+      31
+    ],
+    "72/5": [
+      109,
+      168,
+      173
+    ],
+    "72/6": [
+      109,
+      174,
+      179
+    ],
+    "72/7": [
+      110,
+      6,
+      14
+    ],
+    "72/8": [
+      110,
+      52,
+      60
+    ],
+    "72/9": [
+      110,
+      52,
+      60
+    ],
+    "72/10": [
+      111,
+      14,
+      17
+    ],
+    "72/11": [
+      111,
+      21,
+      24
+    ],
+    "72/12": [
+      111,
+      40,
+      43
+    ],
+    "72/13": [
+      111,
+      44,
+      47
+    ],
+    "72/14": [
+      111,
+      55,
+      63
+    ],
+    "72/15": [
+      111,
+      55,
+      63
+    ],
+    "72/16": [
+      111,
+      143,
+      151
+    ],
+    "75/0": [
+      114,
+      9,
+      14
+    ],
+    "75/1": [
+      114,
+      164,
+      169
+    ],
+    "83/4": [
+      121,
+      3,
+      12
+    ],
+    "83/5": [
+      121,
+      18,
+      23
+    ],
+    "83/6": [
+      121,
+      26,
+      35
+    ],
+    "83/7": [
+      122,
+      3,
+      12
+    ],
+    "83/8": [
+      122,
+      212,
+      221
+    ],
+    "85/2": [
+      124,
+      12,
+      15
+    ],
+    "85/3": [
+      124,
+      69,
+      82
+    ],
+    "86/3": [
+      128,
+      6,
+      11
+    ],
+    "87/1": [
+      130,
+      44,
+      53
+    ],
+    "87/2": [
+      131,
+      5,
+      14
+    ],
+    "89/3": [
+      134,
+      24,
+      29
+    ],
+    "94/2": [
+      145,
+      42,
+      51
+    ],
+    "95/4": [
+      147,
+      106,
+      111
+    ],
+    "96/6": [
+      149,
+      42,
+      47
+    ],
+    "108/0": [
+      163,
+      3,
+      8
+    ],
+    "108/1": [
+      163,
+      9,
+      14
+    ],
+    "108/2": [
+      163,
+      22,
+      31
+    ],
+    "108/3": [
+      163,
+      42,
+      51
+    ],
+    "111/0": [
+      164,
+      7,
+      11
+    ],
+    "111/1": [
+      164,
+      12,
+      21
+    ],
+    "111/2": [
+      164,
+      22,
+      31
+    ],
+    "111/3": [
+      164,
+      32,
+      37
+    ],
+    "111/4": [
+      164,
+      103,
+      115
+    ],
+    "111/5": [
+      164,
+      103,
+      115
+    ],
+    "111/6": [
+      164,
+      163,
+      172
+    ],
+    "111/7": [
+      164,
+      163,
+      172
+    ],
+    "112/1": [
+      165,
+      7,
+      12
+    ],
+    "112/2": [
+      165,
+      13,
+      18
+    ],
+    "112/3": [
+      165,
+      19,
+      28
+    ],
+    "112/4": [
+      165,
+      63,
+      68
+    ],
+    "113/6": [
+      166,
+      7,
+      16
+    ],
+    "116/3": [
+      172,
+      9,
+      16
+    ],
+    "116/4": [
+      172,
+      50,
+      53
+    ],
+    "116/5": [
+      172,
+      54,
+      57
+    ],
+    "116/6": [
+      172,
+      88,
+      91
+    ],
+    "116/7": [
+      172,
+      236,
+      243
+    ],
+    "116/8": [
+      172,
+      236,
+      243
+    ],
+    "116/9": [
+      172,
+      356,
+      359
+    ],
+    "116/10": [
+      173,
+      34,
+      37
+    ],
+    "118/3": [
+      175,
+      7,
+      12
+    ],
+    "118/4": [
+      175,
+      13,
+      18
+    ],
+    "118/5": [
+      175,
+      19,
+      28
+    ],
+    "118/6": [
+      175,
+      29,
+      34
+    ],
+    "121/7": [
+      184,
+      47,
+      52
+    ],
+    "123/7": [
+      186,
+      80,
+      89
+    ],
+    "123/8": [
+      186,
+      90,
+      99
+    ],
+    "123/9": [
+      187,
+      74,
+      79
+    ],
+    "123/10": [
+      187,
+      119,
+      122
+    ],
+    "123/11": [
+      187,
+      123,
+      128
+    ],
+    "124/7": [
+      188,
+      7,
+      12
+    ],
+    "124/8": [
+      188,
+      13,
+      18
+    ],
+    "124/9": [
+      188,
+      19,
+      24
+    ],
+    "124/10": [
+      188,
+      26,
+      31
+    ],
+    "124/11": [
+      188,
+      173,
+      178
+    ],
+    "124/12": [
+      188,
+      249,
+      258
+    ],
+    "125/4": [
+      189,
+      151,
+      159
+    ],
+    "125/5": [
+      189,
+      171,
+      180
+    ],
+    "130/8": [
+      194,
+      41,
+      50
+    ],
+    "131/3": [
+      194,
+      195,
+      208
+    ],
+    "131/4": [
+      196,
+      55,
+      64
+    ],
+    "131/5": [
+      196,
+      55,
+      64
+    ],
+    "137/6": [
+      207,
+      7,
+      16
+    ],
+    "142/1": [
+      214,
+      107,
+      120
+    ],
+    "142/2": [
+      216,
+      82,
+      91
+    ],
+    "143/9": [
+      218,
+      33,
+      38
+    ],
+    "143/10": [
+      219,
+      80,
+      85
+    ],
+    "143/11": [
+      219,
+      86,
+      91
+    ],
+    "143/12": [
+      220,
+      65,
+      74
+    ],
+    "144/0": [
+      221,
+      7,
+      12
+    ],
+    "144/1": [
+      221,
+      13,
+      18
+    ],
+    "144/2": [
+      221,
+      19,
+      24
+    ],
+    "144/3": [
+      221,
+      117,
+      126
+    ],
+    "147/7": [
+      225,
+      6,
+      11
+    ],
+    "147/8": [
+      225,
+      50,
+      55
+    ],
+    "148/4": [
+      226,
+      6,
+      11
+    ],
+    "149/5": [
+      228,
+      47,
+      56
+    ],
+    "149/6": [
+      229,
+      7,
+      16
+    ],
+    "149/7": [
+      229,
+      24,
+      29
+    ],
+    "150/6": [
+      230,
+      6,
+      11
+    ],
+    "150/7": [
+      230,
+      88,
+      97
+    ],
+    "150/8": [
+      231,
+      7,
+      16
+    ],
+    "150/9": [
+      231,
+      17,
+      26
+    ],
+    "152/6": [
+      234,
+      265,
+      272
+    ],
+    "152/7": [
+      234,
+      273,
+      276
+    ],
+    "153/3": [
+      235,
+      131,
+      136
+    ],
+    "153/4": [
+      236,
+      7,
+      12
+    ],
+    "153/5": [
+      236,
+      13,
+      18
+    ],
+    "153/6": [
+      236,
+      177,
+      182
+    ],
+    "154/3": [
+      238,
+      6,
+      15
+    ],
+    "154/4": [
+      239,
+      7,
+      12
+    ],
+    "154/5": [
+      239,
+      13,
+      18
+    ],
+    "156/2": [
+      244,
+      7,
+      15
+    ],
+    "157/5": [
+      244,
+      58,
+      62
+    ],
+    "157/6": [
+      244,
+      115,
+      124
+    ],
+    "158/5": [
+      245,
+      10,
+      14
+    ],
+    "158/6": [
+      246,
+      88,
+      91
+    ],
+    "158/7": [
+      246,
+      92,
+      96
+    ],
+    "158/8": [
+      246,
+      97,
+      101
+    ],
+    "158/9": [
+      247,
+      6,
+      11
+    ],
+    "158/10": [
+      247,
+      12,
+      17
+    ],
+    "158/11": [
+      247,
+      18,
+      23
+    ],
+    "158/12": [
+      247,
+      37,
+      42
+    ],
+    "159/7": [
+      248,
+      7,
+      20
+    ],
+    "159/8": [
+      249,
+      42,
+      47
+    ],
+    "159/9": [
+      249,
+      48,
+      53
+    ],
+    "159/10": [
+      249,
+      65,
+      69
+    ],
+    "160/6": [
+      251,
+      7,
+      12
+    ],
+    "160/7": [
+      251,
+      13,
+      18
+    ],
+    "160/8": [
+      251,
+      19,
+      24
+    ],
+    "161/1": [
+      252,
+      6,
+      15
+    ],
+    "161/2": [
+      252,
+      16,
+      21
+    ],
+    "161/3": [
+      252,
+      22,
+      27
+    ],
+    "162/1": [
+      253,
+      7,
+      11
+    ],
+    "162/2": [
+      253,
+      18,
+      22
+    ],
+    "162/3": [
+      253,
+      34,
+      38
+    ],
+    "162/4": [
+      253,
+      158,
+      167
+    ],
+    "162/5": [
+      253,
+      158,
+      167
+    ],
+    "162/6": [
+      254,
+      7,
+      16
+    ],
+    "162/7": [
+      254,
+      196,
+      205
+    ],
+    "162/8": [
+      254,
+      269,
+      274
+    ],
+    "162/9": [
+      254,
+      275,
+      280
+    ],
+    "162/10": [
+      254,
+      281,
+      286
+    ],
+    "162/11": [
+      254,
+      287,
+      292
+    ],
+    "162/12": [
+      254,
+      308,
+      313
+    ],
+    "162/13": [
+      254,
+      362,
+      371
+    ],
+    "163/6": [
+      255,
+      6,
+      11
+    ],
+    "163/7": [
+      255,
+      12,
+      17
+    ],
+    "163/8": [
+      255,
+      26,
+      31
+    ],
+    "163/9": [
+      255,
+      32,
+      37
+    ],
+    "163/10": [
+      255,
+      38,
+      43
+    ],
+    "165/5": [
+      257,
+      44,
+      53
+    ],
+    "165/6": [
+      257,
+      59,
+      64
+    ],
+    "165/7": [
+      257,
+      59,
+      64
+    ],
+    "165/8": [
+      258,
+      7,
+      16
+    ],
+    "165/9": [
+      258,
+      17,
+      22
+    ],
+    "166/12": [
+      260,
+      95,
+      108
+    ],
+    "167/2": [
+      261,
+      6,
+      11
+    ],
+    "167/3": [
+      262,
+      121,
+      130
+    ],
+    "168/7": [
+      263,
+      6,
+      11
+    ],
+    "168/8": [
+      263,
+      41,
+      46
+    ],
+    "168/9": [
+      263,
+      87,
+      96
+    ],
+    "170/10": [
+      265,
+      7,
+      16
+    ],
+    "170/11": [
+      266,
+      6,
+      15
+    ],
+    "170/12": [
+      266,
+      26,
+      35
+    ],
+    "172/0": [
+      269,
+      53,
+      58
+    ],
+    "178/3": [
+      276,
+      96,
+      105
+    ],
+    "182/2": [
+      280,
+      92,
+      101
+    ],
+    "182/3": [
+      281,
+      54,
+      63
+    ],
+    "182/4": [
+      282,
+      6,
+      10
+    ],
+    "182/5": [
+      282,
+      11,
+      15
+    ],
+    "182/6": [
+      282,
+      131,
+      139
+    ],
+    "182/7": [
+      282,
+      143,
+      147
+    ],
+    "183/0": [
+      282,
+      222,
+      226
+    ],
+    "183/1": [
+      283,
+      9,
+      18
+    ],
+    "183/2": [
+      283,
+      19,
+      22
+    ],
+    "183/3": [
+      283,
+      31,
+      36
+    ],
+    "183/4": [
+      283,
+      37,
+      42
+    ],
+    "183/5": [
+      283,
+      68,
+      77
+    ],
+    "183/6": [
+      284,
+      6,
+      10
+    ],
+    "185/0": [
+      286,
+      6,
+      10
+    ],
+    "185/1": [
+      286,
+      11,
+      15
+    ],
+    "185/2": [
+      286,
+      73,
+      77
+    ],
+    "185/3": [
+      287,
+      7,
+      16
+    ],
+    "185/4": [
+      287,
+      40,
+      44
+    ],
+    "185/5": [
+      287,
+      45,
+      49
+    ],
+    "185/6": [
+      287,
+      57,
+      62
+    ],
+    "185/7": [
+      287,
+      57,
+      62
+    ],
+    "185/8": [
+      287,
+      315,
+      320
+    ],
+    "189/1": [
+      291,
+      155,
+      160
+    ],
+    "193/1": [
+      295,
+      6,
+      11
+    ],
+    "193/2": [
+      295,
+      13,
+      18
+    ],
+    "193/3": [
+      295,
+      145,
+      150
+    ],
+    "196/3": [
+      299,
+      6,
+      11
+    ],
+    "197/4": [
+      300,
+      6,
+      11
+    ],
+    "197/5": [
+      300,
+      16,
+      21
+    ],
+    "197/6": [
+      300,
+      99,
+      104
+    ],
+    "198/4": [
+      302,
+      7,
+      11
+    ],
+    "198/5": [
+      302,
+      12,
+      16
+    ],
+    "198/6": [
+      302,
+      17,
+      21
+    ],
+    "198/7": [
+      302,
+      22,
+      27
+    ],
+    "198/8": [
+      302,
+      301,
+      313
+    ],
+    "200/5": [
+      304,
+      9,
+      13
+    ],
+    "200/6": [
+      304,
+      14,
+      18
+    ],
+    "200/7": [
+      304,
+      19,
+      24
+    ],
+    "200/8": [
+      304,
+      74,
+      78
+    ],
+    "200/9": [
+      304,
+      109,
+      113
+    ],
+    "200/10": [
+      304,
+      129,
+      134
+    ],
+    "201/6": [
+      305,
+      9,
+      17
+    ],
+    "201/7": [
+      305,
+      27,
+      36
+    ],
+    "201/8": [
+      305,
+      60,
+      68
+    ],
+    "201/9": [
+      305,
+      100,
+      109
+    ],
+    "204/5": [
+      307,
+      15,
+      25
+    ],
+    "204/6": [
+      307,
+      26,
+      39
+    ],
+    "204/7": [
+      307,
+      85,
+      94
+    ],
+    "204/8": [
+      307,
+      97,
+      110
+    ],
+    "204/9": [
+      307,
+      203,
+      213
+    ],
+    "204/10": [
+      307,
+      214,
+      227
+    ],
+    "204/11": [
+      308,
+      15,
+      22
+    ],
+    "204/12": [
+      308,
+      28,
+      31
+    ],
+    "204/13": [
+      308,
+      90,
+      99
+    ],
+    "204/14": [
+      308,
+      109,
+      112
+    ],
+    "212/4": [
+      311,
+      3,
+      8
+    ],
+    "212/5": [
+      311,
+      16,
+      21
+    ],
+    "213/3": [
+      312,
+      115,
+      120
+    ],
+    "214/4": [
+      313,
+      104,
+      109
+    ],
+    "214/5": [
+      314,
+      12,
+      17
+    ],
+    "215/2": [
+      316,
+      6,
+      19
+    ],
+    "221/2": [
+      319,
+      137,
+      146
+    ],
+    "223/1": [
+      322,
+      50,
+      57
+    ],
+    "223/2": [
+      322,
+      70,
+      77
+    ],
+    "223/3": [
+      322,
+      169,
+      176
+    ],
+    "223/4": [
+      322,
+      297,
+      302
+    ],
+    "226/2": [
+      329,
+      3,
+      12
+    ],
+    "226/3": [
+      329,
+      20,
+      29
+    ]
+  }
+}

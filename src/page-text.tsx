@@ -3,10 +3,12 @@ import {ReaderError,type Session} from './reader-api';
 import {pageCache} from './visible-page-cache';
 import separators from './line-separators.json';
 import footnoteRows from './footnote-rows.json';
+import {repairLawTargets} from './verified-law-targets';
+import {bibliographyURL,repairCitationTargets} from './citation-links';
 
 export type Rect={x:number;y:number;w:number;h:number};
 export type TextLine=Rect&{text:string;size?:number;index?:number};
-export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross';number?:number;targetPage?:number;noteNumber?:number;sourceId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
+export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross'|'external';number?:number;targetPage?:number;noteNumber?:number;sourceId?:string;sourcePage?:number;line?:number;caseNumber?:string;lawKey?:string;articleId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
 type PageMetadata={lines:TextLine[];targets:PageTarget[];width?:number;height?:number};
 export type InlineLink={start:number;end:number;target:PageTarget};
 
@@ -26,7 +28,7 @@ function pageMap(page:number){
     pending=fetch(url,{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
-      return (data.targets as PageTarget[]).filter(box);
+      return repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[])).filter(box);
     });
     mapCache.set(page,pending);pending.catch(()=>{if(mapCache.get(page)===pending)mapCache.delete(page);});
     while(mapCache.size>12)mapCache.delete(mapCache.keys().next().value!);
@@ -78,7 +80,7 @@ export function officialURL(raw?:string){
     return link.href;
   }catch{return undefined;}
 }
-export function targetLabel(t:PageTarget){return t.kind==='note'&&!t.sourceId?'각주 '+t.number:t.label||t.title||'원문 확인';}
+export function targetLabel(t:PageTarget){return t.kind==='note'&&!t.sourceId?'각주 '+t.number:(t.caseNumber||t.kind==='external'||t.sourceId?t.title:undefined)||t.label||t.title||'원문 확인';}
 function positioning(r:Rect){return {left:r.x*100+'%',top:r.y*100+'%',width:r.w*100+'%',height:r.h*100+'%'};}
 const within=(p:{x:number;y:number},r:Rect)=>p.x>=r.x&&p.y>=r.y&&p.x<=r.x+r.w&&p.y<=r.y+r.h;
 const plainNote=(t:PageTarget)=>t.kind==='note'&&!t.sourceId;
@@ -124,6 +126,10 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
   const page=new URLSearchParams(query).get('page')||'';
   const rows=printedFootnotes[page]||[];
   function activate(t:PageTarget){
+    if(t.kind==='external'){
+      const url=bibliographyURL(t.url);if(url)window.open(url,'_blank','noopener,noreferrer');
+      return;
+    }
     onTarget?.(t);
   }
   function hit(e:React.MouseEvent,touch=false):PageTarget|undefined{
@@ -169,9 +175,9 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
       const sep=order[line.index??i];return <TextRun key={i} line={line} width={size.w} height={size.h} joinBefore={sep==='C'?'':sep==='S'?' ':'\n'}/>;
     })}
     <span ref={hover} className="page-target-hover" aria-hidden="true" hidden/>
-    {onTarget&&targets.map((t,i)=>{const url=officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':'각주';
+    {onTarget&&targets.map((t,i)=>{const url=t.kind==='external'?bibliographyURL(t.url):officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':t.kind==='external'?'참고자료':'각주';
       const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'aria-label':name+' 열기 · '+targetLabel(t)};
-      return url?<a key={i} {...props} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>{if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();e.stopPropagation();activate(t);}}}/>: 
+      return url?<a key={i} {...props} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>{e.stopPropagation();if(t.kind!=='external'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();activate(t);}}}/>:
         (((t.kind==='note'||t.kind==='cross')&&t.number||t.articleText||t.status)?<button type="button" key={i} {...props} onClick={e=>{e.stopPropagation();activate(t);}}/>:null);
     })}
     {error&&<button type="button" className="text-error" onClick={e=>{e.stopPropagation();retry();}}>다시 불러오기</button>}
@@ -221,9 +227,27 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
     const compact=label.replace(/\s/g,'');
     if(t.start!==undefined&&t.end!==undefined&&text.slice(t.start,t.end).replace(/\s/g,'')===compact){links.push({start:t.start,end:t.end,target:t});continue;}
     const escaped=Array.from(compact,c=>((c==='\\'||'^$.*+?()[]{}|'.includes(c))?'\\':'')+c).join('\\s*');
-    for(const match of text.matchAll(new RegExp(escaped,'g')))links.push({start:match.index!,end:match.index!+match[0].length,target:t});
+    const pattern=(/^\d/u.test(compact)?'(?<!\\d)':'')+escaped+(/\d$/u.test(compact)?'(?!\\d)':'');
+    for(const match of text.matchAll(new RegExp(pattern,'g')))links.push({start:match.index!,end:match.index!+match[0].length,target:t});
   }
   return links.filter((link,i)=>!links.some((other,j)=>j!==i&&other.start===link.start&&other.end===link.end&&(
     other.target.kind!==link.target.kind||other.target.url!==link.target.url||other.target.number!==link.target.number||other.target.sourceId!==link.target.sourceId
   )));
+}
+
+export function useNoteLinks(note?:{number:number;page:number;text:string}){
+  const [state,setState]=useState<{number:number;text:string;links:InlineLink[]}>();
+  useEffect(()=>{
+    if(!note)return;
+    let active=true;
+    const pages=new Set([note.page]);
+    for(const [page,rows] of Object.entries(printedFootnotes))if(rows.includes(note.number))pages.add(Number(page));
+    Promise.allSettled([...pages].map(pageMap)).then(results=>{
+      if(!active)return;
+      const targets=results.flatMap(result=>result.status==='fulfilled'?result.value:[]);
+      setState({number:note.number,text:note.text,links:inlineLinks(note.text,note.number,targets)});
+    });
+    return()=>{active=false;};
+  },[note]);
+  return note&&state?.number===note.number&&state.text===note.text?state.links:[];
 }
