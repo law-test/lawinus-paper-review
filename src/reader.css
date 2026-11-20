@@ -14,3 +14,33 @@
 .section-destination{position:absolute;left:6.5%;right:7%;height:2.1%;border-left:3px solid #89243c;background:#f6da8545;pointer-events:none;animation:section-flash 3.5s ease-out forwards}
 @keyframes section-flash{0%,45%{opacity:1}100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){.section-destination{animation:none;background:transparent}}
+
+.paper-menu-tools,
+.paper-menu-tools .folio-jump,
+.paper-menu-tools .folio-jump label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.paper-page:last-child { margin-bottom: max(9px, var(--last-page-room, 0px)); }
+.paper-menu-tools:empty { display: none; }
+.paper-menu-tools .prt-menu-toggle,
+.paper-menu-tools .folio-jump button { font-size: .8125rem; padding: 4px 8px; }
+.paper-menu-tools .folio-jump label { font-size: .8125rem; }
+.paper-menu-tools .folio-jump input { width: 3.25rem; text-align: center; }
+.prt-menus-collapsed .paper-actions {
+  container: paper-actions / inline-size;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.manuscript-pane > #folio-error { padding: 3px 12px; color: #74243c; background: white; }
+
+@container paper-actions (max-width: 280px) {
+  .paper-menu-tools,
+  .paper-menu-tools .folio-jump,
+  .paper-menu-tools .folio-jump label { gap: 3px; }
+  .paper-menu-tools .folio-jump input { width: 2.6rem; }
+  .paper-menu-tools .prt-menu-toggle,
+  .paper-menu-tools .folio-jump button { padding-inline: 4px; }
+}

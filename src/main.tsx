@@ -37,7 +37,7 @@ function Photo({session,query,label,active=true,onReady}:{session:Session;query:
   return picture&&picture.token===session.token&&picture.query===query?<img src={picture.url} alt={label} draggable={false} onLoad={onReady}/>:<div className="image-status" role="status">쪽을 불러오는 중…</div>;
 }
 
-function DocumentPane({session,start,count,notes,onPage,onTarget}:{session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onTarget:(t:PageTarget,page:number)=>void}){
+function DocumentPane({session,start,count,notes,onPage,onTarget,compactFolio,folioNotice}:{compactFolio:React.ReactNode;folioNotice:React.ReactNode;session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onTarget:(t:PageTarget,page:number)=>void}){
   const host=useRef<HTMLDivElement>(null);
   const [visible,setVisible]=useState<number[]>([start]);
   const [reading,setReading]=useState<number[]>([start]);
@@ -47,6 +47,13 @@ function DocumentPane({session,start,count,notes,onPage,onTarget}:{session:Sessi
   useLayoutEffect(()=>{
     const scroll=host.current!;
     const items=Array.from(scroll.querySelectorAll<HTMLElement>('.paper-page'));
+    const last=items[items.length-1];
+    // Short pages still need enough space below them to reach the top of the viewport.
+    const sizeEndMargin=()=>scroll.style.setProperty('--last-page-room',Math.max(0,scroll.clientHeight-last.offsetHeight)+'px');
+    const pageSize=new ResizeObserver(sizeEndMargin);
+    pageSize.observe(scroll);
+    pageSize.observe(last);
+    sizeEndMargin();
     const jump=(page:number)=>{const item=items[Math.max(0,Math.min(count-1,page-1))];if(item){scroll.scrollTop=item.offsetTop;onPage(Number(item.dataset.page));}};
     const navigate=(event:Event)=>{const page=Number((event as CustomEvent).detail?.page);if(Number.isInteger(page))jump(page);};
     const update=()=>{
@@ -63,10 +70,11 @@ function DocumentPane({session,start,count,notes,onPage,onTarget}:{session:Sessi
     },{root:scroll});
     for(const item of items){observer.observe(item);textObserver.observe(item);}
     jump(start);scroll.addEventListener('scroll',update,{passive:true});window.addEventListener('paper:navigate',navigate);
-    return()=>{observer.disconnect();textObserver.disconnect();scroll.removeEventListener('scroll',update);window.removeEventListener('paper:navigate',navigate);};
+    return()=>{observer.disconnect();textObserver.disconnect();pageSize.disconnect();scroll.removeEventListener('scroll',update);window.removeEventListener('paper:navigate',navigate);};
   },[count,start,onPage]);
   const sections=useSectionNavigation(host,start,onPage);
-  return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><button type="button" className="section-back" hidden={!sections.canReturn} aria-label="이전 읽던 위치로 돌아가기" title="이전 읽던 위치로 돌아가기" onClick={sections.back}>←</button><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
+  return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><div className="paper-menu-tools">{compactFolio}</div><button type="button" className="section-back" hidden={!sections.canReturn} aria-label="이전 읽던 위치로 돌아가기" title="이전 읽던 위치로 돌아가기" onClick={sections.back}>←</button><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
+    {folioNotice}
     <div className="paper-scroll" ref={host} onCopy={copyManuscriptSelection} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} data-folio={folioLabel(page)} data-folio-description={folioDescription(page)} style={{width:zoom+'%'}} tabIndex={-1} aria-label={sections.heading?.page===page&&sections.heading.title?sections.heading.title:'논문 '+folioDescription(page)}>
       <Photo session={session} label={'논문 '+folioDescription(page)} query={'edition=1116_15&page='+page} active={visible.includes(page)}/>
       {sections.heading?.page===page&&<span key={sections.heading.y} className="section-destination" style={{top:sections.heading.y*100+'%'}} aria-hidden="true"/>}
@@ -82,6 +90,13 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const [caseTarget,setCaseTarget]=useState<PageTarget|null>(null);
   const [referenceFocus,setReferenceFocus]=useState(0);
   const [folioError,setFolioError]=useState('');
+  const [menusCollapsed,setMenusCollapsed]=useState(false);
+  useLayoutEffect(()=>{
+    const syncMenu=()=>setMenusCollapsed(document.getElementById('reading-menus')?.inert===true);
+    window.addEventListener('paper:menu-visibility',syncMenu);
+    syncMenu();
+    return ()=>window.removeEventListener('paper:menu-visibility',syncMenu);
+  },[]);
   const [page,setPage]=useState(initial),[pageInput,setPageInput]=useState(folioLabel(initial)),[toc,setToc]=useState(false),[query,setQuery]=useState(''),[list,setList]=useState(false),[own,setOwn]=useState<{page:number;number?:number;id?:string;showNote?:boolean;noteOnly?:boolean}|null>(null),[preview,setPreview]=useState<number|undefined>();
   const sources=useMemo(()=>new Map(catalog.sources.map(s=>[s.id,s])),[catalog]);
   const notes=useMemo(()=>originalNotes.map(note=>{
@@ -191,18 +206,21 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
       renderPage={(p,canonicalId,onReady)=><Photo session={session} label={'판결문 PDF '+p+'쪽'}
         query={new URLSearchParams({source:canonicalId,page:String(p)}).toString()} onReady={onReady}/>}/>
   );
-  return <div className="examiner-app"><div id="reading-menus" className="reading-menus"><div className="reading-menus-content"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);}} aria-expanded={list}>참고문헌</button></nav></header>
-    <section className="page-controls" data-current-sheet={page}><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button><form onSubmit={e=>{
+  const folioForm=(<form className="folio-jump" onSubmit={e=>{
         e.preventDefault();
         const sheet=sheetForFolio(pageInput);
         if(sheet===undefined){setFolioError('표지, 제출지, i–xii 또는 1–'+lastPrintedFolio+'쪽을 입력하세요.');return;}
         setFolioError('');setPageInput(folioLabel(sheet));jump(sheet);
       }}><label>인쇄 쪽 <input aria-label="논문 인쇄 쪽" aria-invalid={Boolean(folioError)} aria-describedby={folioError?'folio-error':undefined}
         value={pageInput} onChange={e=>{setPageInput(e.target.value);setFolioError('');}} autoComplete="off" autoCapitalize="none" spellCheck={false} enterKeyHint="go"/></label>
-        <span>/ {lastPrintedFolio}쪽</span><button>이동</button></form><button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button>{folioError&&<small id="folio-error" role="status">{folioError}</small>}</section>
+        {!menusCollapsed&&<span>/ {lastPrintedFolio}쪽</span>}<button>이동</button></form>);
+  const folioNotice=folioError&&<small id="folio-error" role="status">{folioError}</small>;
+  return <div className="examiner-app"><div id="reading-menus" className="reading-menus"><div className="reading-menus-content"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);}} aria-expanded={list}>참고문헌</button></nav></header>
+    <section className="page-controls" data-current-sheet={page}><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button>{!menusCollapsed&&folioForm}<button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button>{!menusCollapsed&&folioNotice}</section>
     </div></div>
     <div className="reader-layout">{toc&&<ContentsSearch session={session} catalog={catalog} notes={catalog.searchEnabled===true?notes:pageNotes} go={(p,n)=>{setToc(false);jump(p);if(n)openNote(n,p);}}/>}
-      <DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}/>
+      <DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}
+        compactFolio={menusCollapsed&&folioForm} folioNotice={menusCollapsed&&folioNotice}/>
       <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={shownOption?shownOption.note.number+'/'+shownOption.citation.id:''} onChange={e=>{const opt=options.find(o=>o.note.number+'/'+o.citation.id===e.target.value);if(opt){
           setLegal(null);setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);
           const number=catalogCase(opt.citation.id)||casesInNote(opt.note.number).find(id=>caseOriginal(id)?.sourceId===opt.citation.id);

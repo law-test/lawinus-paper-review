@@ -366,7 +366,9 @@
       topRail.title='경계를 위로 끌어 메뉴를 접거나 아래로 끌어 펼칩니다.';
       topEdge.append(topRail);
       layout.before(topEdge);
-      layout.querySelector('.paper-actions strong')?.after(toggle);
+      const menuTools=layout.querySelector('.paper-menu-tools');
+      if(menuTools)menuTools.prepend(toggle);
+      else layout.querySelector('.paper-actions strong')?.after(toggle);
     }
 
     function menuHeight(){return menuContent?.offsetHeight||0;}
@@ -374,7 +376,10 @@
       if(!menus)return;
       const collapsed=menuFraction===0;
       menus.style.maxHeight=menuFraction===1?'none':Math.round(menuHeight()*menuFraction)+'px';
-      menus.inert=collapsed;
+      if(menus.inert!==collapsed){
+        menus.inert=collapsed;
+        window.dispatchEvent(new Event('paper:menu-visibility'));
+      }
       topEdge.classList.toggle('at-top',collapsed);
       app.classList.toggle('prt-menus-collapsed',collapsed);
       topRail.setAttribute('aria-valuenow',String(Math.round(menuFraction*100)));
@@ -383,7 +388,7 @@
       if(toggle.textContent!==label)toggle.textContent=label;
       toggle.setAttribute('aria-label','상단 '+label);
       toggle.setAttribute('aria-expanded',String(!collapsed));
-      toggle.title=collapsed?'상단 메뉴와 쪽 이동 다시 표시':'상단 메뉴를 접고 논문과 참고문헌을 화면에 채우기';
+      toggle.title=collapsed?'상단 메뉴 다시 표시':'상단 메뉴를 접고 논문과 참고문헌을 화면에 채우기';
     }
     function changeMenu(fraction,save){
       if(fraction===0 && menuFraction!==0)compactHeight=null;
