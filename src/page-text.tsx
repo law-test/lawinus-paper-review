@@ -5,10 +5,13 @@ import separators from './line-separators.json';
 import footnoteRows from './footnote-rows.json';
 import {repairLawTargets} from './verified-law-targets';
 import {bibliographyURL,repairCitationTargets} from './citation-links';
+import sectionData from './section-link-data.json';
+import {sectionHref} from './section-navigation';
 
 export type Rect={x:number;y:number;w:number;h:number};
 export type TextLine=Rect&{text:string;size?:number;index?:number};
-export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross'|'external';number?:number;targetPage?:number;noteNumber?:number;sourceId?:string;sourcePage?:number;line?:number;caseNumber?:string;lawKey?:string;articleId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
+export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross'|'external'|'section';number?:number;targetPage?:number;targetY?:number;noteNumber?:number;noteStart?:number;noteEnd?:number;sourceId?:string;sourcePage?:number;line?:number;caseNumber?:string;lawKey?:string;articleId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
+const sectionTargets=sectionData as Record<string,PageTarget[]>;
 type PageMetadata={lines:TextLine[];targets:PageTarget[];width?:number;height?:number};
 export type InlineLink={start:number;end:number;target:PageTarget};
 
@@ -28,7 +31,7 @@ function pageMap(page:number){
     pending=fetch(url,{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
-      return repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[])).filter(box);
+      return [...repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[])),...(sectionTargets[page]||[])].filter(box);
     });
     mapCache.set(page,pending);pending.catch(()=>{if(mapCache.get(page)===pending)mapCache.delete(page);});
     while(mapCache.size>12)mapCache.delete(mapCache.keys().next().value!);
@@ -42,10 +45,11 @@ export function usePageMetadata(session:Session,query:string,active=true,textAll
     if(!active)return;
     let alive=true,timer=0;
     const params=new URLSearchParams(query),page=params.get('metadata')==='page'?Number(params.get('page')):0;
-    let targets:PageTarget[]=[],lines:TextLine[]=[];
+    let targets:PageTarget[]=sectionTargets[page]||[],lines:TextLine[]=[];
     const publish=()=>{if(alive)setState({query,token:session.token,data:{lines,targets}});};
     if(page>0&&page<=253){
-      pageMap(page).then(value=>{targets=value;publish();},()=>{if(alive)setState({query,token:session.token,error:'쪽 링크를 불러오지 못했습니다.'});});
+      if(targets.length)publish();
+      pageMap(page).then(value=>{targets=value;publish();},()=>{if(alive)setState({query,token:session.token,data:{lines,targets},error:'쪽 링크를 불러오지 못했습니다.'});});
     }
     if(!textAllowed)return ()=>{alive=false;};
     const item=openMetadata(session,query);
@@ -80,7 +84,7 @@ export function officialURL(raw?:string){
     return link.href;
   }catch{return undefined;}
 }
-export function targetLabel(t:PageTarget){return t.kind==='note'&&!t.sourceId?'각주 '+t.number:(t.caseNumber||t.kind==='external'||t.sourceId?t.title:undefined)||t.label||t.title||'원문 확인';}
+export function targetLabel(t:PageTarget){return t.kind==='note'&&!t.sourceId?'각주 '+t.number:(t.caseNumber||t.kind==='external'||t.kind==='section'||t.sourceId?t.title:undefined)||t.label||t.title||'원문 확인';}
 function positioning(r:Rect){return {left:r.x*100+'%',top:r.y*100+'%',width:r.w*100+'%',height:r.h*100+'%'};}
 const within=(p:{x:number;y:number},r:Rect)=>p.x>=r.x&&p.y>=r.y&&p.x<=r.x+r.w&&p.y<=r.y+r.h;
 const plainNote=(t:PageTarget)=>t.kind==='note'&&!t.sourceId;
@@ -175,8 +179,11 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
       const sep=order[line.index??i];return <TextRun key={i} line={line} width={size.w} height={size.h} joinBefore={sep==='C'?'':sep==='S'?' ':'\n'}/>;
     })}
     <span ref={hover} className="page-target-hover" aria-hidden="true" hidden/>
-    {onTarget&&targets.map((t,i)=>{const url=t.kind==='external'?bibliographyURL(t.url):officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':t.kind==='external'?'참고자료':'각주';
+    {onTarget&&targets.map((t,i)=>{const url=t.kind==='external'?bibliographyURL(t.url):officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':t.kind==='external'?'참고자료':t.kind==='section'?'논문 본문':'각주';
       const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'aria-label':name+' 열기 · '+targetLabel(t)};
+      if(t.kind==='section'&&t.targetPage&&t.targetY!==undefined)return <a key={i} {...props}
+        data-target-page={t.targetPage} data-target-y={t.targetY} href={sectionHref(t.targetPage,t.targetY)}
+        onClick={e=>{e.stopPropagation();if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();activate(t);}}}/>;
       return url?<a key={i} {...props} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>{e.stopPropagation();if(t.kind!=='external'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();activate(t);}}}/>:
         (((t.kind==='note'||t.kind==='cross')&&t.number||t.articleText||t.status)?<button type="button" key={i} {...props} onClick={e=>{e.stopPropagation();activate(t);}}/>:null);
     })}
@@ -197,7 +204,7 @@ export function NoteText({text,links,onTarget}:{text:string;links:InlineLink[];o
   let cursor=0;const parts:React.ReactNode[]=[];
   for(const link of [...links].sort((a,b)=>a.start-b.start)){
     if(link.start<cursor||link.end<=link.start||link.end>text.length)continue;
-    const url=officialURL(link.target.url),internal=link.target.kind==='note'||link.target.kind==='cross';if(!internal&&!url&&!link.target.articleText&&!link.target.status)continue;
+    const url=officialURL(link.target.url),internal=link.target.kind==='note'||link.target.kind==='cross'||link.target.kind==='section';if(!internal&&!url&&!link.target.articleText&&!link.target.status)continue;
     parts.push(text.slice(cursor,link.start));
     const phrase=text.slice(link.start,link.end);
     parts.push((internal||!url)?<button key={link.start} type="button" className="inline-note-link" onClick={()=>onTarget(link.target)}>{phrase}</button>:
@@ -225,6 +232,14 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
     if((t.noteNumber??(t.sourceId?t.number:undefined))!==noteNumber||(t.kind==='note'&&!t.sourceId))continue;
     const label=(t.label||'').trim();if(!label)continue;
     const compact=label.replace(/\s/g,'');
+    if(t.kind==='section'){
+      // Printed line offsets and unwrapped note offsets belong to different texts.
+      const {noteStart:start,noteEnd:end}=t;
+      if(start!==undefined&&end!==undefined&&start>=0&&end>start&&end<=text.length&&text.slice(start,end).replace(/\s/g,'')===compact){
+        links.push({start,end,target:t});
+      }
+      continue;
+    }
     if(t.start!==undefined&&t.end!==undefined&&text.slice(t.start,t.end).replace(/\s/g,'')===compact){links.push({start:t.start,end:t.end,target:t});continue;}
     const escaped=Array.from(compact,c=>((c==='\\'||'^$.*+?()[]{}|'.includes(c))?'\\':'')+c).join('\\s*');
     const pattern=(/^\d/u.test(compact)?'(?<!\\d)':'')+escaped+(/\d$/u.test(compact)?'(?!\\d)':'');

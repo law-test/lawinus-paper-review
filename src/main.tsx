@@ -10,6 +10,7 @@ import {extraCitationSources} from './printed-pages';
 import {catalogCase} from './citation-links';
 import CasePane from './case-pane';
 import LawPane from './law-pane';
+import {useSectionNavigation} from './section-navigation';
 import './reader.css';
 
 function Photo({session,query,label,active=true,onReady}:{session:Session;query:string;label:string;active?:boolean;onReady?:()=>void}){
@@ -62,9 +63,11 @@ function DocumentPane({session,start,count,notes,onPage,onTarget}:{session:Sessi
     jump(start);scroll.addEventListener('scroll',update,{passive:true});window.addEventListener('paper:navigate',navigate);
     return()=>{observer.disconnect();textObserver.disconnect();scroll.removeEventListener('scroll',update);window.removeEventListener('paper:navigate',navigate);};
   },[count,start,onPage]);
-  return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
-    <div className="paper-scroll" ref={host} onCopy={copyManuscriptSelection} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} style={{width:zoom+'%'}} aria-label={'논문 '+page+'쪽'}>
+  const sections=useSectionNavigation(host,start,onPage);
+  return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><button type="button" className="section-back" hidden={!sections.canReturn} aria-label="이전 읽던 위치로 돌아가기" title="이전 읽던 위치로 돌아가기" onClick={sections.back}>←</button><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
+    <div className="paper-scroll" ref={host} onCopy={copyManuscriptSelection} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} style={{width:zoom+'%'}} tabIndex={-1} aria-label={sections.heading?.page===page&&sections.heading.title?sections.heading.title:'논문 '+page+'쪽'}>
       <Photo session={session} label={'논문 '+page+'쪽'} query={'edition=1116_15&page='+page} active={visible.includes(page)}/>
+      {sections.heading?.page===page&&<span key={sections.heading.y} className="section-destination" style={{top:sections.heading.y*100+'%'}} aria-hidden="true"/>}
       {visible.includes(page)&&<PageLayer session={session} textAllowed={reading.includes(page)} query={'metadata=page&page='+page} label={'논문 '+page+'쪽 글자'}
         fallback={(noteMap.get(page)||[]).flatMap(n=>(n.markers||[]).map(m=>({...m,kind:'note' as const,number:n.number,label:'각주 '+n.number})))}
         onTarget={t=>onTarget(t,page)}/>}
@@ -130,6 +133,10 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const jump=(p:number)=>window.dispatchEvent(new CustomEvent('paper:navigate',{detail:{page:Math.max(1,Math.min(p,catalog.pageCount))}}));
   const chooseNote=(n:Note)=>{setReferenceFocus(v=>v+1);setLegal(null);setCaseTarget(null);setList(false);setOwn({page,number:n.number,id:n.sources[0]?.id,showNote:true});setPreview(undefined);};
   function targetAction(t:PageTarget,fromPage:number){
+    if(t.kind==='section'){
+      window.dispatchEvent(new CustomEvent('paper:section',{detail:{fromPage,page:t.targetPage,y:t.targetY,title:t.title}}));
+      return;
+    }
     if(t.kind==='case'){setLegal(null);setCaseTarget(t);setList(false);return;}
     if(t.kind==='law'){setCaseTarget(null);setLegal(t);setList(false);return;}
     setLegal(null);setCaseTarget(null);

@@ -7,3 +7,10 @@
 .page-text-layer .page-target-hover{position:absolute;pointer-events:none;border-radius:2px;background:#8b20391b;outline:1px solid #8b203996}
 .page-text-layer .note-link{border-bottom:1px dotted #8b283fbd}
 @media(max-width:760px){.source-dialog.showing-note h2{position:static}}
+.page-text-layer .section-link{border-bottom:1px dotted #81203f}
+.paper-actions .section-back{flex:none;min-width:32px;padding:2px 7px;font-size:19px;line-height:1.2;color:#78243b}
+.paper-actions .section-back[hidden]{display:none}
+.paper-page:focus{outline:0}
+.section-destination{position:absolute;left:6.5%;right:7%;height:2.1%;border-left:3px solid #89243c;background:#f6da8545;pointer-events:none;animation:section-flash 3.5s ease-out forwards}
+@keyframes section-flash{0%,45%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.section-destination{animation:none;background:transparent}}
