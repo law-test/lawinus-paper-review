@@ -319,6 +319,12 @@
     let manuallySized = Number.isFinite(stored) && stored > 0;
     let drag = null;
     const app = layout.closest('.examiner-app');
+    const menus=app.querySelector('.reading-menus');
+    const menuContent=menus?.querySelector('.reading-menus-content');
+    const menuKey=layoutKey+':menu-fraction';
+    const savedFraction=Number(read(menuKey,'1'));
+    let menuFraction=Number.isFinite(savedFraction)?Math.max(0,Math.min(1,savedFraction)):1;
+    let compactHeight=null;
     const scrollport=layout.querySelector('.paper-scroll');
     const initialPage=pageFrom(app.querySelector('[aria-label="논문 쪽"]')?.value);
     const anchor=initialPage&&scrollport?.querySelector('[data-page="'+initialPage+'"]');
@@ -339,11 +345,86 @@
     edge.append(rail);
     layout.after(edge,footer);
 
-    function minHeight() {return innerWidth <= 760 ? 396 : 214;}
+    const topEdge=el('div',undefined,'prt-menu-edge');
+    const topRail=el('div',undefined,'prt-menu-height');
+    const toggle=button('메뉴 접기',()=>changeMenu(menuFraction>0?0:1,true));
+    toggle.className='prt-menu-toggle';
+    toggle.setAttribute('aria-controls','reading-menus');
+    if(menus && menuContent){
+      topRail.tabIndex=0;
+      topRail.setAttribute('role','separator');
+      topRail.setAttribute('aria-orientation','horizontal');
+      topRail.setAttribute('aria-label','상단 메뉴와 열람창 사이 높이 조절');
+      topRail.setAttribute('aria-controls','reading-menus');
+      topRail.setAttribute('aria-valuemin','0');
+      topRail.setAttribute('aria-valuemax','100');
+      topRail.setAttribute('aria-keyshortcuts','ArrowUp ArrowDown Home End');
+      topRail.title='경계를 위로 끌어 메뉴를 접거나 아래로 끌어 펼칩니다.';
+      topEdge.append(topRail);
+      layout.before(topEdge);
+      layout.querySelector('.paper-actions strong')?.after(toggle);
+    }
+
+    function menuHeight(){return menuContent?.offsetHeight||0;}
+    function updateMenu(){
+      if(!menus)return;
+      const collapsed=menuFraction===0;
+      menus.style.maxHeight=menuFraction===1?'none':Math.round(menuHeight()*menuFraction)+'px';
+      menus.inert=collapsed;
+      topEdge.classList.toggle('at-top',collapsed);
+      app.classList.toggle('prt-menus-collapsed',collapsed);
+      topRail.setAttribute('aria-valuenow',String(Math.round(menuFraction*100)));
+      topRail.setAttribute('aria-valuetext',collapsed?'접힘':menuFraction===1?'펼침':Math.round(menuFraction*100)+'%');
+      const label=collapsed?'메뉴 열기':'메뉴 접기';
+      if(toggle.textContent!==label)toggle.textContent=label;
+      toggle.setAttribute('aria-label','상단 '+label);
+      toggle.setAttribute('aria-expanded',String(!collapsed));
+      toggle.title=collapsed?'상단 메뉴와 쪽 이동 다시 표시':'상단 메뉴를 접고 논문과 참고문헌을 화면에 채우기';
+    }
+    function changeMenu(fraction,save){
+      if(fraction===0 && menuFraction!==0)compactHeight=null;
+      menuFraction=Math.max(0,Math.min(1,fraction));
+      if(save)write(menuKey,String(menuFraction));
+      refreshSize();
+    }
+    let menuDrag=null;
+    topRail.addEventListener('pointerdown',event=>{
+      if(event.button!==0||menuDrag)return;
+      event.preventDefault();
+      topRail.focus({preventScroll:true});
+      topRail.setPointerCapture(event.pointerId);
+      menuDrag={id:event.pointerId,y:event.clientY,height:menus.offsetHeight};
+      topRail.classList.add('is-dragging');
+    });
+    topRail.addEventListener('pointermove',event=>{
+      if(menuDrag?.id!==event.pointerId)return;
+      const full=menuHeight();
+      if(!full)return;
+      const height=menuDrag.height+event.clientY-menuDrag.y;
+      changeMenu(height<=6?0:height>=full-6?1:height/full,false);
+    });
+    function endMenuDrag(event){
+      if(menuDrag?.id!==event.pointerId)return;
+      menuDrag=null;
+      topRail.classList.remove('is-dragging');
+      write(menuKey,String(menuFraction));
+    }
+    for(const type of ['pointerup','pointercancel','lostpointercapture'])topRail.addEventListener(type,endMenuDrag);
+    topRail.addEventListener('dblclick',()=>changeMenu(menuFraction>0?0:1,true));
+    topRail.addEventListener('keydown',event=>{
+      const step=(event.shiftKey?64:20)/Math.max(1,menuHeight());
+      const values={ArrowUp:menuFraction-step,ArrowDown:menuFraction+step,Home:0,End:1};
+      if(event.key in values){event.preventDefault();changeMenu(Math.max(0,Math.min(1,values[event.key])),true);}
+    });
+    menus?.addEventListener('focusin',event=>{
+      if(menuFraction>0 && menuFraction<1 && event.target.getBoundingClientRect().bottom>menus.getBoundingClientRect().bottom)changeMenu(1,true);
+    },events);
+
     function availableHeight() {
       const top = layout.getBoundingClientRect().top + window.scrollY;
-      return Math.max(minHeight(), innerHeight - top);
+      return Math.max(1, innerHeight - top);
     }
+    function minHeight() {return Math.min(innerWidth<=760?396:214,availableHeight());}
     function defaultHeight() {
       return Math.max(minHeight(),availableHeight()-footer.offsetHeight);
     }
@@ -359,11 +440,16 @@
       return px;
     }
     function fitToWindow() {
+      if(menuFraction===0){compactHeight=null;setHeight(availableHeight());return;}
       manuallySized = false;
       write(key, null);
       setHeight(defaultHeight());
     }
-    function persist(value) {manuallySized=true;write(key,String(value));}
+    function persist(value) {
+      if(menuFraction===0){compactHeight=value;return;}
+      manuallySized=true;
+      write(key,String(Math.max(1,value-menuHeight()*(1-menuFraction))));
+    }
     function stopDrag() {
       if(!drag)return;
       persist(drag.height);
@@ -395,15 +481,19 @@
       persist(setHeight(next));
     });
     function refreshSize(){
-      if(!layout.isConnected){controller.abort();observer.disconnect();stopDrag();footer.remove();edge.remove();return;}
-      if(!drag)setHeight(manuallySized?Number(read(key,'0'))||defaultHeight():defaultHeight());
+      if(!layout.isConnected){controller.abort();observer.disconnect();stopDrag();footer.remove();edge.remove();topEdge.remove();return;}
+      updateMenu();
+      if(drag)return;
+      if(menuFraction===0){setHeight(compactHeight??availableHeight());return;}
+      const savedHeight=Number(read(key,'0'));
+      setHeight(manuallySized && savedHeight?savedHeight+menuHeight()*(1-menuFraction):defaultHeight());
     }
     const observer=new ResizeObserver(refreshSize);
-    for(const node of [app.querySelector('.examiner-header'),app.querySelector('.page-controls'),footer])if(node)observer.observe(node);
+    for(const node of [menuContent||app.querySelector('.examiner-header'),app.querySelector('.page-controls'),footer])if(node)observer.observe(node);
     window.addEventListener('resize',refreshSize,events);
     // Size the row before releasing the viewport-height flex layout, so the
     // browser cannot briefly expand the scrollport to every manuscript page.
-    setHeight(manuallySized?stored:defaultHeight());
+    refreshSize();
     app.classList.add('prt-resizable-reading');
     if(anchor&&scrollport)scrollport.scrollTop=anchor.offsetTop+offset;
   }

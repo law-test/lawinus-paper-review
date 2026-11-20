@@ -7,7 +7,11 @@ import './law-pane.css';
 
 type LawBlock={type:'article'|'heading'|'supplement';id?:string;title?:string;text?:string;paragraphs?:string[]};
 export type LawRecord={key:string;name:string;status:'current'|'historical'|'foreign';jurisdiction?:string;available:boolean;format:'articles';effectiveDate?:string;versionLabel?:string;retrievedAt?:string;currentKey?:string;officialUrl?:string;sourceLabel?:string;scope?:string;articles:LawBlock[];supplements?:LawBlock[]};
-export function citedArticle(target:PageTarget){const m=(target.label||target.title||'').match(/제\s*(\d+)\s*조(?:\s*의\s*(\d+))?/);return m?String(Number(m[1]))+(m[2]?'-'+Number(m[2]):''):'';}
+export function citedArticle(target:PageTarget){
+  const pattern=/제\s*(\d+)\s*조(?:\s*의\s*(\d+))?/;
+  const match=target.label?.match(pattern)??target.title?.match(pattern);
+  return match?String(Number(match[1]))+(match[2]?'-'+Number(match[2]):''):'';
+}
 export function linkedLawKey(target:PageTarget){
   if(target.status==='proposal'||target.status==='unresolved'||target.status==='bill-proposal')return '';
   if(target.status==='foreign'){
@@ -42,7 +46,13 @@ export default function LawPane({session,target,onClose}:{session:Session;target
     }).catch(e=>{if(!c.signal.aborted)setError(e instanceof Error?e.message:'법령 원문을 불러오지 못했습니다.');});return()=>c.abort();
   },[session,selectedKey,attempt,proposal]);
   useLayoutEffect(()=>{if(!record||record.key!==selectedKey)return;setNotice('');if(article&&!jump(host.current,article))setNotice('이 판본에서 '+(target.label||'인용 조문')+'을 찾지 못했습니다. 법령명·판본·본문과 부칙의 구분을 확인해 주세요.');},[record,selectedKey,article,target]);
-  const url=officialURL(record?.officialUrl)||officialURL(target.url),choices=LAW_VERSIONS.filter(v=>v.status==='current'||v.status==='foreign'||v.key==='kr-59258');
+  const targetUrl=officialURL(target.url);
+  const deepLink=targetUrl?new URL(targetUrl):null;
+  const citedEdition=selectedKey&&selectedKey===linkedLawKey(target);
+  const edition=LAW_VERSIONS.find(v=>v.key===selectedKey);
+  const exactArticle=citedEdition&&deepLink?.hostname==='www.law.go.kr'&&deepLink.pathname==='/LSW/lsInfoR.do'&&/^#Y\d{6}$/.test(deepLink.hash);
+  const url=exactArticle?targetUrl:officialURL(edition?.officialUrl)||targetUrl;
+  const choices=LAW_VERSIONS.filter(v=>v.status==='current'||v.status==='foreign'||v.key==='kr-59258');
   const unidentified=!selectedKey&&!proposal;
   return <section className="source-dialog law-pane" ref={host} aria-label={bill?'국회 발의안 설명':proposal?'논문 입법시안 원문':'법령 전문'}>
     <div className="law-pane-actions"><strong>{bill?'국회 발의안 설명':proposal?'논문 입법시안':'법령 전문'}</strong><button type="button" onClick={onClose}>인용자료로 돌아가기</button></div>

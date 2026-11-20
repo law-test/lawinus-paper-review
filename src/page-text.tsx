@@ -21,7 +21,9 @@ const mapCache=new Map<number,Promise<PageTarget[]>>();
 function pageMap(page:number){
   let pending=mapCache.get(page);
   if(!pending){
-    pending=fetch(new URL('link-maps/1116_15/'+page+'.json',document.baseURI),{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
+    const url=new URL('link-maps/1116_15/'+page+'.json',document.baseURI);
+    if(page===22)url.searchParams.set('v','20261121-special-act');
+    pending=fetch(url,{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
       return (data.targets as PageTarget[]).filter(box);
@@ -61,7 +63,19 @@ export function officialURL(raw?:string){
     const link=new URL(raw);
     const host=link.hostname;
     const allowed=['law.go.kr','scourt.go.kr','assembly.go.kr','elaw.klri.re.kr','gesetze-im-internet.de','e-gov.go.jp','japaneselawtranslation.go.jp','uscode.house.gov','govinfo.gov','bundesgerichtshof.de','gesetze-bayern.de','dejure.org','courts.go.jp'];
-    return link.protocol==='https:'&&!link.username&&!link.password&&allowed.some(domain=>host===domain||host.endsWith('.'+domain))?link.href:undefined;
+    if(link.protocol!=='https:'||link.username||link.password||!allowed.some(domain=>host===domain||host.endsWith('.'+domain)))return undefined;
+    // Older maps cite this provision through a retired government endpoint.
+    const params=link.searchParams;
+    if(host==='www.law.go.kr'&&link.pathname==='/LSW/lsSideInfoP.do'&&params.get('joNo')==='0025'&&params.get('joBrNo')==='13'){
+      const sequence=params.get('lsiSeq')||'';
+      const dates:Record<string,string>={'285963':'20261113','290655':'20261002'};
+      if(Object.hasOwn(dates,sequence)){
+        link.pathname='/LSW/lsInfoR.do';
+        link.search=new URLSearchParams({lsiSeq:sequence,efYd:dates[sequence],chrClsCd:'010202',joNo:'0025',joBrNo:'13'}).toString();
+        link.hash='Y002513';
+      }
+    }
+    return link.href;
   }catch{return undefined;}
 }
 export function targetLabel(t:PageTarget){return t.kind==='note'&&!t.sourceId?'각주 '+t.number:t.label||t.title||'원문 확인';}
