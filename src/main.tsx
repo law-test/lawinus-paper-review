@@ -240,7 +240,7 @@ function ReadingSession({session}:{session:Session}){
 }
 
 function Loading({error,retry}:{error:string;retry:()=>void}){
-  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · 김민규</small><h1>주택임차보증금 회수에 관한 법적 쟁점의 연구</h1></div></header><section className="page-controls">논문 15 / 253쪽</section><div className="reader-layout"><main className="reader-pending"><strong>논문</strong><p role="status">{error||'논문을 불러오는 중…'}</p>{error&&<button onClick={retry}>다시 시도</button>}</main><aside className="reference-pane"><div className="reference-toolbar"><strong>참고문헌·원전</strong></div></aside></div></div>;
+  return <div className="examiner-app"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · 김민규</small><h1>주택임차보증금 회수에 관한 법적 쟁점의 연구</h1></div></header><section className="page-controls">인쇄 1 / {lastPrintedFolio}쪽</section><div className="reader-layout"><main className="reader-pending"><strong>논문</strong><p role="status">{error||'논문을 불러오는 중…'}</p>{error&&<button onClick={retry}>다시 시도</button>}</main><aside className="reference-pane"><div className="reference-toolbar"><strong>참고문헌·원전</strong></div></aside></div></div>;
 }
 
 function App(){
