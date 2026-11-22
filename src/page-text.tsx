@@ -9,13 +9,27 @@ import sectionData from './section-link-data.json';
 import {sectionHref} from './section-navigation';
 import {footnoteCaseTargets} from './footnote-cases';
 import sourceSpanData from './footnote-source-spans.json';
+import caseSpanData from './case-citation-spans.json';
 
 export type Rect={x:number;y:number;w:number;h:number};
 export type TextLine=Rect&{text:string;size?:number;index?:number};
-export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross'|'external'|'section';number?:number;targetPage?:number;targetY?:number;noteNumber?:number;noteStart?:number;noteEnd?:number;sourceId?:string;sourcePage?:number;sourceGroup?:string;rects?:Rect[];line?:number;caseNumber?:string;lawKey?:string;articleId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
+export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross'|'external'|'section';number?:number;targetPage?:number;targetY?:number;noteNumber?:number;noteStart?:number;noteEnd?:number;sourceId?:string;sourcePage?:number;sourceGroup?:string;caseGroup?:string;firstPage?:number;rects?:Rect[];line?:number;caseNumber?:string;lawKey?:string;articleId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
 const sectionTargets=sectionData as Record<string,PageTarget[]>;
 type SourceSpan={number:number;id:string;sourceId?:string;sourcePage?:number;label:string;noteStart:number;noteEnd:number;rects:(Rect&{line:number})[]};
 const sourceSpans=sourceSpanData as Record<string,SourceSpan[]>;
+type CaseSpan={id:string;caseNumber:string;label:string;firstPage:number;noteStart?:number;noteEnd?:number;noteNumber?:number;url?:string;sourceId?:string;rects:(Rect&{line:number;start:number;end:number})[]};
+const caseSpans=caseSpanData as Record<string,CaseSpan[]>;
+function printedCases(page:number,targets:PageTarget[]):PageTarget[]{
+  // The older links cover the docket digits. Keep implied references such as
+  // “원심” and show the full, printed citation wherever there is a docket.
+  const retained=targets.filter(t=>t.kind!=='case'||(!/^\d/.test(t.label||'')&&t.caseNumber!=='Timbers'));
+  const expanded=(caseSpans[page]||[]).map((s):PageTarget=>({
+    ...s.rects[0],kind:'case',caseNumber:s.caseNumber,caseGroup:s.id,firstPage:s.firstPage,
+    noteStart:s.noteStart,noteEnd:s.noteEnd,noteNumber:s.noteNumber,sourceId:s.sourceId,
+    label:s.label,title:s.label,url:s.url,rects:s.rects,
+  }));
+  return retained.concat(expanded);
+}
 const firstSourcePage=new Map<string,number>();
 for(const [page,spans] of Object.entries(sourceSpans))
   for(const s of spans)if(!firstSourcePage.has(s.id))firstSourcePage.set(s.id,Number(page));
@@ -45,7 +59,8 @@ function pageMap(page:number){
     pending=fetch(url,{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
-      return [...footnoteCaseTargets(page,repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[]))),...(sectionTargets[page]||[]),...sourceTargets(page)].filter(box);
+      const citations=footnoteCaseTargets(page,repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[])));
+      return [...printedCases(page,citations),...(sectionTargets[page]||[]),...sourceTargets(page)].filter(box);
     });
     mapCache.set(page,pending);pending.catch(()=>{if(mapCache.get(page)===pending)mapCache.delete(page);});
     while(mapCache.size>12)mapCache.delete(mapCache.keys().next().value!);
@@ -156,7 +171,7 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
     update();const observer=new ResizeObserver(update);observer.observe(node);return()=>observer.disconnect();
   },[active]);
   const targets=[...(data?.targets||[]),...fallback.filter(f=>!(data?.targets||[]).some(t=>t.kind===f.kind&&t.number===f.number&&Math.abs(t.x-f.x)<.015&&Math.abs(t.y-f.y)<.01))].sort((a,b)=>a.y-b.y||a.x-b.x);
-  const directTargets=targets.filter(t=>!t.sourceGroup).sort((a,b)=>a.w*a.h-b.w*b.h);
+  const directTargets=targets.filter(t=>!t.sourceGroup&&!t.caseGroup).sort((a,b)=>a.w*a.h-b.w*b.h);
   const page=new URLSearchParams(query).get('page')||'';
   function activate(t:PageTarget){
     if(t.kind==='external'){
@@ -169,8 +184,10 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
     const r=host.current!.getBoundingClientRect();if(!r.width||!r.height)return;
     const p={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};
     // An explicitly linked provision or case inside a title keeps its own action.
+    const citation=targets.find(t=>t.caseGroup&&t.rects?.some(r=>within(p,r)));
+    if(citation)return citation;
     const direct=directTargets.find(t=>within(p,t));
-    const source=targets.find(t=>t.rects?.some(r=>within(p,r)));
+    const source=targets.find(t=>t.sourceGroup&&t.rects?.some(r=>within(p,r)));
     if(direct&&!(source&&direct.kind==='note'&&direct.sourceId&&direct.sourceId===source.sourceId))return direct;
     if(source)return source;
     // Printed superscripts are narrower than a fingertip. Pick the nearest marker only.
@@ -188,8 +205,9 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
     if(start.current&&Math.hypot(e.clientX-start.current.x,e.clientY-start.current.y)>4)start.current.dragged=true;
     const node=host.current!, t=hit(e);
     node.title=t?targetLabel(t):'';node.style.cursor=t?'pointer':data?.lines?.length?'text':'default';
-    highlight.point(t?.sourceGroup);
-    if(hover.current){hover.current.hidden=!t||!!t.sourceGroup;if(t&&!t.sourceGroup)Object.assign(hover.current.style,positioning(t));}
+    const group=t?.caseGroup||t?.sourceGroup;
+    highlight.point(group);
+    if(hover.current){hover.current.hidden=!t||!!group;if(t&&!group)Object.assign(hover.current.style,positioning(t));}
   }
   const order=(separators as Record<string,string>)[page]||'';
   if(!active)return null;
@@ -203,10 +221,11 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
       const t=hit(e,press.touch);
       // Adjacent citations can be close enough for two taps to be reported as a
       // double click. Keep text selection on a repeated hit on the same citation.
-      if(e.detail>1&&(!t?.sourceGroup||lastSource.current===t.sourceGroup))return;
+      const group=t?.caseGroup||t?.sourceGroup;
+      if(e.detail>1&&(!group||lastSource.current===group))return;
       const selection=window.getSelection();
       if(selection&&!selection.isCollapsed&&(host.current?.contains(selection.anchorNode)||host.current?.contains(selection.focusNode)))return;
-      lastSource.current=t?.sourceGroup;
+      lastSource.current=group;
       if(t)activate(t);
     }}>
     {data?.lines.map((line,i)=>{
@@ -225,6 +244,17 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
       </React.Fragment>;
       const url=t.kind==='external'?bibliographyURL(t.url):officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':t.kind==='external'?'참고자료':t.kind==='section'?'논문 본문':'각주';
       const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'data-case-number':t.caseNumber,'data-note-number':t.noteNumber,'aria-label':name+' 열기 · '+targetLabel(t)};
+      if(t.caseGroup){
+        const id=t.caseGroup;
+        const focus={tabIndex:t.firstPage===Number(page)?0:-1,onFocus:()=>highlight.focus(id),onBlur:()=>highlight.focus(undefined)};
+        return <React.Fragment key={id}>
+          {t.rects?.map((r,j)=><span key={j} aria-hidden="true" data-case-group={id}
+            className={'page-source-part'+(highlight.active===id?' is-highlighted':'')} style={positioning(r)}/>)}
+          {url?<a {...props} {...focus} data-case-group={id} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>{
+            e.stopPropagation();if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();activate(t);}
+          }}/>:<button {...props} {...focus} data-case-group={id} type="button" onClick={e=>{e.stopPropagation();activate(t);}}/>}
+        </React.Fragment>;
+      }
       if(t.kind==='section'&&t.targetPage&&t.targetY!==undefined)return <a key={i} {...props}
         data-target-page={t.targetPage} data-target-y={t.targetY} href={sectionHref(t.targetPage,t.targetY)}
         onClick={e=>{e.stopPropagation();if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();activate(t);}}}/>;
@@ -299,9 +329,11 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
   }
   // A repeated short label (for example 제415조) is only a text match. It cannot
   // occupy part of a citation matched to its exact offsets in the printed footnote.
-  const exact = links.filter(l => l.target.noteStart === l.start && l.target.noteEnd === l.end &&
+  const caseLinks=links.filter(l=>l.target.caseGroup);
+  const applicable=links.filter(l=>l.target.caseGroup||!caseLinks.some(c=>c.start<l.end&&l.start<c.end));
+  const exact = applicable.filter(l => l.target.noteStart === l.start && l.target.noteEnd === l.end &&
     (l.target.kind === 'law' || (l.target.kind === 'note' && l.target.sourceId)));
-  const scoped = links.filter(l => exact.includes(l) ||
+  const scoped = applicable.filter(l => exact.includes(l) ||
     !exact.some(span => l.start < span.end && span.start < l.end));
   const distinct=scoped.filter((link,i)=>!scoped.some((other,j)=>j!==i&&other.start===link.start&&other.end===link.end&&(
     other.target.kind!==link.target.kind||other.target.url!==link.target.url||other.target.number!==link.target.number||other.target.sourceId!==link.target.sourceId
