@@ -233,7 +233,7 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
     if((t.noteNumber??(t.sourceId?t.number:undefined))!==noteNumber||(t.kind==='note'&&!t.sourceId))continue;
     const label=(t.label||'').trim();if(!label)continue;
     const compact=label.replace(/\s/g,'');
-    if(t.kind==='section'||(t.kind==='case'&&t.noteStart!==undefined)){
+    if(t.kind==='section'||t.noteStart!==undefined){
       // Printed line offsets and unwrapped note offsets belong to different texts.
       const {noteStart:start,noteEnd:end}=t;
       if(start!==undefined&&end!==undefined&&start>=0&&end>start&&end<=text.length&&(t.kind==='case'||text.slice(start,end).replace(/\s/g,'')===compact)){
@@ -246,7 +246,13 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
     const pattern=(/^\d/u.test(compact)?'(?<!\\d)':'')+escaped+(/\d$/u.test(compact)?'(?!\\d)':'');
     for(const match of text.matchAll(new RegExp(pattern,'g')))links.push({start:match.index!,end:match.index!+match[0].length,target:t});
   }
-  return links.filter((link,i)=>!links.some((other,j)=>j!==i&&other.start===link.start&&other.end===link.end&&(
+  // A repeated short label (for example 제415조) is only a text match. It cannot
+  // occupy part of a citation matched to its exact offsets in the printed footnote.
+  const exact = links.filter(l => l.target.noteStart === l.start && l.target.noteEnd === l.end &&
+    (l.target.kind === 'law' || (l.target.kind === 'note' && l.target.sourceId)));
+  const scoped = links.filter(l => exact.includes(l) ||
+    !exact.some(span => l.start < span.end && span.start < l.end));
+  return scoped.filter((link,i)=>!scoped.some((other,j)=>j!==i&&other.start===link.start&&other.end===link.end&&(
     other.target.kind!==link.target.kind||other.target.url!==link.target.url||other.target.number!==link.target.number||other.target.sourceId!==link.target.sourceId
   )));
 }
