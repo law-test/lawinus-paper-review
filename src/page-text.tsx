@@ -19,16 +19,20 @@ type SourceSpan={number:number;id:string;sourceId?:string;sourcePage?:number;lab
 const sourceSpans=sourceSpanData as Record<string,SourceSpan[]>;
 type CaseSpan={id:string;caseNumber:string;label:string;firstPage:number;noteStart?:number;noteEnd?:number;noteNumber?:number;url?:string;sourceId?:string;rects:(Rect&{line:number;start:number;end:number})[]};
 const caseSpans=caseSpanData as Record<string,CaseSpan[]>;
-function printedCases(page:number,targets:PageTarget[]):PageTarget[]{
-  // The older links cover the docket digits. Keep implied references such as
-  // “원심” and show the full, printed citation wherever there is a docket.
-  const retained=targets.filter(t=>t.kind!=='case'||(!/^\d/.test(t.label||'')&&t.caseNumber!=='Timbers'));
+// These coordinates ship with the reader. They are immediately usable when a
+// manuscript page mounts, even while its legacy link map or text is in flight.
+const bundledPages=new Map<number,PageMetadata>();
+function bundledPage(page:number):PageMetadata{
+  const found=bundledPages.get(page);
+  if(found)return found;
   const expanded=(caseSpans[page]||[]).map((s):PageTarget=>({
     ...s.rects[0],kind:'case',caseNumber:s.caseNumber,caseGroup:s.id,firstPage:s.firstPage,
     noteStart:s.noteStart,noteEnd:s.noteEnd,noteNumber:s.noteNumber,sourceId:s.sourceId,
     label:s.label,title:s.label,url:s.url,rects:s.rects,
   }));
-  return retained.concat(expanded);
+  const data={lines:[],targets:expanded.concat(sectionTargets[page]||[]).filter(box)};
+  bundledPages.set(page,data);
+  return data;
 }
 const firstSourcePage=new Map<string,number>();
 for(const [page,spans] of Object.entries(sourceSpans))
@@ -60,7 +64,10 @@ function pageMap(page:number){
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
       const citations=footnoteCaseTargets(page,repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[])));
-      return [...printedCases(page,citations),...(sectionTargets[page]||[]),...sourceTargets(page)].filter(box);
+      // The old map covers only the docket digits. Retain its implied references
+      // (such as “원심”) alongside the full citations from the manuscript.
+      const retained=citations.filter(t=>t.kind!=='case'||(!/^\d/.test(t.label||'')&&t.caseNumber!=='Timbers'));
+      return [...bundledPage(page).targets,...retained,...sourceTargets(page)].filter(box);
     });
     mapCache.set(page,pending);pending.catch(()=>{if(mapCache.get(page)===pending)mapCache.delete(page);});
     while(mapCache.size>12)mapCache.delete(mapCache.keys().next().value!);
@@ -70,14 +77,15 @@ function pageMap(page:number){
 export function usePageMetadata(session:Session,query:string,active=true,textAllowed=false) {
   const [state,setState]=useState<{query:string;token:string;data?:PageMetadata;error?:string}>({query:'',token:''});
   const [attempt,setAttempt]=useState(0);
+  const params=new URLSearchParams(query);
+  const page=params.get('metadata')==='page'?Number(params.get('page')):0;
+  const initial=active&&Number.isInteger(page)&&page>0&&page<=253?bundledPage(page):undefined;
   useEffect(()=>{
     if(!active)return;
     let alive=true,timer=0;
-    const params=new URLSearchParams(query),page=params.get('metadata')==='page'?Number(params.get('page')):0;
-    let targets:PageTarget[]=sectionTargets[page]||[],lines:TextLine[]=[];
+    let targets:PageTarget[]=initial?.targets||[],lines:TextLine[]=[];
     const publish=()=>{if(alive)setState({query,token:session.token,data:{lines,targets}});};
-    if(page>0&&page<=253){
-      if(targets.length)publish();
+    if(initial){
       pageMap(page).then(value=>{targets=value;publish();},()=>{if(alive)setState({query,token:session.token,data:{lines,targets},error:'쪽 링크를 불러오지 못했습니다.'});});
     }
     if(!textAllowed)return ()=>{alive=false;};
@@ -88,8 +96,9 @@ export function usePageMetadata(session:Session,query:string,active=true,textAll
       setState({query,token:session.token,data:{lines,targets},error:'글자를 불러오지 못했습니다.'});
     });
     return ()=>{alive=false;clearTimeout(timer);item.release();};
-  },[session,query,active,attempt,textAllowed]);
-  return {data:active&&state.token===session.token&&state.query===query?state.data:undefined,error:active&&state.token===session.token&&state.query===query?state.error:undefined,retry:()=>setAttempt(v=>v+1)};
+  },[session,query,page,initial,active,attempt,textAllowed]);
+  const current=active&&state.token===session.token&&state.query===query?state:undefined;
+  return {data:current?.data??initial,error:current?.error,retry:()=>setAttempt(v=>v+1)};
 }
 
 export function officialURL(raw?:string){
