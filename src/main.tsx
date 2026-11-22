@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {createRoot} from 'react-dom/client';
 import KuBrand from './ku-brand';
 import {Catalog,Citation,Note,Session,ReaderError,automaticRetryMessage,visit,expiration,privateResource,readSession,storeSession} from './reader-api';
-import {PageLayer,NoteText,useNoteLinks,copyManuscriptSelection,printedFootnotes,type PageTarget} from './page-text';
+import {PageLayer,NoteText,useNoteLinks,copyManuscriptSelection,printedFootnotes,SourceHighlightScope,type PageTarget} from './page-text';
 import ContentsSearch from './contents-search';
 import {getPageImage} from './visible-page-cache';
 import ReferencePages from './reference-pages';
@@ -97,7 +97,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     syncMenu();
     return ()=>window.removeEventListener('paper:menu-visibility',syncMenu);
   },[]);
-  const [page,setPage]=useState(initial),[pageInput,setPageInput]=useState(folioLabel(initial)),[toc,setToc]=useState(false),[query,setQuery]=useState(''),[list,setList]=useState(false),[own,setOwn]=useState<{page:number;number?:number;id?:string;showNote?:boolean;noteOnly?:boolean}|null>(null),[preview,setPreview]=useState<number|undefined>();
+  const [page,setPage]=useState(initial),[pageInput,setPageInput]=useState(folioLabel(initial)),[toc,setToc]=useState(false),[query,setQuery]=useState(''),[list,setList]=useState(false),[own,setOwn]=useState<{page:number;number?:number;id?:string;showNote?:boolean;noteOnly?:boolean;citationTitle?:string;unavailableCitation?:string}|null>(null),[preview,setPreview]=useState<number|undefined>();
   const sources=useMemo(()=>new Map(catalog.sources.map(s=>[s.id,s])),[catalog]);
   const notes=useMemo(()=>originalNotes.map(note=>{
     const additions=extraCitationSources(note.number).filter(c=>sources.has(c.id)&&!note.sources.some(source=>source.id===c.id));
@@ -162,9 +162,9 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     setList(false);
     setCaseTarget({kind:'case',caseNumber:number,noteNumber,x:0,y:0,w:0,h:0});
   }
-  function openNote(n:Note,where:number,sourceId?:string,sourcePage?:number){
+  function openNote(n:Note,where:number,sourceId?:string,sourcePage?:number,citationTitle?:string){
     setList(false);
-    setOwn({page:where,number:n.number,id:sourceId||n.sources[0]?.id,showNote:true});
+    setOwn({page:where,number:n.number,id:sourceId||n.sources[0]?.id,showNote:true,citationTitle});
     setPreview(sourcePage);
     const first=casesInNote(n.number)[0];
     if(first&&!sourceId){openCase(first,n.number);return;}
@@ -197,7 +197,11 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     const dest=t.kind==='cross'?(t.targetPage||n.page):fromPage;
     if(t.kind==='cross')jump(dest);else if(page!==dest)change(dest);
     const explicit=t.sourceId&&sources.has(t.sourceId)?t.sourceId:undefined;
-    openNote(n,dest,explicit,explicit?t.sourcePage:undefined);
+    if(t.sourceGroup&&!explicit){
+      setList(false);setPreview(undefined);setOwn({page:dest,number:n.number,showNote:true,noteOnly:true,unavailableCitation:t.title});
+      return;
+    }
+    openNote(n,dest,explicit,explicit?t.sourcePage:undefined,t.sourceGroup?t.title:undefined);
   }
   const chooseSource=(id:string)=>{const n=pageNotes.find(n=>n.sources.some(c=>c.id===id))||notes.find(n=>n.sources.some(c=>c.id===id));setReferenceFocus(v=>v+1);setLegal(null);setCaseTarget(null);setList(false);setOwn({page,number:n?.number,id});setPreview(undefined);};
   const renderCasePages=(id:string,original?:CaseOriginal,part:CasePart='order',focusKey?:string)=>(
@@ -219,13 +223,13 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     <section className="page-controls" data-current-sheet={page}><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button>{!menusCollapsed&&folioForm}<button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button>{!menusCollapsed&&folioNotice}</section>
     </div></div>
     <div className="reader-layout">{toc&&<ContentsSearch session={session} catalog={catalog} notes={catalog.searchEnabled===true?notes:pageNotes} go={(p,n)=>{setToc(false);jump(p);if(n)openNote(n,p);}}/>}
-      <DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}
-        compactFolio={menusCollapsed&&folioForm} folioNotice={menusCollapsed&&folioNotice}/>
+      <SourceHighlightScope><DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}
+        compactFolio={menusCollapsed&&folioForm} folioNotice={menusCollapsed&&folioNotice}/></SourceHighlightScope>
       <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={shownOption?shownOption.note.number+'/'+shownOption.citation.id:''} onChange={e=>{const opt=options.find(o=>o.note.number+'/'+o.citation.id===e.target.value);if(opt){
           setLegal(null);setList(false);setOwn({page,number:opt.note.number,id:opt.citation.id});setPreview(undefined);
           const number=catalogCase(opt.citation.id)||casesInNote(opt.note.number).find(id=>caseOriginal(id)?.sourceId===opt.citation.id);
           if(number)openCase(number,opt.note.number);else setCaseTarget(null);
-        }}}><option value="" disabled>{chosen?.noteOnly&&!caseTarget?'각주 원문 · 인용자료 선택':'이 쪽의 인용자료'}</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {sources.get(o.citation.id)?.title}</option>)}</select>}
+        }}}><option value="" disabled>{chosen?.noteOnly&&!caseTarget?'각주 원문 · 인용자료 선택':'이 쪽의 인용자료'}</option>{options.map((o,i)=><option key={i} value={o.note.number+'/'+o.citation.id}>각주 {o.note.number} · {chosen?.citationTitle&&shownOption===o?chosen.citationTitle:sources.get(o.citation.id)?.title}</option>)}</select>}
         <button onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
       {legal?<LawPane session={session} target={legal} onClose={()=>setLegal(null)}/>:caseTarget?<CasePane session={session} target={caseTarget} onClose={returnToNote} focusKey={referenceFocus} renderReference={renderCasePages}
         navigation={<>
@@ -235,7 +239,8 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
           </select>}
           {caseNote&&<button className="case-note-text" aria-label={'각주 '+caseNote+' 원문 보기'} onClick={returnToNote}>각주 {caseNote} 원문</button>}
         </>}/>:list?<section className="source-library"><h2>자료 목록</h2><label>자료 검색<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label>{catalog.sources.filter(s=>s.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(s=><button key={s.id} onClick={()=>chooseSource(s.id)}>{s.title}</button>)}</section>:
-      <section className={'source-dialog'+(chosen?.showNote?' showing-note':'')} ref={sourceScroll}><h2>{source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
+      <section className={'source-dialog'+(chosen?.showNote?' showing-note':'')} ref={sourceScroll}><h2>{chosen?.citationTitle||source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
+        {chosen?.unavailableCitation&&<p role="status">{chosen.unavailableCitation} · 연결된 원문이 없어 인용 각주를 표시합니다.</p>}
         {selectedNote&&<details ref={noteDetail} key={selectedNote.number} open={chosen?.showNote||(!previewPage&&!citation?.excerpt)}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,page)}/></p></details>}
         {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}

@@ -1,4 +1,4 @@
-import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
+import React,{createContext,useContext,useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {ReaderError,type Session} from './reader-api';
 import {pageCache} from './visible-page-cache';
 import separators from './line-separators.json';
@@ -8,11 +8,24 @@ import {bibliographyURL,repairCitationTargets} from './citation-links';
 import sectionData from './section-link-data.json';
 import {sectionHref} from './section-navigation';
 import {footnoteCaseTargets} from './footnote-cases';
+import sourceSpanData from './footnote-source-spans.json';
 
 export type Rect={x:number;y:number;w:number;h:number};
 export type TextLine=Rect&{text:string;size?:number;index?:number};
-export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross'|'external'|'section';number?:number;targetPage?:number;targetY?:number;noteNumber?:number;noteStart?:number;noteEnd?:number;sourceId?:string;sourcePage?:number;line?:number;caseNumber?:string;lawKey?:string;articleId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
+export type PageTarget=Rect&{kind:'law'|'case'|'note'|'cross'|'external'|'section';number?:number;targetPage?:number;targetY?:number;noteNumber?:number;noteStart?:number;noteEnd?:number;sourceId?:string;sourcePage?:number;sourceGroup?:string;rects?:Rect[];line?:number;caseNumber?:string;lawKey?:string;articleId?:string;title?:string;label?:string;url?:string;status?:string;articleText?:string;start?:number;end?:number};
 const sectionTargets=sectionData as Record<string,PageTarget[]>;
+type SourceSpan={number:number;id:string;sourceId?:string;sourcePage?:number;label:string;noteStart:number;noteEnd:number;rects:(Rect&{line:number})[]};
+const sourceSpans=sourceSpanData as Record<string,SourceSpan[]>;
+const firstSourcePage=new Map<string,number>();
+for(const [page,spans] of Object.entries(sourceSpans))
+  for(const s of spans)if(!firstSourcePage.has(s.id))firstSourcePage.set(s.id,Number(page));
+function sourceTargets(page:number):PageTarget[]{
+  return (sourceSpans[page]||[]).filter(s=>s.rects.length>0).map(s=>({
+    ...s.rects[0],kind:'note',number:s.number,noteNumber:s.number,sourceGroup:s.id,
+    sourceId:s.sourceId,sourcePage:s.sourcePage,noteStart:s.noteStart,noteEnd:s.noteEnd,
+    title:s.label,label:s.label,rects:s.rects,
+  }));
+}
 type PageMetadata={lines:TextLine[];targets:PageTarget[];width?:number;height?:number};
 export type InlineLink={start:number;end:number;target:PageTarget};
 
@@ -32,7 +45,7 @@ function pageMap(page:number){
     pending=fetch(url,{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
-      return [...footnoteCaseTargets(page,repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[]))),...(sectionTargets[page]||[])].filter(box);
+      return [...footnoteCaseTargets(page,repairCitationTargets(page,repairLawTargets(page,data.targets as PageTarget[]))),...(sectionTargets[page]||[]),...sourceTargets(page)].filter(box);
     });
     mapCache.set(page,pending);pending.catch(()=>{if(mapCache.get(page)===pending)mapCache.delete(page);});
     while(mapCache.size>12)mapCache.delete(mapCache.keys().next().value!);
@@ -85,11 +98,24 @@ export function officialURL(raw?:string){
     return link.href;
   }catch{return undefined;}
 }
-export function targetLabel(t:PageTarget){return t.kind==='note'&&!t.sourceId?'각주 '+t.number:(t.caseNumber||t.kind==='external'||t.kind==='section'||t.sourceId?t.title:undefined)||t.label||t.title||'원문 확인';}
+export function targetLabel(t:PageTarget){return t.sourceGroup?t.title||'각주 '+t.number:t.kind==='note'&&!t.sourceId?'각주 '+t.number:(t.caseNumber||t.kind==='external'||t.kind==='section'||t.sourceId?t.title:undefined)||t.label||t.title||'원문 확인';}
 function positioning(r:Rect){return {left:r.x*100+'%',top:r.y*100+'%',width:r.w*100+'%',height:r.h*100+'%'};}
 const within=(p:{x:number;y:number},r:Rect)=>p.x>=r.x&&p.y>=r.y&&p.x<=r.x+r.w&&p.y<=r.y+r.h;
-const plainNote=(t:PageTarget)=>t.kind==='note'&&!t.sourceId;
+const plainNote=(t:PageTarget)=>t.kind==='note'&&!t.sourceId&&!t.sourceGroup;
 export const printedFootnotes=footnoteRows as Record<string,number[]>;
+
+// Adjacent mounted pages can contain two parts of the same citation.
+const HighlightContext=createContext<{
+  active?:string;point:(id?:string)=>void;focus:(id?:string)=>void;
+}>({point:()=>{},focus:()=>{}});
+export function SourceHighlightScope({children}:{children:React.ReactNode}){
+  const [pointer,point]=useState<string>(),[keyboard,setKeyboard]=useState<string>();
+  function focus(id?:string){
+    if(id)point(undefined);
+    setKeyboard(id);
+  }
+  return <HighlightContext.Provider value={{active:pointer??keyboard,point,focus}}>{children}</HighlightContext.Provider>;
+}
 
 export function copyManuscriptSelection(event:React.ClipboardEvent<HTMLElement>){
   const selection=window.getSelection();
@@ -120,16 +146,18 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
   const {data,error,retry}=usePageMetadata(session,query,active,textAllowed);
   const host=useRef<HTMLDivElement>(null);
   const start=useRef<{x:number;y:number;touch:boolean;dragged:boolean}|null>(null);
+  const lastSource=useRef<string|undefined>(undefined);
   const hover=useRef<HTMLSpanElement>(null);
+  const highlight=useContext(HighlightContext);
   const [size,setSize]=useState({w:0,h:0});
   useLayoutEffect(()=>{
     const node=host.current;if(!node)return;
     const update=()=>{const r=node.getBoundingClientRect();setSize(prev=>prev.w===r.width&&prev.h===r.height?prev:{w:r.width,h:r.height});};
     update();const observer=new ResizeObserver(update);observer.observe(node);return()=>observer.disconnect();
   },[active]);
-  const targets=[...(data?.targets||[]),...fallback.filter(f=>!(data?.targets||[]).some(t=>t.kind===f.kind&&t.number===f.number&&Math.abs(t.x-f.x)<.015&&Math.abs(t.y-f.y)<.01))].sort((a,b)=>a.w*a.h-b.w*b.h);
+  const targets=[...(data?.targets||[]),...fallback.filter(f=>!(data?.targets||[]).some(t=>t.kind===f.kind&&t.number===f.number&&Math.abs(t.x-f.x)<.015&&Math.abs(t.y-f.y)<.01))].sort((a,b)=>a.y-b.y||a.x-b.x);
+  const directTargets=targets.filter(t=>!t.sourceGroup).sort((a,b)=>a.w*a.h-b.w*b.h);
   const page=new URLSearchParams(query).get('page')||'';
-  const rows=printedFootnotes[page]||[];
   function activate(t:PageTarget){
     if(t.kind==='external'){
       const url=bibliographyURL(t.url);if(url)window.open(url,'_blank','noopener,noreferrer');
@@ -140,8 +168,11 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
   function hit(e:React.MouseEvent,touch=false):PageTarget|undefined{
     const r=host.current!.getBoundingClientRect();if(!r.width||!r.height)return;
     const p={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};
-    const direct=targets.find(t=>within(p,t));
-    if(direct)return direct;
+    // An explicitly linked provision or case inside a title keeps its own action.
+    const direct=directTargets.find(t=>within(p,t));
+    const source=targets.find(t=>t.rects?.some(r=>within(p,r)));
+    if(direct&&!(source&&direct.kind==='note'&&direct.sourceId&&direct.sourceId===source.sourceId))return direct;
+    if(source)return source;
     // Printed superscripts are narrower than a fingertip. Pick the nearest marker only.
     let best:PageTarget|undefined, distance=Infinity;
     for(const t of targets){
@@ -151,36 +182,48 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
       const gap=Math.hypot(dx,dy);
       if(gap<=(touch?10:6)&&gap<distance){distance=gap;best=t;}
     }
-    if(best)return best;
-    for(const [i,line] of (data?.lines||[]).entries()){
-      const number=rows[line.index??i];
-      if(number&&within(p,line))return {...line,kind:'note',number};
-    }
+    return best;
   }
   function point(e:React.PointerEvent){
     if(start.current&&Math.hypot(e.clientX-start.current.x,e.clientY-start.current.y)>4)start.current.dragged=true;
     const node=host.current!, t=hit(e);
     node.title=t?targetLabel(t):'';node.style.cursor=t?'pointer':data?.lines?.length?'text':'default';
-    if(hover.current){hover.current.hidden=!t;if(t)Object.assign(hover.current.style,positioning(t));}
+    highlight.point(t?.sourceGroup);
+    if(hover.current){hover.current.hidden=!t||!!t.sourceGroup;if(t&&!t.sourceGroup)Object.assign(hover.current.style,positioning(t));}
   }
   const order=(separators as Record<string,string>)[page]||'';
   if(!active)return null;
   return <div ref={host} className={'page-text-layer'+(data?.lines?.length?' has-text':' links-only')} aria-label={label}
-    onPointerMove={point} onPointerLeave={()=>{if(hover.current)hover.current.hidden=true;}}
+    onPointerMove={point} onPointerLeave={()=>{highlight.point(undefined);if(hover.current)hover.current.hidden=true;}}
     onPointerDown={e=>{start.current=e.button===0&&e.isPrimary?{x:e.clientX,y:e.clientY,touch:e.pointerType==='touch',dragged:false}:null;}}
     onPointerCancel={()=>{start.current=null;}}
     onClick={e=>{
       const press=start.current;start.current=null;
-      if(!press||press.dragged||e.detail>1||e.shiftKey||Math.hypot(e.clientX-press.x,e.clientY-press.y)>4)return;
+      if(!press||press.dragged||e.shiftKey||Math.hypot(e.clientX-press.x,e.clientY-press.y)>4)return;
+      const t=hit(e,press.touch);
+      // Adjacent citations can be close enough for two taps to be reported as a
+      // double click. Keep text selection on a repeated hit on the same citation.
+      if(e.detail>1&&(!t?.sourceGroup||lastSource.current===t.sourceGroup))return;
       const selection=window.getSelection();
       if(selection&&!selection.isCollapsed&&(host.current?.contains(selection.anchorNode)||host.current?.contains(selection.focusNode)))return;
-      const t=hit(e,press.touch);if(t)activate(t);
+      lastSource.current=t?.sourceGroup;
+      if(t)activate(t);
     }}>
     {data?.lines.map((line,i)=>{
       const sep=order[line.index??i];return <TextRun key={i} line={line} width={size.w} height={size.h} joinBefore={sep==='C'?'':sep==='S'?' ':'\n'}/>;
     })}
     <span ref={hover} className="page-target-hover" aria-hidden="true" hidden/>
-    {onTarget&&targets.map((t,i)=>{const url=t.kind==='external'?bibliographyURL(t.url):officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':t.kind==='external'?'참고자료':t.kind==='section'?'논문 본문':'각주';
+    {onTarget&&targets.map((t,i)=>{
+      if(t.sourceGroup)return <React.Fragment key={t.sourceGroup}>
+        {t.rects?.map((r,j)=><span key={j} aria-hidden="true" data-source-group={t.sourceGroup}
+          className={'page-source-part'+(highlight.active===t.sourceGroup?' is-highlighted':'')} style={positioning(r)}/>)}
+        <button type="button" className="page-link source-link" style={positioning(t)} data-source-group={t.sourceGroup}
+          data-source-id={t.sourceId} data-note-number={t.number} title={targetLabel(t)}
+          tabIndex={firstSourcePage.get(t.sourceGroup)===Number(page)?0:-1}
+          aria-label={'각주 '+t.number+' · '+targetLabel(t)+' 열기'} onFocus={()=>highlight.focus(t.sourceGroup)} onBlur={()=>highlight.focus(undefined)}
+          onClick={e=>{e.stopPropagation();activate(t);}}/>
+      </React.Fragment>;
+      const url=t.kind==='external'?bibliographyURL(t.url):officialURL(t.url);const name=t.kind==='law'?'조문':t.kind==='case'?'판례':t.kind==='external'?'참고자료':t.kind==='section'?'논문 본문':'각주';
       const cls='page-link '+t.kind+'-link';const props={className:cls,style:positioning(t),title:targetLabel(t),'data-case-number':t.caseNumber,'data-note-number':t.noteNumber,'aria-label':name+' 열기 · '+targetLabel(t)};
       if(t.kind==='section'&&t.targetPage&&t.targetY!==undefined)return <a key={i} {...props}
         data-target-page={t.targetPage} data-target-y={t.targetY} href={sectionHref(t.targetPage,t.targetY)}
@@ -208,7 +251,8 @@ export function NoteText({text,links,onTarget}:{text:string;links:InlineLink[];o
     const url=officialURL(link.target.url),internal=link.target.kind==='note'||link.target.kind==='cross'||link.target.kind==='section'||(link.target.kind==='case'&&!url);if(!internal&&!url&&!link.target.articleText&&!link.target.status)continue;
     parts.push(text.slice(cursor,link.start));
     const phrase=text.slice(link.start,link.end);
-    parts.push((internal||!url)?<button key={link.start} type="button" className="inline-note-link" data-case-number={link.target.caseNumber} onClick={()=>onTarget(link.target)}>{phrase}</button>:
+    parts.push((internal||!url)?<button key={link.start} type="button" className="inline-note-link" data-case-number={link.target.caseNumber}
+      data-source-group={link.target.sourceGroup} data-source-id={link.target.sourceId} onClick={()=>onTarget(link.target)}>{phrase}</button>:
       <a key={link.start} href={url} className="inline-note-link" data-case-number={link.target.caseNumber} target="_blank" rel="noopener noreferrer" onClick={e=>{if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.shiftKey){e.preventDefault();onTarget(link.target);}}}>{phrase}</a>);
     cursor=link.end;
   }
@@ -229,7 +273,14 @@ export function LegalInfo({target,close}:{target:PageTarget;close:()=>void}){
 // Source rectangles refer to the printed page. The side panel quotes the same note without line wrapping.
 export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):InlineLink[]{
   const links:InlineLink[]=[];
+  const sources=new Map<string,InlineLink>();
   for(const t of targets){
+    if(t.sourceGroup){
+      const {noteStart:start,noteEnd:end}=t;
+      if(t.number===noteNumber&&start!==undefined&&end!==undefined&&start>=0&&end>start&&end<=text.length)
+        sources.set(t.sourceGroup,{start,end,target:t});
+      continue;
+    }
     if((t.noteNumber??(t.sourceId?t.number:undefined))!==noteNumber||(t.kind==='note'&&!t.sourceId))continue;
     const label=(t.label||'').trim();if(!label)continue;
     const compact=label.replace(/\s/g,'');
@@ -252,9 +303,26 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
     (l.target.kind === 'law' || (l.target.kind === 'note' && l.target.sourceId)));
   const scoped = links.filter(l => exact.includes(l) ||
     !exact.some(span => l.start < span.end && span.start < l.end));
-  return scoped.filter((link,i)=>!scoped.some((other,j)=>j!==i&&other.start===link.start&&other.end===link.end&&(
+  const distinct=scoped.filter((link,i)=>!scoped.some((other,j)=>j!==i&&other.start===link.start&&other.end===link.end&&(
     other.target.kind!==link.target.kind||other.target.url!==link.target.url||other.target.number!==link.target.number||other.target.sourceId!==link.target.sourceId
   )));
+  const individual=distinct.filter(link=>!Array.from(sources.values()).some(s=>
+    link.target.kind==='note'&&link.target.sourceId&&link.target.sourceId===s.target.sourceId&&
+    s.start<=link.start&&s.end>=link.end)).sort((a,b)=>a.start-b.start);
+  // A title may itself cite a judgment or a provision. Keep the verified link at
+  // those characters and use the bibliographic source for the rest of its span.
+  const combined=[...individual];
+  for(const source of sources.values()){
+    let from=source.start;
+    for(const link of individual){
+      if(link.end<=from)continue;
+      if(link.start>=source.end)break;
+      if(from<link.start)combined.push({...source,start:from,end:link.start});
+      from=Math.max(from,link.end);
+    }
+    if(from<source.end)combined.push({...source,start:from});
+  }
+  return combined;
 }
 
 export function useNoteLinks(note?:{number:number;page:number;text:string}){
