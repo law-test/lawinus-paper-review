@@ -11,6 +11,11 @@ const locations=originals as Record<string,CaseOriginal>;
 
 export function casesInNote(number?:number):string[]{return notes[String(number)]??[];}
 export function caseOriginal(number:string){return locations[number];}
+// A decision named inside a publication title keeps a link on its docket digits.
+export function docketInTitle(page:number,number:string,start:number,end:number,note?:number){
+  return (printed[String(page)]||[]).filter(t=>t.noteNumber===note&&t.caseNumber===number&&
+    t.label===number&&t.noteStart!==undefined&&t.noteEnd!==undefined&&t.noteStart>=start&&t.noteEnd<=end);
+}
 export function footnoteCaseTargets(page:number,targets:PageTarget[]){
   const verified=printed[String(page)]||[];
   if(!verified.length)return targets;

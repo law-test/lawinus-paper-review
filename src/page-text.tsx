@@ -7,8 +7,9 @@ import {repairLawTargets} from './verified-law-targets';
 import {bibliographyURL,repairCitationTargets} from './citation-links';
 import sectionData from './section-link-data.json';
 import {sectionHref} from './section-navigation';
-import {footnoteCaseTargets} from './footnote-cases';
+import {footnoteCaseTargets,docketInTitle} from './footnote-cases';
 import sourceSpanData from './footnote-source-spans.json';
+import crossrefData from './footnote-source-crossrefs.json';
 import caseSpanData from './case-citation-spans.json';
 
 export type Rect={x:number;y:number;w:number;h:number};
@@ -21,16 +22,25 @@ type CaseSpan={id:string;caseNumber:string;label:string;firstPage:number;noteSta
 const caseSpans=caseSpanData as Record<string,CaseSpan[]>;
 // These coordinates ship with the reader. They are immediately usable when a
 // manuscript page mounts, even while its legacy link map or text is in flight.
+const nestedCrossrefs=crossrefData as unknown as Record<string,[number,number,number,number,number,number,number,string][]>;
 const bundledPages=new Map<number,PageMetadata>();
 function bundledPage(page:number):PageMetadata{
   const found=bundledPages.get(page);
   if(found)return found;
-  const expanded=(caseSpans[page]||[]).map((s):PageTarget=>({
-    ...s.rects[0],kind:'case',caseNumber:s.caseNumber,caseGroup:s.id,firstPage:s.firstPage,
-    noteStart:s.noteStart,noteEnd:s.noteEnd,noteNumber:s.noteNumber,sourceId:s.sourceId,
-    label:s.label,title:s.label,url:s.url,rects:s.rects,
-  }));
-  const data={lines:[],targets:expanded.concat(sectionTargets[page]||[]).filter(box)};
+  const works=sourceTargets(page);
+  const expanded=(caseSpans[page]||[]).map((s):PageTarget=>{
+    const inTitle=s.noteStart!==undefined&&s.noteEnd!==undefined&&works.some(work=>
+      work.noteNumber===s.noteNumber&&work.noteStart!<s.noteStart!&&work.noteEnd!>=s.noteEnd!);
+    const digits=inTitle?docketInTitle(page,s.caseNumber,s.noteStart!,s.noteEnd!,s.noteNumber):[];
+    const rects=digits.length?digits:s.rects;
+    return {...rects[0],kind:'case',caseNumber:s.caseNumber,caseGroup:s.id,firstPage:s.firstPage,
+      noteStart:digits[0]?.noteStart??s.noteStart,noteEnd:digits[0]?.noteEnd??s.noteEnd,
+      noteNumber:s.noteNumber,sourceId:s.sourceId,label:digits.length?s.caseNumber:s.label,
+      title:s.label,url:s.url,rects};
+  });
+  const cross=(nestedCrossrefs[page]||[]).map(([number,noteNumber,targetPage,x,y,w,h,label]):PageTarget=>
+    ({kind:'cross',number,noteNumber,targetPage,x,y,w,h,label,title:'제출본 각주 '+number}));
+  const data={lines:[],targets:[...expanded,...works,...cross,...(sectionTargets[page]||[])].filter(box)};
   bundledPages.set(page,data);
   return data;
 }
@@ -44,6 +54,17 @@ function sourceTargets(page:number):PageTarget[]{
     title:s.label,label:s.label,rects:s.rects,
   }));
 }
+// Entries spanning two sheets retain one identity in the note and the picker.
+const worksByNote=new Map<number,SourceSpan[]>();
+for(const [sheet,spans] of Object.entries(sourceSpans)){
+  for(const span of spans){
+    if(firstSourcePage.get(span.id)!==Number(sheet))continue;
+    const works=worksByNote.get(span.number)||[];
+    works.push(span);
+    worksByNote.set(span.number,works);
+  }
+}
+export function worksInNote(number:number){return worksByNote.get(number)||[];}
 type PageMetadata={lines:TextLine[];targets:PageTarget[];width?:number;height?:number};
 export type InlineLink={start:number;end:number;target:PageTarget};
 
@@ -67,7 +88,7 @@ function pageMap(page:number){
       // The old map covers only the docket digits. Retain its implied references
       // (such as “원심”) alongside the full citations from the manuscript.
       const retained=citations.filter(t=>t.kind!=='case'||(!/^\d/.test(t.label||'')&&t.caseNumber!=='Timbers'));
-      return [...bundledPage(page).targets,...retained,...sourceTargets(page)].filter(box);
+      return [...bundledPage(page).targets.filter(t=>t.kind!=='cross'),...retained].filter(box);
     });
     mapCache.set(page,pending);pending.catch(()=>{if(mapCache.get(page)===pending)mapCache.delete(page);});
     while(mapCache.size>12)mapCache.delete(mapCache.keys().next().value!);
@@ -197,7 +218,7 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
     if(citation)return citation;
     const direct=directTargets.find(t=>within(p,t));
     const source=targets.find(t=>t.sourceGroup&&t.rects?.some(r=>within(p,r)));
-    if(direct&&!(source&&direct.kind==='note'&&direct.sourceId&&direct.sourceId===source.sourceId))return direct;
+    if(direct&&(!source||direct.kind!=='note'))return direct;
     if(source)return source;
     // Printed superscripts are narrower than a fingertip. Pick the nearest marker only.
     let best:PageTarget|undefined, distance=Infinity;
@@ -231,9 +252,14 @@ export function PageLayer({session,query,active=true,fallback=[],label,onTarget,
       // Adjacent citations can be close enough for two taps to be reported as a
       // double click. Keep text selection on a repeated hit on the same citation.
       const group=t?.caseGroup||t?.sourceGroup;
-      if(e.detail>1&&(!group||lastSource.current===group))return;
+      const switching=Boolean(group&&lastSource.current&&group!==lastSource.current);
+      if(e.detail>1&&!switching)return;
       const selection=window.getSelection();
-      if(selection&&!selection.isCollapsed&&(host.current?.contains(selection.anchorNode)||host.current?.contains(selection.focusNode)))return;
+      if(selection&&!selection.isCollapsed&&(host.current?.contains(selection.anchorNode)||host.current?.contains(selection.focusNode))){
+        if(e.detail<=1||!switching)return;
+        // A fast second click on a different link can select text before click fires.
+        selection.removeAllRanges();
+      }
       lastSource.current=group;
       if(t)activate(t);
     }}>
@@ -348,7 +374,7 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
     other.target.kind!==link.target.kind||other.target.url!==link.target.url||other.target.number!==link.target.number||other.target.sourceId!==link.target.sourceId
   )));
   const individual=distinct.filter(link=>!Array.from(sources.values()).some(s=>
-    link.target.kind==='note'&&link.target.sourceId&&link.target.sourceId===s.target.sourceId&&
+    link.target.kind==='note'&&link.target.sourceId&&
     s.start<=link.start&&s.end>=link.end)).sort((a,b)=>a.start-b.start);
   // A title may itself cite a judgment or a provision. Keep the verified link at
   // those characters and use the bibliographic source for the rest of its span.
@@ -368,17 +394,19 @@ export function inlineLinks(text:string,noteNumber:number,targets:PageTarget[]):
 
 export function useNoteLinks(note?:{number:number;page:number;text:string}){
   const [state,setState]=useState<{number:number;text:string;links:InlineLink[]}>();
+  const pages=React.useMemo(()=>{
+    if(!note)return [];
+    const printed=Object.entries(printedFootnotes).filter(([,rows])=>rows.includes(note.number)).map(([p])=>Number(p));
+    return [...new Set([note.page,...printed])];
+  },[note]);
+  const initial=React.useMemo(()=>note?inlineLinks(note.text,note.number,pages.flatMap(p=>bundledPage(p).targets)):[],[note,pages]);
   useEffect(()=>{
     if(!note)return;
     let active=true;
-    const pages=new Set([note.page]);
-    for(const [page,rows] of Object.entries(printedFootnotes))if(rows.includes(note.number))pages.add(Number(page));
-    Promise.allSettled([...pages].map(pageMap)).then(results=>{
-      if(!active)return;
-      const targets=results.flatMap(result=>result.status==='fulfilled'?result.value:[]);
-      setState({number:note.number,text:note.text,links:inlineLinks(note.text,note.number,targets)});
+    Promise.all(pages.map(p=>pageMap(p).catch(()=>bundledPage(p).targets))).then(results=>{
+      if(active)setState({number:note.number,text:note.text,links:inlineLinks(note.text,note.number,results.flat())});
     });
     return()=>{active=false;};
-  },[note]);
-  return note&&state?.number===note.number&&state.text===note.text?state.links:[];
+  },[note,pages]);
+  return note&&state?.number===note.number&&state.text===note.text?state.links:initial;
 }
