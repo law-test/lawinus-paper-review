@@ -52,10 +52,7 @@ function applyCitationSpans(page: number, targets: PageTarget[]): PageTarget[] {
 }
 
 export function repairCitationTargets(page:number,raw:PageTarget[]){
-  // Page 114 ends a body paragraph with 2014다32014. The following line
-  // begins the printed footnote 168), which is a separate link.
-  const targets=raw.filter(t=>!(page===114&&t.kind==='case'&&t.label==='2014다32014'&&t.line===19));
-  const repaired=targets.map(t=>{
+  const repaired=raw.map(t=>{
     const url=t.kind==='case'&&t.label?destinations[t.label]:undefined;
     return url?{...t,url}:t;
   }).concat(extra[String(page)]??[]);

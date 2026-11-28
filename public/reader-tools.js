@@ -6,8 +6,8 @@
     location.replace(dictionaryURL);
     return;
   }
-  const edition = '1116_15';
-  const pageCount = 253;
+  const edition = document.documentElement.dataset.paperEdition;
+  const pageCount = Number(document.documentElement.dataset.paperPages);
   const memoPrefix = 'paper:sticky:' + edition + ':';
   const layoutKey = 'paper:tools:layout:2';
   let currentPage = 1;
@@ -31,7 +31,7 @@
       dictionaryWindow.opener=null;dictionaryWindow.focus();return true;
     } catch { return false; }
   }
-  const notesEndpoint='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/examiner-notes?edition=1116_15';
+  const notesEndpoint='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/examiner-notes?edition='+encodeURIComponent(edition);
   const cacheKey=memoPrefix+'drafts';
   let noteSession=null;
   function getToken(){if(window.__paperReaderSession?.token)return window.__paperReaderSession.token;try{return JSON.parse(sessionStorage.getItem('examiner-session')||'null')?.token||'';}catch{return '';}}
@@ -440,6 +440,7 @@
     function setHeight(value) {
       const px = Math.min(availableHeight(),Math.max(minHeight(), Math.round(value)));
       layout.style.setProperty('--prt-reading-height', px+'px');
+      rail.hidden = availableHeight() - minHeight() < 1;
       rail.setAttribute('aria-valuemin',String(minHeight()));
       rail.setAttribute('aria-valuemax',String(availableHeight()));
       rail.setAttribute('aria-valuenow',String(px));

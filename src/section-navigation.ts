@@ -1,16 +1,29 @@
+import {editionId} from './edition';
+import previousHeadings from './legacy-section-titles.json';
+import currentSections from './section-link-data.json';
 import {useLayoutEffect,useRef,useState,type RefObject} from 'react';
 
 type Location={page:number;y:number;x:number;heading?:boolean;title?:string};
 type Entry={depth:number;position:Location};
-const key='lawinusSection15';
+const key='lawinusSection:'+editionId;
 
 export function sectionHref(page:number,y:number){
-  return '#section='+page+':'+y;
+  return '#section='+editionId+'/'+page+':'+y;
 }
 
 function linkedHeading():Location|undefined{
-  const match=/^#section=(\d+):(0(?:\.\d+)?|1(?:\.0+)?)$/.exec(location.hash);
-  if(match)return {page:Number(match[1]),y:Number(match[2]),x:0,heading:true};
+  const match=/^#section=(?:(\w+)\/)?(\d+):(0(?:\.\d+)?|1(?:\.0+)?)$/.exec(location.hash);
+  if(!match)return;
+  if(match[1]===editionId)return {page:Number(match[2]),y:Number(match[3]),x:0,heading:true};
+  if(match[1])return;
+  const oldTitle=(previousHeadings as Record<string,string>)[match[2]+':'+match[3]];
+  if(!oldTitle)return;
+  const titleKey=(value:string)=>value.replace(/\s+/g,'');
+  const matches=Object.values(currentSections).flat().filter(t=>titleKey(t.title)===titleKey(oldTitle));
+  const first=matches[0];
+  if(first&&matches.every(t=>t.targetPage===first.targetPage&&t.targetY===first.targetY)){
+    return {page:first.targetPage,y:first.targetY,x:0,heading:true,title:first.title};
+  }
 }
 
 export function useSectionNavigation(host:RefObject<HTMLDivElement|null>,start:number,onPage:(page:number)=>void){

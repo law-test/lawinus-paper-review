@@ -1,3 +1,4 @@
+import {editionId,sheetCount} from './edition';
 import React,{createContext,useContext,useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {ReaderError,type Session} from './reader-api';
 import {pageCache} from './visible-page-cache';
@@ -79,8 +80,7 @@ const mapCache=new Map<number,Promise<PageTarget[]>>();
 function pageMap(page:number){
   let pending=mapCache.get(page);
   if(!pending){
-    const url=new URL('link-maps/1116_15/'+page+'.json',document.baseURI);
-    if(page===22)url.searchParams.set('v','20261121-special-act');
+    const url=new URL('link-maps/'+editionId+'/'+page+'.json',document.baseURI);
     pending=fetch(url,{credentials:'same-origin',referrerPolicy:'no-referrer'}).then(async r=>{
       if(!r.ok)throw Error('쪽의 링크를 불러오지 못했습니다.');
       const data=await r.json();if(data.page!==page||!Array.isArray(data.targets))throw Error('쪽 링크 정보가 맞지 않습니다.');
@@ -100,7 +100,7 @@ export function usePageMetadata(session:Session,query:string,active=true,textAll
   const [attempt,setAttempt]=useState(0);
   const params=new URLSearchParams(query);
   const page=params.get('metadata')==='page'?Number(params.get('page')):0;
-  const initial=active&&Number.isInteger(page)&&page>0&&page<=253?bundledPage(page):undefined;
+  const initial=active&&Number.isInteger(page)&&page>0&&page<=sheetCount?bundledPage(page):undefined;
   useEffect(()=>{
     if(!active)return;
     let alive=true,timer=0;

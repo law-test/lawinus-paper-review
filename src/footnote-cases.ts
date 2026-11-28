@@ -19,8 +19,5 @@ export function docketInTitle(page:number,number:string,start:number,end:number,
 export function footnoteCaseTargets(page:number,targets:PageTarget[]){
   const verified=printed[String(page)]||[];
   if(!verified.length)return targets;
-  return targets.filter(t=>{
-    if(t.kind==='case'&&t.noteNumber&&casesInNote(t.noteNumber).length)return false;
-    return !(t.sourceId==='v15-9461652d69101d4f'&&(t.noteNumber===301||t.number===301)&&t.kind==='note');
-  }).concat(verified);
+  return targets.filter(t=>!(t.kind==='case'&&t.noteNumber&&casesInNote(t.noteNumber).length)).concat(verified);
 }

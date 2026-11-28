@@ -4,6 +4,7 @@ type Folio = {page:number;label:string;kind:string};
 const pages:Folio[]=data.pages;
 const byLabel=new Map(pages.map(folio=>[folio.label.normalize('NFKC').toLowerCase(),folio.page]));
 
+export const lastRomanFolio=pages.filter(folio=>folio.kind==='roman').at(-1)?.label??'';
 export const lastPrintedFolio=pages[pages.length-1].label;
 
 export function folioLabel(sheet:number){

@@ -1,3 +1,5 @@
+import {appendixSheets} from './edition';
+import {folioDescription} from './thesis-folios';
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {privateResource,type Session} from './reader-api';
 import {officialURL,type PageTarget} from './page-text';
@@ -33,12 +35,12 @@ function supplementArticle(block:LawBlock,text:string){
 function jump(host:HTMLElement|null,id:string){const node=host?.querySelector<HTMLElement>('[data-law-id="'+id+'"]');if(host&&node){const top=node.getBoundingClientRect().top-host.getBoundingClientRect().top+host.scrollTop;host.scrollTop=Math.max(0,top-72);return true;}return false;}
 function ProposalPages({session,page,bill=false}:{session:Session;page:number;bill?:boolean}){
   const [pictures,setPictures]=useState<{page:number;url:string}[]>([]),[error,setError]=useState(''),[retry,setRetry]=useState(0);const container=useRef<HTMLDivElement>(null);
-  useEffect(()=>{let alive=true;const urls:string[]=[];setPictures([]);setError('');const entries=(bill?[page]:[250,251,252,253]).map(p=>({page:p,item:getPageImage(session,'page='+p)}));
+  useEffect(()=>{let alive=true;const urls:string[]=[];setPictures([]);setError('');const entries=(bill?[page]:appendixSheets).map(p=>({page:p,item:getPageImage(session,'page='+p)}));
     Promise.all(entries.map(async x=>{const blob=await x.item.promise;if(!alive)return null;const url=URL.createObjectURL(blob);urls.push(url);return{page:x.page,url};})).then(rows=>{if(alive)setPictures(rows.filter((x):x is {page:number;url:string}=>!!x));}).catch(e=>{if(alive)setError(e instanceof Error?e.message:'시안 원문을 불러오지 못했습니다.');});
     return()=>{alive=false;entries.forEach(x=>x.item.release());urls.forEach(u=>URL.revokeObjectURL(u));};
   },[session,retry,bill,page]);
   useLayoutEffect(()=>{if(pictures.length)jump(container.current?.closest<HTMLElement>('.law-pane')||null,'proposal-'+page);},[pictures,page]);
-  return <div className="law-proposals" ref={container}>{error?<p role="status">{error} <button onClick={()=>setRetry(n=>n+1)}>다시 불러오기</button></p>:!pictures.length?<p role="status">논문의 개정안 설명을 불러오는 중…</p>:pictures.map(p=><figure key={p.page} data-law-id={'proposal-'+p.page}><figcaption>{bill?'논문의 국회 발의안 설명':'논문 부록'} · {p.page-14}쪽</figcaption><div className="law-proposal-image"><img src={p.url} alt={'인간 최종 15차 논문 '+(p.page-14)+'쪽 원문'} draggable={false}/></div></figure>)}</div>;
+  return <div className="law-proposals" ref={container}>{error?<p role="status">{error} <button onClick={()=>setRetry(n=>n+1)}>다시 불러오기</button></p>:!pictures.length?<p role="status">논문의 개정안 설명을 불러오는 중…</p>:pictures.map(p=><figure key={p.page} data-law-id={'proposal-'+p.page}><figcaption>{bill?'논문의 국회 발의안 설명':'논문 부록'} · {folioDescription(p.page)}</figcaption><div className="law-proposal-image"><img src={p.url} alt={'논문 '+folioDescription(p.page)+' 원문'} draggable={false}/></div></figure>)}</div>;
 }
 export default function LawPane({session,target,onClose}:{session:Session;target:PageTarget;onClose:()=>void}){
   const [selectedKey,setSelectedKey]=useState(()=>linkedLawKey(target)),[record,setRecord]=useState<LawRecord|null>(null),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[jumpInput,setJumpInput]=useState(''),[notice,setNotice]=useState('');
@@ -66,7 +68,7 @@ export default function LawPane({session,target,onClose}:{session:Session;target
   return <section className="source-dialog law-pane" ref={host} aria-label={bill?'국회 발의안 설명':proposal?'논문 입법시안 원문':'법령 전문'}>
     <div className="law-pane-actions"><strong>{bill?'국회 발의안 설명':proposal?'논문 입법시안':'법령 전문'}</strong><button type="button" onClick={onClose}>인용자료로 돌아가기</button></div>
     <h2>{record?.name||target.title||'인용 법령'}</h2>
-    {proposal?<><p className="law-scope">{bill?'이 인용은 국회 발의 개정안에 관한 논문의 설명입니다. 현행 법령이나 필자의 부록 시안과 구별하여 원문 쪽을 표시합니다.':'이 자료는 필자의 입법시안이며 현행 법령이 아닙니다. 인간 최종 15차 논문의 부록 원문을 그대로 표시합니다.'}</p><button onClick={()=>jump(host.current,'proposal-'+(target.targetPage||250))}>인용 부분으로 돌아가기</button><ProposalPages session={session} page={target.targetPage||250} bill={bill}/></>:<>
+    {proposal?<><p className="law-scope">{bill?'이 인용은 국회 발의 개정안에 관한 논문의 설명입니다. 현행 법령이나 필자의 부록 시안과 구별하여 원문 쪽을 표시합니다.':'이 자료는 필자의 입법시안이며 현행 법령이 아닙니다. 논문 부록 원문을 표시합니다.'}</p><button onClick={()=>jump(host.current,'proposal-'+(target.targetPage||appendixSheets[0]))}>인용 부분으로 돌아가기</button><ProposalPages session={session} page={target.targetPage||appendixSheets[0]} bill={bill}/></>:<>
       {unidentified&&<p className="law-scope" role="status">{target.status==='historical'?'이 인용은 연혁법령 또는 부칙에 관한 것으로, 적용 판본이 특정되지 않았습니다. 현재 조문으로 자동 대체하지 않습니다.':target.status==='foreign'?'외국 법령입니다. 이 법령의 전문은 아래 공식 원문에서 확인할 수 있습니다.':'이 인용의 법령명을 확정하지 못했습니다. 읽으려는 법령을 직접 선택해 주세요.'}</p>}
       {(!unidentified||target.status!=='foreign')&&<label className="law-select">{unidentified?'열람할 법령 선택':'법령 판본'}<select value={selectedKey} onChange={e=>{setSelectedKey(e.target.value);setNotice('');}}><option value="">법령 선택</option>{selectedKey&&!choices.some(v=>v.key===selectedKey)&&<option value={selectedKey}>{LAW_VERSIONS.find(v=>v.key===selectedKey)?.name} · 연결된 연혁판본</option>}{choices.map(v=><option key={v.key} value={v.key}>{v.name} · {v.status==='foreign'?'외국 법령':date(v.effectiveDate)+' 시행'}</option>)}</select></label>}
       {record&&<><p className="law-version">{record.status==='current'?'현행 판본':record.status==='foreign'?'외국법 원문':'연결된 연혁판본'} · {record.versionLabel||('시행 '+date(record.effectiveDate))}</p><p className="law-source">{record.sourceLabel} · 확인 {record.retrievedAt}</p><p className="law-scope">{record.status==='current'?'현재 시행 중인 법령입니다. 논문이 다루는 사건 당시의 적용법령과는 다를 수 있습니다.':record.status==='foreign'?'공식 외국어 원문입니다. 한국법 및 한국어 번역문과 구별하여 열람해 주세요.':'논문의 기존 링크가 가리키는 판본입니다. 오늘의 현행법과 구별하여 열람해 주세요.'} {record.scope}</p>{record.currentKey&&record.currentKey!==record.key&&<button onClick={()=>setSelectedKey(record.currentKey!)}>오늘의 현행 판본 열기</button>}</>}

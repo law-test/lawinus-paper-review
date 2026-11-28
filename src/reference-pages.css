@@ -29,3 +29,35 @@
 .reference-pane[data-reference-chrome=dragging] .reference-control-clip{height:var(--ref-controls);overflow:clip}
 .reference-pane[data-reference-chrome=hidden]>.reference-toolbar,.reference-pane[data-reference-chrome=hidden]>.source-dialog>h2,.reference-pane[data-reference-chrome=hidden] .reference-control-clip{display:none}
 @media(max-width:760px){.reference-chrome-bar{height:26px}.reference-control-body{gap:5px;padding:4px 0}}
+
+@media (max-width: 760px) {
+  .reference-pane > .reference-toolbar,
+  .reference-pane > .note-list {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 4px 8px;
+  }
+  .reference-pane > .reference-toolbar:has(> .prt-hand-toggle),
+  .reference-pane > .reference-toolbar:has(.ocr-toggle:not([hidden])) {
+    flex-wrap: nowrap;
+    min-height: 36px;
+  }
+  .reference-pane > .reference-toolbar > *,
+  .reference-pane > .reference-toolbar > div > *,
+  .reference-pane > .note-list > button {
+    flex: none;
+    white-space: nowrap;
+  }
+  .reference-pane > .reference-toolbar:has(> .prt-hand-toggle) > div {
+    flex-wrap: nowrap;
+    max-width: none;
+  }
+  .reference-pane .reference-control-body { gap: 3px; }
+  .reference-pane .reference-control-body button { padding-inline: 4px; }
+  .reference-pane .reference-control-body form,
+  .reference-pane .reference-control-body label { gap: 3px; }
+}

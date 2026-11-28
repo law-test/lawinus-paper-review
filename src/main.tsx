@@ -12,8 +12,17 @@ import CasePane from './case-pane';
 import {casesInNote,caseOriginal,type CaseOriginal,type CasePart} from './footnote-cases';
 import LawPane from './law-pane';
 import {useSectionNavigation} from './section-navigation';
-import {folioLabel,folioDescription,lastPrintedFolio,sheetForFolio} from './thesis-folios';
+import {folioLabel,folioDescription,lastPrintedFolio,lastRomanFolio,sheetForFolio} from './thesis-folios';
 import './reader.css';
+
+function publicationPage(value?:string){
+  if(!value)return;
+  try{
+    const url=new URL(value);
+    const publishers=['lbox.kr','uscode.house.gov','www.haufe.de','www.law.go.kr'];
+    if(publishers.includes(url.hostname)&&url.protocol==='https:'&&!url.username&&!url.password&&!/\.(?:pdf|hwp|hwpx|zip)(?:$|\/)/i.test(url.pathname))return url.href;
+  }catch{}
+}
 
 function Photo({session,query,label,active=true,onReady}:{session:Session;query:string;label:string;active?:boolean;onReady?:()=>void}){
   const [picture,setPicture]=useState<{query:string;url:string;token:string}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
@@ -76,7 +85,7 @@ function DocumentPane({session,start,count,notes,onPage,onTarget,compactFolio,fo
   return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><div className="paper-menu-tools">{compactFolio}</div><button type="button" className="section-back" hidden={!sections.canReturn} aria-label="이전 읽던 위치로 돌아가기" title="이전 읽던 위치로 돌아가기" onClick={sections.back}>←</button><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
     {folioNotice}
     <div className="paper-scroll" ref={host} onCopy={copyManuscriptSelection} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} data-folio={folioLabel(page)} data-folio-description={folioDescription(page)} style={{width:zoom+'%'}} tabIndex={-1} aria-label={sections.heading?.page===page&&sections.heading.title?sections.heading.title:'논문 '+folioDescription(page)}>
-      <Photo session={session} label={'논문 '+folioDescription(page)} query={'edition=1116_15&page='+page} active={visible.includes(page)}/>
+      <Photo session={session} label={'논문 '+folioDescription(page)} query={'page='+page} active={visible.includes(page)}/>
       {sections.heading?.page===page&&<span key={sections.heading.y} className="section-destination" style={{top:sections.heading.y*100+'%'}} aria-hidden="true"/>}
       {visible.includes(page)&&<PageLayer session={session} textAllowed={reading.includes(page)} query={'metadata=page&page='+page} label={'논문 '+folioDescription(page)+' 글자'}
         fallback={(noteMap.get(page)||[]).flatMap(n=>(n.markers||[]).map(m=>({...m,kind:'note' as const,number:n.number,label:'각주 '+n.number})))}
@@ -117,7 +126,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
       const value=note.number+'/'+source.id+(seen.has(source.id)?'/'+work.id:'');
       const quoted=note.text.slice(work.noteStart,work.noteEnd);
       const folio=quoted.match(/\d+(?:\s*[~～–-]\s*\d+)?(?:\s*[·,]\s*\d+(?:\s*[~～–-]\s*\d+)?)*\s*면/u)?.[0];
-      result.push({note,citation,value,title:work.label+(folio?' · '+folio.trim():''),group:work.id,sourcePage:work.sourcePage});
+      result.push({note,citation,value,title:folio&&!/\d\s*면/u.test(work.label)?work.label+' · '+folio.trim().replace(/^(?:19|20)\d{2},\s*/u,''):work.label,group:work.id,sourcePage:work.sourcePage});
       seen.add(source.id);
     }
     for(const citation of note.sources){
@@ -133,6 +142,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const selectedNote=entry?.note||notes.find(n=>chosen?.number===n.number);
   const noteLinks=useNoteLinks(selectedNote);
   const citation:Citation|undefined=entry?.citation||selectedNote?.sources.find(s=>s.id===sourceId);
+  const publicationUrl=publicationPage(citation?.officialUrl);
   const source=sourceId?sources.get(sourceId):null;
   const previews=citation?.previewPages?.length?citation.previewPages:citation?.image&&citation.page?[citation.page]:[];
   const previewPage=preview??previews[0]??(source?.pageCount?1:undefined);
@@ -234,7 +244,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const folioForm=(<form className="folio-jump" onSubmit={e=>{
         e.preventDefault();
         const sheet=sheetForFolio(pageInput);
-        if(sheet===undefined){setFolioError('표지, 제출지, i–xii 또는 1–'+lastPrintedFolio+'쪽을 입력하세요.');return;}
+        if(sheet===undefined){setFolioError('표지, 제출지, i–'+lastRomanFolio+' 또는 1–'+lastPrintedFolio+'쪽을 입력하세요.');return;}
         setFolioError('');setPageInput(folioLabel(sheet));jump(sheet);
       }}><label>인쇄 쪽 <input aria-label="논문 인쇄 쪽" aria-invalid={Boolean(folioError)} aria-describedby={folioError?'folio-error':undefined}
         value={pageInput} onChange={e=>{setPageInput(e.target.value);setFolioError('');}} autoComplete="off" autoCapitalize="none" spellCheck={false} enterKeyHint="go"/></label>
@@ -266,6 +276,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
       <section className={'source-dialog'+(chosen?.showNote?' showing-note':'')} ref={sourceScroll}><h2 data-source-group={entry?.group} data-source-id={sourceId}>{chosen?.citationTitle||(entry?.group?entry.title:undefined)||source?.title||(selectedNote?'각주 '+selectedNote.number:'이 쪽의 인용자료')}</h2>
         {chosen?.unavailableCitation&&<p role="status">{chosen.unavailableCitation} · 연결된 원문이 없어 인용 각주를 표시합니다.</p>}
         {selectedNote&&<details ref={noteDetail} key={selectedNote.number} open={chosen?.showNote||(!previewPage&&!citation?.excerpt)}><summary>각주 {selectedNote.number} 원문</summary><p><NoteText text={selectedNote.text} links={noteLinks} onTarget={t=>targetAction(t,referencePage)}/></p></details>}
+        {publicationUrl&&<p><a href={publicationUrl} target="_blank" rel="noopener noreferrer">원출처에서 보기</a></p>}
         {citation?.label&&citation.label!==source?.title&&<p className="citation-location">{citation.label}</p>}
         {citation?.excerpt&&<blockquote>{citation.verified?<mark>{citation.excerpt}</mark>:citation.excerpt}</blockquote>}
         {listedCase&&!chosen?.noteOnly&&<CasePane session={session} number={listedCase} focusKey={referenceFocus} focusJudgment={focusListedCase} renderReference={renderCasePages}/>}

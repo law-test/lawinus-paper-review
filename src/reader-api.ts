@@ -1,3 +1,4 @@
+import {editionId} from './edition';
 const base='https://cefaekvclooytgjkcqum.supabase.co/functions/v1/';
 const storageKey='examiner-session';
 export type Session={token:string;expiresAt:string|number};
@@ -5,7 +6,7 @@ declare global {interface Window {__paperReaderSession?:Session|null}}
 export type Toc={title:string;page:number;level:number};
 export type Source={id:string;title:string;kind?:string;pageCount?:number};
 export type Catalog={title:string;subtitle?:string;author?:string;pageCount:number;bodyStartPage:number;searchEnabled?:boolean;toc:Toc[];sources:Source[]};
-export type Citation={id:string;page?:number;label?:string;excerpt?:string;verified?:boolean;image?:boolean;previewPages?:number[];highlights?:{x:number;y:number;w:number;h:number}[]};
+export type Citation={id:string;page?:number;label?:string;officialUrl?:string;excerpt?:string;verified?:boolean;image?:boolean;previewPages?:number[];highlights?:{x:number;y:number;w:number;h:number}[]};
 export type Note={number:number;page:number;text:string;sources:Citation[];markers?:{x:number;y:number;w:number;h:number}[]};
 export function expiration(value:string|number){
   return typeof value==='number'?(value<1e12?value*1000:value):new Date(value).getTime();
@@ -76,6 +77,6 @@ export async function visit():Promise<Session>{
   return {token:result.token,expiresAt:result.expiresAt};
 }
 export function privateResource(session:Session,query:URLSearchParams,signal:AbortSignal){
-  query.set('edition','1116_15');
+  query.set('edition',editionId);
   return checked('examiner-page?'+query.toString(),{signal,headers:{Authorization:'Bearer '+session.token}},true);
 }
