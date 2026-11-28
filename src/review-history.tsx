@@ -106,8 +106,8 @@ export function ReviewChecklist({initialIssue,onClose,onRead}:{initialIssue?:str
         <h4>논문 수정 문단</h4><ol className="review-examples">{group.examples.map(example=><li key={example.id}><button type="button" data-review-example={example.id} onClick={()=>read(example)}><span>{shortTitle(example.title)}</span><small>{example.afterPage} →</small></button></li>)}</ol>
       </section>:reviewers.map((name,i)=><section className="review-professor" key={name}>
         <h3 id={'review-prof-'+i} tabIndex={-1}>{name} 교수님</h3><ol className="review-index-list">{issues.filter(q=>q.reviewer===name).map(q=><li key={q.id}>
-          <button className="review-issue-link" type="button" data-review-issue={q.id} onClick={()=>enter(q)}><span>{q.number}.</span>{issueTitle(q.title)}</button>
-          <button className="review-direct" type="button" data-review-direct={q.id} aria-label={name+' 교수님 수정사항 '+q.number+' 첫 수정 문단으로 이동'} onClick={()=>read(q.examples[0])}>본문으로 <span aria-hidden="true">→</span></button>
+          <button className="review-issue-link" type="button" data-review-issue={q.id} onClick={()=>read(q.examples[0])}><span>{q.number}.</span>{issueTitle(q.title)}</button>
+          <button className="review-case-list" type="button" data-review-cases={q.id} aria-label={name+' 교수님 수정사항 '+q.number+'의 수정 사례 '+q.examples.length+'개 보기'} onClick={()=>enter(q)}>사례 {q.examples.length}개</button>
         </li>)}</ol></section>)}
     </div>
   </dialog>;
@@ -163,7 +163,7 @@ export function RevisionPanel({active,related,onRead,onClose,onIssue}:{active:Ac
   const [state,setState]=useState<{id:string;data?:Detail;error?:boolean}>({id:''});
   const [attempt,setAttempt]=useState(0);
   const root=useRef<HTMLElement>(null);
-  useLayoutEffect(()=>{const el=root.current;if(el){el.scrollTop=0;el.focus({preventScroll:true});}},[active.id,active.anchor]);
+  useLayoutEffect(()=>{const el=root.current;if(el){el.scrollTop=0;el.focus({preventScroll:true});}},[active]);
   useEffect(()=>{
     if(details.has(active.id))return;
     const ctrl=new AbortController(),id=active.id;

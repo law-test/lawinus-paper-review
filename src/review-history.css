@@ -19,7 +19,7 @@
 .review-issue-link,.review-examples button{background:transparent;color:#362b30;text-align:left;border:none;border-radius:4px}
 .review-issue-link{display:flex;gap:6px;flex:1;align-items:baseline;line-height:1.62;padding:9px 5px}
 .review-issue-link>span{font-variant-numeric:tabular-nums;color:#7c4151}
-.review-direct{color:#71243a;font-size:.78rem;flex:none;border:none;padding:7px 4px;white-space:nowrap}
+.review-case-list{color:#71243a;font-size:.78rem;flex:none;padding:5px 8px;white-space:nowrap}
 .review-issue-detail{padding-top:18px}
 .review-issue-detail h3{margin:2px 0 10px;line-height:1.55}
 .review-issue-detail h4,.revision-panel h3{margin:17px 0 8px;font-size:.96rem}
@@ -55,7 +55,7 @@
  .review-modal-header{padding:12px 14px 10px}.review-modal-header h2{font-size:1.18rem}
  .review-navigation{padding:6px 10px;gap:3px}.review-navigation button{padding:4px 7px}
  .review-modal-scroll{padding:0 12px 16px}.review-issue-link,.review-examples button{font-size:.91rem}
- .revision-panel{padding:9px 12px 20px}.review-direct{font-size:.75rem}
+ .revision-panel{padding:9px 12px 20px}.review-case-list{font-size:.75rem}
 }
 
 .revision-jumps{display:flex;gap:5px;margin:14px 0 8px}
