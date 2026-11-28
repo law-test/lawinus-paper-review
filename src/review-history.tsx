@@ -180,7 +180,7 @@ export function RevisionPanel({active,related,onRead,onClose,onIssue}:{active:Ac
     const ctrl=new AbortController(),id=active.id;
     async function fetchDetail(){
       try{
-        const r=await fetch(new URL('./review-60/'+encodeURIComponent(id)+'.json',document.baseURI),{signal:ctrl.signal});
+        const r=await fetch(new URL('./review-61/'+encodeURIComponent(id)+'.json',document.baseURI),{signal:ctrl.signal});
         if(!r.ok)throw new Error();
         const value:unknown=await r.json();
         if(!isDetail(value,id))throw new Error();
@@ -207,7 +207,7 @@ export function RevisionPanel({active,related,onRead,onClose,onIssue}:{active:Ac
       const pane=root.current,el=pane?.querySelector<HTMLElement>('[data-revision-part="'+name+'"]');
       if(pane&&el){pane.scrollTop+=el.getBoundingClientRect().top-pane.getBoundingClientRect().top-9;el.focus({preventScroll:true});}
     }}>{label}</button>)}</nav><section><h3 tabIndex={-1} data-revision-part="before">수정 전 <small>15차 제출본 · {sample.beforePage}</small></h3><Quote runs={data.before}/></section>
-      <section><h3 tabIndex={-1} data-revision-part="after">수정 후 <small>60차 원고 · {sample.afterPage}</small></h3><Quote runs={data.after}/></section>
+      <section><h3 tabIndex={-1} data-revision-part="after">수정 후 <small>61차 원고 · {sample.afterPage}</small></h3><Quote runs={data.after}/></section>
       <section className="revision-reason"><h3 tabIndex={-1} data-revision-part="why">수정 이유</h3>{data.reason.map((text,i)=><p key={i}>{text}</p>)}</section></>:
       error?<div role="status">수정이력을 불러오지 못했습니다. <button type="button" onClick={()=>{setState({id:''});setAttempt(n=>n+1);}}>다시 시도</button></div>:<p role="status">수정이력을 불러오는 중…</p>}
   </section>;
