@@ -14,6 +14,7 @@ import LawPane from './law-pane';
 import {useSectionNavigation} from './section-navigation';
 import {folioLabel,folioDescription,lastPrintedFolio,lastRomanFolio,sheetForFolio} from './thesis-folios';
 import './reader.css';
+import {ChecklistButton,ReviewChecklist,RevisionMarkers,RevisionPanel,showChecklistOnArrival,type ActiveRevision,type Anchor} from './review-history';
 
 function publicationPage(value?:string){
   if(!value)return;
@@ -46,7 +47,7 @@ function Photo({session,query,label,active=true,onReady}:{session:Session;query:
   return picture&&picture.token===session.token&&picture.query===query?<img src={picture.url} alt={label} draggable={false} onLoad={onReady}/>:<div className="image-status" role="status">쪽을 불러오는 중…</div>;
 }
 
-function DocumentPane({session,start,count,notes,onPage,onTarget,compactFolio,folioNotice}:{compactFolio:React.ReactNode;folioNotice:React.ReactNode;session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onTarget:(t:PageTarget,page:number)=>void}){
+function DocumentPane({session,start,count,notes,onPage,onTarget,compactFolio,folioNotice,reviewButton,activeRevision,onRevision}:{reviewButton:React.ReactNode;activeRevision:ActiveRevision|null;onRevision:(id:string,anchor:Anchor,related:string[])=>void;compactFolio:React.ReactNode;folioNotice:React.ReactNode;session:Session;start:number;count:number;notes:Note[];onPage:(page:number)=>void;onTarget:(t:PageTarget,page:number)=>void}){
   const host=useRef<HTMLDivElement>(null);
   const [visible,setVisible]=useState<number[]>([start]);
   const [reading,setReading]=useState<number[]>([start]);
@@ -82,7 +83,7 @@ function DocumentPane({session,start,count,notes,onPage,onTarget,compactFolio,fo
     return()=>{observer.disconnect();textObserver.disconnect();pageSize.disconnect();scroll.removeEventListener('scroll',update);window.removeEventListener('paper:navigate',navigate);};
   },[count,start,onPage]);
   const sections=useSectionNavigation(host,start,onPage);
-  return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><div className="paper-menu-tools">{compactFolio}</div><button type="button" className="section-back" hidden={!sections.canReturn} aria-label="이전 읽던 위치로 돌아가기" title="이전 읽던 위치로 돌아가기" onClick={sections.back}>←</button><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
+  return <main className="manuscript-pane" data-native-text="true" aria-label="논문 본문"><div className="paper-actions"><strong>논문</strong><div className="paper-menu-tools">{compactFolio}</div>{reviewButton}<button type="button" className="section-back" hidden={!sections.canReturn} aria-label="이전 읽던 위치로 돌아가기" title="이전 읽던 위치로 돌아가기" onClick={sections.back}>←</button><label>확대 <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[85,100,125,150,200].map(v=><option key={v} value={v}>{v}%</option>)}</select></label></div>
     {folioNotice}
     <div className="paper-scroll" ref={host} onCopy={copyManuscriptSelection} tabIndex={0} aria-label="논문 연속 스크롤">{positions.map(page=><article className="paper-page" key={page} data-page={page} data-folio={folioLabel(page)} data-folio-description={folioDescription(page)} style={{width:zoom+'%'}} tabIndex={-1} aria-label={sections.heading?.page===page&&sections.heading.title?sections.heading.title:'논문 '+folioDescription(page)}>
       <Photo session={session} label={'논문 '+folioDescription(page)} query={'page='+page} active={visible.includes(page)}/>
@@ -90,11 +91,17 @@ function DocumentPane({session,start,count,notes,onPage,onTarget,compactFolio,fo
       {visible.includes(page)&&<PageLayer session={session} textAllowed={reading.includes(page)} query={'metadata=page&page='+page} label={'논문 '+folioDescription(page)+' 글자'}
         fallback={(noteMap.get(page)||[]).flatMap(n=>(n.markers||[]).map(m=>({...m,kind:'note' as const,number:n.number,label:'각주 '+n.number})))}
         onTarget={t=>onTarget(t,page)}/>}
+      {visible.includes(page)&&<RevisionMarkers page={page} active={activeRevision} onPick={onRevision}/>}
     </article>)}</div></main>;
 }
 
 function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalog:Catalog;notes:Note[]}){
   const initial=Math.max(1,Math.min(catalog.bodyStartPage||1,catalog.pageCount));
+  const [checklist,setChecklist]=useState(showChecklistOnArrival);
+  const [reviewIssue,setReviewIssue]=useState<string>();
+  const [revision,setRevision]=useState<ActiveRevision|null>(null);
+  const [related,setRelated]=useState<string[]>([]);
+  const markerTrigger=useRef<HTMLElement|null>(null);
   const [legal,setLegal]=useState<PageTarget|null>(null);
   const [caseTarget,setCaseTarget]=useState<PageTarget|null>(null);
   const [referenceFocus,setReferenceFocus]=useState(0);
@@ -182,6 +189,35 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   const change=useCallback((p:number)=>{if(readingPage.current===p)return;readingPage.current=p;setPage(p);setPageInput(folioLabel(p));setFolioError('');setOwn(previous=>previous?.page===p?previous:null);},[]);
   useEffect(()=>{window.dispatchEvent(new CustomEvent('paper:page',{detail:{page}}));},[page]);
   const jump=(p:number)=>window.dispatchEvent(new CustomEvent('paper:navigate',{detail:{page:Math.max(1,Math.min(p,catalog.pageCount))}}));
+  function showChecklist(id?:string){
+    setReviewIssue(id);setChecklist(true);
+  }
+  function closeRevision(){
+    setRevision(null);
+    requestAnimationFrame(()=>{
+      const focused=document.activeElement;
+      if(focused&&focused!==document.body&&focused!==document.documentElement&&focused.isConnected)return;
+      const origin=markerTrigger.current;
+      if(origin?.isConnected)origin.focus({preventScroll:true});
+      else document.querySelector<HTMLElement>('.paper-actions .review-launch,.examiner-header .review-launch')?.focus({preventScroll:true});
+    });
+  }
+  function pickRevision(id:string,anchor:Anchor,nearby=anchor.exampleIds){
+    markerTrigger.current=document.activeElement instanceof HTMLElement?document.activeElement:null;
+    setRelated(nearby);setRevision({id,anchor});
+  }
+  function jumpRevision(id:string,anchor:Anchor){
+    setChecklist(false);setToc(false);
+    window.dispatchEvent(new CustomEvent('paper:section',{detail:{fromPage:readingPage.current,page:anchor.page,y:anchor.y,title:'수정된 문단'}}));
+    setRelated(nearby=>revision&&nearby.includes(id)&&revision.anchor.page===anchor.page?nearby:anchor.exampleIds);
+    setRevision({id,anchor});
+  }
+  useEffect(()=>{
+    // The browser Back button and the manuscript's return arrow restore normal reading.
+    const back=()=>setRevision(null);
+    window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);
+  },[]);
+  const launch=<ChecklistButton open={checklist} onClick={()=>showChecklist()}/>;
   const caseNote=caseTarget?.noteNumber;
   const companionCases=casesInNote(caseNote);
   const displayedNumber=caseTarget?.caseNumber||caseTarget?.label;
@@ -189,13 +225,14 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
     (catalogCase(o.citation.id)===displayedNumber||caseOriginal(displayedNumber)?.sourceId===o.citation.id)):undefined;
   const shownOption=caseTarget?selectedCaseOption:(chosen?.noteOnly?undefined:entry);
   function openCase(number:string,noteNumber?:number){
+    setRevision(null);
     setReferenceFocus(v=>v+1);
     setLegal(null);
     setList(false);
     setCaseTarget({kind:'case',caseNumber:number,noteNumber,x:0,y:0,w:0,h:0});
   }
   function openNote(n:Note,where:number,sourceId?:string,sourcePage?:number,citationTitle?:string,group?:string){
-    setList(false);
+    setRevision(null);setList(false);
     setOwn({page:where,number:n.number,id:sourceId||n.sources[0]?.id,showNote:true,citationTitle,group,sourcePage});
     const first=casesInNote(n.number)[0];
     if(first&&!sourceId){openCase(first,n.number);return;}
@@ -210,6 +247,7 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
   }
   const chooseNote=(n:Note)=>openNote(n,referencePage);
   function targetAction(t:PageTarget,fromPage:number){
+    setRevision(null);
     if(t.kind==='section'){
       window.dispatchEvent(new CustomEvent('paper:section',{detail:{fromPage,page:t.targetPage,y:t.targetY,title:t.title}}));
       return;
@@ -250,22 +288,22 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
         value={pageInput} onChange={e=>{setPageInput(e.target.value);setFolioError('');}} autoComplete="off" autoCapitalize="none" spellCheck={false} enterKeyHint="go"/></label>
         {!menusCollapsed&&<span>/ {lastPrintedFolio}쪽</span>}<button>이동</button></form>);
   const folioNotice=folioError&&<small id="folio-error" role="status">{folioError}</small>;
-  return <div className="examiner-app"><div id="reading-menus" className="reading-menus"><div className="reading-menus-content"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/><button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);}} aria-expanded={list}>참고문헌</button></nav></header>
+  return <div className="examiner-app"><div id="reading-menus" className="reading-menus"><div className="reading-menus-content"><header className="examiner-header"><KuBrand/><div className="paper-heading"><small>박사학위논문 · {catalog.author}</small><h1>{catalog.title}</h1>{catalog.subtitle&&<p>{catalog.subtitle}</p>}</div><nav><span className="reader-tools-slot"/>{!menusCollapsed&&launch}<button type="button" onClick={()=>setToc(v=>!v)} aria-expanded={toc}>목차·검색</button><button type="button" onClick={()=>{setRevision(null);setLegal(null);setCaseTarget(null);setList(v=>!v);}} aria-expanded={list}>참고문헌</button></nav></header>
     <section className="page-controls" data-current-sheet={page}><button disabled={page===1} onClick={()=>jump(page-1)}>이전</button>{!menusCollapsed&&folioForm}<button disabled={page===catalog.pageCount} onClick={()=>jump(page+1)}>다음</button>{!menusCollapsed&&folioNotice}</section>
     </div></div>
     <div className="reader-layout">{toc&&<ContentsSearch session={session} catalog={catalog} notes={catalog.searchEnabled===true?notes:pageNotes} go={(p,n)=>{setToc(false);jump(p);if(n)openNote(n,p);}}/>}
       <SourceHighlightScope><DocumentPane session={session} start={initial} count={catalog.pageCount} notes={notes} onPage={change} onTarget={targetAction}
-        compactFolio={menusCollapsed&&folioForm} folioNotice={menusCollapsed&&folioNotice}/></SourceHighlightScope>
-      <aside className="reference-pane" aria-label="참고문헌"><div className="reference-toolbar"><strong>참고문헌·원전</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={shownOption?.value??''} onChange={e=>{
+        reviewButton={menusCollapsed&&launch} activeRevision={revision} onRevision={pickRevision} compactFolio={menusCollapsed&&folioForm} folioNotice={menusCollapsed&&folioNotice}/></SourceHighlightScope>
+      <aside className="reference-pane" aria-label={revision?"수정이력":"참고문헌"}><div className="reference-toolbar"><strong>{revision?"수정이력 추적":"참고문헌·원전"}</strong><div>{options.length>0&&<select aria-label="이 쪽의 인용자료" value={shownOption?.value??''} onChange={e=>{
           const opt=options.find(o=>o.value===e.target.value);
           if(!opt)return;
-          setLegal(null);setList(false);
+          setRevision(null);setLegal(null);setList(false);
           setOwn({page:referencePage,number:opt.note.number,id:opt.citation.id,group:opt.group,sourcePage:opt.sourcePage});
           const number=catalogCase(opt.citation.id)||casesInNote(opt.note.number).find(id=>caseOriginal(id)?.sourceId===opt.citation.id);
           if(number)openCase(number,opt.note.number);else{setCaseTarget(null);setReferenceFocus(v=>v+1);}
         }}><option value="" disabled>{chosen?.noteOnly&&!caseTarget?'각주 원문 · 인용자료 선택':'이 쪽의 인용자료'}</option>{options.map(o=><option key={o.value} value={o.value} data-source-group={o.group}>각주 {o.note.number} · {o.title}</option>)}</select>}
-        <button onClick={()=>{setLegal(null);setCaseTarget(null);setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
-      {legal?<LawPane session={session} target={legal} onClose={()=>setLegal(null)}/>:caseTarget?<CasePane session={session} target={caseTarget} onClose={returnToNote} focusKey={referenceFocus} renderReference={renderCasePages}
+        <button onClick={()=>{setRevision(null);setLegal(null);setCaseTarget(null);setList(v=>!v);setOwn(null);}}>{list?'본문 따라가기':'자료 목록'}</button></div></div>
+      {revision?<RevisionPanel active={revision} related={related} onRead={jumpRevision} onClose={closeRevision} onIssue={showChecklist}/>:legal?<LawPane session={session} target={legal} onClose={()=>setLegal(null)}/>:caseTarget?<CasePane session={session} target={caseTarget} onClose={returnToNote} focusKey={referenceFocus} renderReference={renderCasePages}
         navigation={<>
           {companionCases.length<=1&&<strong className="current-case-number">{displayedNumber}</strong>}
           {companionCases.length>1&&<select aria-label="이 각주의 인용 판례" value={caseTarget.caseNumber||caseTarget.label||''} onChange={e=>openCase(e.target.value,caseNote)}>
@@ -284,8 +322,10 @@ function Workspace({session,catalog,notes:originalNotes}:{session:Session;catalo
         {!source&&!selectedNote&&<p>이 쪽에 연결된 인용자료가 없습니다.</p>}
         {source&&!listedCase&&(!citation||(!citation.excerpt&&!previewPage))&&<p>현재 자료의 서지와 연결 각주를 표시합니다.</p>}
       </section>}
-      {!legal&&!caseTarget&&!list&&pageNotes.length>0&&<div className="note-list" aria-label="이 쪽의 각주">{pageNotes.map(n=><button key={n.number} onClick={()=>chooseNote(n)} aria-pressed={selectedNote?.number===n.number}>각주 {n.number}</button>)}</div>}
-    </aside></div></div>;
+      {!revision&&!legal&&!caseTarget&&!list&&pageNotes.length>0&&<div className="note-list" aria-label="이 쪽의 각주">{pageNotes.map(n=><button key={n.number} onClick={()=>chooseNote(n)} aria-pressed={selectedNote?.number===n.number}>각주 {n.number}</button>)}</div>}
+    </aside></div>
+    {checklist&&<ReviewChecklist initialIssue={reviewIssue} onClose={()=>setChecklist(false)} onRead={jumpRevision}/>}
+  </div>;
 }
 
 function ReadingSession({session}:{session:Session}){
