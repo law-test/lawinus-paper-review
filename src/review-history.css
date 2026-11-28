@@ -40,6 +40,9 @@
 .revision-panel{flex:1;min-height:0;overflow:auto;padding:12px clamp(12px,2vw,23px) 25px;overscroll-behavior:contain;background:white;scrollbar-gutter:stable}
 .revision-panel-nav{flex-wrap:wrap;gap:4px;align-items:flex-start}
 .revision-panel-nav button{background:#fbf7f8;color:#752d45;border-color:#ddcbd0}
+.revision-panel-nav .revision-next{margin-inline-start:auto;background:#79243d;border-color:#79243d;color:white;white-space:nowrap}
+.revision-panel-nav .revision-next:disabled{background:#f3f0f1;border-color:#ddd5d7;color:#695c60;cursor:default}
+.revision-panel p.revision-issue-title{margin:11px 0 0;padding:8px 0 12px;border-bottom:1px solid #e3d8db;font-size:1rem;font-weight:650;line-height:1.6;overflow-wrap:anywhere}
 .revision-panel h2{font-family:"Nanum Myeongjo","Batang",serif;font-size:clamp(17px,1.5vw,22px);line-height:1.5;margin:16px 0 12px;letter-spacing:-.025em}
 .revision-panel h3{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;color:#442b34;font-size:1rem}
 .revision-panel h3 small{font-size:.77rem;color:#75676b;font-weight:500}

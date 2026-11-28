@@ -160,6 +160,17 @@ function Quote({runs}:{runs:Run[]}){
 }
 export function RevisionPanel({active,related,onRead,onClose,onIssue}:{active:ActiveRevision;related:string[];onRead:(id:string,anchor:Anchor)=>void;onClose:()=>void;onIssue:(id?:string)=>void}){
   const sample=examples.get(active.id)!,group=groupByExample.get(active.id);
+  const nextIssue = group ? issues[issues.indexOf(group) + 1] : undefined;
+  const nextExample = nextIssue?.examples[0];
+  const nextAnchor = nextExample && firstAnchor(nextExample.id);
+  const nextLabel = nextIssue
+    ? '다음 수정사항 · ' + nextIssue.reviewer + ' 교수님 수정사항 ' + nextIssue.number
+    : '마지막 수정사항';
+  const nextButton = group && <button className="revision-next" type="button" data-review-next={nextIssue?.id || ''}
+    disabled={!nextAnchor} aria-label={nextLabel} title={nextLabel}
+    onClick={()=>{if(nextExample && nextAnchor)onRead(nextExample.id,nextAnchor);}}>
+    {nextIssue ? '다음 수정사항' : '마지막 수정사항'} <span aria-hidden="true">→</span>
+  </button>;
   const [state,setState]=useState<{id:string;data?:Detail;error?:boolean}>({id:''});
   const [attempt,setAttempt]=useState(0);
   const root=useRef<HTMLElement>(null);
@@ -183,7 +194,8 @@ export function RevisionPanel({active,related,onRead,onClose,onIssue}:{active:Ac
   const error=state.id===active.id&&state.error;
   const points=locations.get(active.id)||[];
   return <section ref={root} className="revision-panel" data-review-active={active.id} tabIndex={-1} aria-label="수정이력 추적">
-    <div className="revision-panel-nav">{group?<button type="button" onClick={()=>onIssue(group.id)}>{group.reviewer} 교수님 · 수정사항 {group.number}</button>:<span>원고 수정</span>}<button type="button" className="revision-close" onClick={onClose}>참고자료로 돌아가기</button></div>
+    <div className="revision-panel-nav">{group?<button type="button" onClick={()=>onIssue(group.id)}>{group.reviewer} 교수님 · 수정사항 {group.number}</button>:<span>원고 수정</span>}<button type="button" className="revision-close" onClick={onClose}>참고자료로 돌아가기</button>{nextButton}</div>
+    {group && <p className="revision-issue-title" data-review-issue-title={group.id}>{issueTitle(group.title)}</p>}
     <h2>{shortTitle(sample.title)}</h2>
     {related.length>1&&<div className="revision-related"><h3>이 위치의 다른 수정이력</h3>{related.filter(id=>id!==active.id).map(id=>{
       const dest=(locations.get(id)||[]).filter(a=>a.page===active.anchor.page).sort((a,b)=>Math.abs(a.y-active.anchor.y)-Math.abs(b.y-active.anchor.y))[0]||firstAnchor(id);
